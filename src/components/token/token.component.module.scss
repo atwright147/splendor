@@ -1,0 +1,48 @@
+.token {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  text-align: center;
+}
+
+.container + .container {
+  margin-top: .5rem;
+}
+
+.black {
+  background-color: black;
+}
+
+.red {
+  background-color: red;
+}
+
+.green {
+  background-color: green;
+}
+
+.blue {
+  background-color: blue;
+}
+
+.white {
+  background-color: white;
+}
+
+.gold {
+  background-color: gold;
+}
+
+.gold,
+.white {
+  color: black;
+}
+
+.black,
+.red,
+.green,
+.blue {
+  color: white;
+}

@@ -7,3 +7,5 @@ export const Colors = Object.freeze({
 });
 
 export type ColorsType = 'black' | 'blue' | 'green' | 'red' | 'white';
+
+export type TokenColorsType = ColorsType & 'gold';
