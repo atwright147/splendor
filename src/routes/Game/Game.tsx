@@ -3,11 +3,11 @@ import cardsJson from '../../../ref/cards.json';
 import noblesJson from '../../../ref/nobles.json';
 
 import { Card } from '../../components/card/card.component';
-import styles from './Game.module.scss';
 import { Token } from '../../components/token/token.component';
 import { ColorsType, TokenColorsType } from '../../types/colors.type';
 import { CardBack } from '../../components/card-back/card-back.component';
 import { Noble } from '../../components/noble/noble.component';
+import styles from './Game.module.scss';
 
 export const Game = (): JSX.Element => {
   const [cards, setCards] = useState<any>(cardsJson);
