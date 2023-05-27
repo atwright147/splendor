@@ -1,11 +1,9 @@
-export const Colors = Object.freeze({
+export const Colors = {
   Black: 'black',
   Blue: 'blue',
   Green: 'green',
   Red: 'red',
   White: 'white',
-});
+} as const;
 
-export type ColorsType = 'black' | 'blue' | 'green' | 'red' | 'white';
-
-export type TokenColorsType = ColorsType & 'gold';
+export type ColorKeys = typeof Colors[keyof typeof Colors];

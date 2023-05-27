@@ -1,12 +1,12 @@
 import { FC } from 'react';
 import classNames from 'classnames';
-import { ColorsType } from '../../types/colors.type';
+import { ColorKeys } from '../../types/colors.type';
 
 import styles from './token.component.module.scss';
 
 interface Props {
-  color: ColorsType,
-  label: string,
+  color: ColorKeys,
+  label: string | number,
   size?: number,
 }
 
