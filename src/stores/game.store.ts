@@ -8,7 +8,7 @@ import noblesAll from '../../ref/nobles.json';
 import type { Card } from '../types/cards.type';
 import type { Noble } from '../types/noble.type';
 import { random } from 'radash';
-import { ColorKeys } from '../types/colors.type';
+import { TokenColorValues } from '../types/colors.type';
 
 // type BoardState = {
 //   cards: {
@@ -97,7 +97,7 @@ interface Board {
     level3: Card[],
   },
   tokens: {
-    [color in ColorKeys]: number
+    [color in TokenColorValues]: number
   },
   nobles: Noble[],
 }
@@ -118,6 +118,7 @@ const initialBoardState: Board = {
     level3: [],
   },
   tokens: {
+    gold: 0,
     black: 0,
     blue: 0,
     green: 0,
@@ -162,6 +163,7 @@ export const useGameStore = create<Store>()(
             level3,
           },
           tokens: {
+            gold: 5, // always 5 (I think?)
             black: 4,
             blue: 4,
             green: 4,

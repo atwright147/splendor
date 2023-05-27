@@ -1,11 +1,11 @@
 import { FC } from 'react';
 import classNames from 'classnames';
-import { ColorKeys } from '../../types/colors.type';
+import { GemColorValues } from '../../types/colors.type';
 
 import styles from './gem.component.module.scss';
 
 interface Props {
-  color: ColorKeys,
+  color: GemColorValues,
   quantity: number,
   width?: number,
 }

@@ -1,13 +1,13 @@
-import type { ColorKeys } from './colors.type';
+import type { GemColorValues } from './colors.type';
 
 export interface Price {
-  color: ColorKeys,
+  color: GemColorValues,
   quantity: number,
 }
 
 export interface Card {
   level: number,
-  gemColor: ColorKeys,
+  gemColor: GemColorValues,
   price: Price[],
   gemQuantity: number,
 }
