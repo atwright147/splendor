@@ -1,6 +1,3 @@
-import { useState, useEffect } from 'react';
-import cardsJson from '../../../ref/cards.json';
-import noblesJson from '../../../ref/nobles.json';
 import { useGameStore } from '../../stores/game.store';
 
 import { Card } from '../../components/card/card.component';
@@ -11,17 +8,6 @@ import styles from './Game.module.scss';
 import { PlayerInfo } from '../../components/player-info/player-info.component';
 
 export const Game = (): JSX.Element => {
-  // const [cards, setCards] = useState<any>(cardsJson);
-  // const [nobles, setNobles] = useState<any>(noblesJson);
-  // const [tokens, setTokens] = useState([
-  //   { quantity: 4, color: 'gold' as TokenColorsType },
-  //   { quantity: 4, color: 'black' as TokenColorsType },
-  //   { quantity: 4, color: 'red' as TokenColorsType },
-  //   { quantity: 4, color: 'green' as TokenColorsType },
-  //   { quantity: 4, color: 'blue' as TokenColorsType },
-  //   { quantity: 4, color: 'white' as TokenColorsType },
-  // ]);
-
   const { board, init } = useGameStore();
   useEffect(() => init(), [init]);
 
