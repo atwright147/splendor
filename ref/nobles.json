@@ -1,5 +1,6 @@
 [
   {
+    "id": 1,
     "price": [
       {
         "color": "black",
@@ -25,6 +26,7 @@
     "prestige": 3
   },
   {
+    "id": 2,
     "price": [
       {
         "color": "black",
@@ -50,6 +52,7 @@
     "prestige": 3
   },
   {
+    "id": 3,
     "price": [
       {
         "color": "black",
@@ -75,6 +78,7 @@
     "prestige": 3
   },
   {
+    "id": 4,
     "price": [
       {
         "color": "black",
@@ -100,6 +104,7 @@
     "prestige": 3
   },
   {
+    "id": 5,
     "price": [
       {
         "color": "black",
@@ -125,6 +130,7 @@
     "prestige": 3
   },
   {
+    "id": 6,
     "price": [
       {
         "color": "black",
@@ -150,6 +156,7 @@
     "prestige": 3
   },
   {
+    "id": 7,
     "price": [
       {
         "color": "black",
@@ -175,6 +182,7 @@
     "prestige": 3
   },
   {
+    "id": 8,
     "price": [
       {
         "color": "black",
@@ -200,6 +208,7 @@
     "prestige": 3
   },
   {
+    "id": 9,
     "price": [
       {
         "color": "black",
@@ -225,6 +234,7 @@
     "prestige": 3
   },
   {
+    "id": 10,
     "price": [
       {
         "color": "black",

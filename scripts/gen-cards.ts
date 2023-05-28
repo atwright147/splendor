@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import fs from 'node:fs';
 import path from 'node:path';
+import { v4 as uuidv4 } from 'uuid';
 
 import type { Card } from '../src/types/cards.type';
 import type { GemColorValues } from '../src/types/colors.type';
@@ -37,6 +38,7 @@ for (const cardLine of cardLines) {
   /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
   const card: Card = {
+    id: uuidv4(),
     level: numberOrZero(currentLevel),
     gemColor: currentGemColor,
     price: [

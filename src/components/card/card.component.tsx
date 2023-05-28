@@ -1,20 +1,31 @@
-import { FC } from 'react';
-import type { Card as CardProps } from '../../types/cards.type';
-
-import styles from './card.component.module.scss';
+import { ComponentPropsWithoutRef, FC } from 'react';
+import classnames from 'classnames';
+import type { Card as CardType } from '../../types/cards.type';
 import { Gem } from '../gem/gem.component';
 
-export const Card: FC<CardProps> = (props): JSX.Element => {
+import styles from './card.component.module.scss';
+
+// https://stackoverflow.com/a/66810748/633056
+type Props = Omit<CardType, 'id'> & ComponentPropsWithoutRef<'div'>;
+
+export const Card: FC<Props> = ({
+  level,
+  gemColor,
+  price,
+  gemQuantity,
+  className,
+  ...props
+}): JSX.Element => {
 
   return (
-    <div className={styles.container}>
+    <div className={classnames(styles.container, className)} {...props} data-level={level}>
       <div className={styles.top}>
-        <Gem color={props.gemColor} quantity={props.gemQuantity} width={50} />
+        <Gem color={gemColor} quantity={gemQuantity} width={50} />
       </div>
 
       <div className={styles.bottom}>
-        {props.price.map((gem) => (
-            <Gem color={gem.color} quantity={gem.quantity} width={30} />
+        {price.map((gem, index) => (
+            <Gem key={index} color={gem.color} quantity={gem.quantity} width={30} />
         ))}
       </div>
     </div>

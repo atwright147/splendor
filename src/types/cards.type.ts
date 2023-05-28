@@ -1,4 +1,5 @@
 import type { GemColorValues } from './colors.type';
+import { Uuid } from './utils.types';
 
 export interface Price {
   color: GemColorValues,
@@ -6,6 +7,7 @@ export interface Price {
 }
 
 export interface Card {
+  id: Uuid,
   level: number,
   gemColor: GemColorValues,
   price: Price[],
