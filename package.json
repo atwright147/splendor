@@ -8,7 +8,8 @@
     "gen:cards": "ts-node --esm ./scripts/gen-cards.ts",
     "build": "tsc && vite build",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@fontsource/noticia-text": "^4.5.9",
