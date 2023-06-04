@@ -11,7 +11,7 @@ import { Uuid } from '../../types/utils.types';
 import { TokenColorValues } from '../../types/colors.type';
 
 export const Game: FC = (): JSX.Element => {
-  const { board, init } = useGameStore();
+  const { board, init, takeToken } = useGameStore();
   useEffect(() => init(), [init]);
 
   const handleCardClick = (id: Uuid, level: number): void => {
@@ -20,6 +20,7 @@ export const Game: FC = (): JSX.Element => {
 
   const handleTokenClick = (color: TokenColorValues): void => {
     console.info(color);
+    takeToken(color, 0);
   }
 
   return (

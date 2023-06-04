@@ -9,6 +9,7 @@ import type { Card } from '../types/cards.type';
 import type { Noble } from '../types/noble.type';
 import { random } from 'radash';
 import { TokenColorValues } from '../types/colors.type';
+import { klona } from 'klona';
 
 // type BoardState = {
 //   cards: {
@@ -90,7 +91,7 @@ import { TokenColorValues } from '../types/colors.type';
 //       };
 //     };
 
-interface Board {
+interface BoardState {
   cards: {
     level1: Card[],
     level2: Card[],
@@ -102,16 +103,25 @@ interface Board {
   nobles: Noble[],
 }
 
+interface PlayerState {
+  cards: Card[],
+  nobles: Noble[],
+  prestige: number,
+  tokens: {
+    [color in TokenColorValues]: number;
+  },
+}
+
 export interface Store {
-  board: Board,
+  board: BoardState,
+  players: PlayerState[],
   DECK_ALL: Card[],
   NOBLES_ALL: Noble[],
   init: () => void,
-  // increment: () => void,
-  // decrement: () => void,
+  takeToken: (color: TokenColorValues, playerId: number) => void,
 }
 
-const initialBoardState: Board = {
+const initialBoardState: BoardState = {
   cards: {
     level1: [],
     level2: [],
@@ -128,10 +138,25 @@ const initialBoardState: Board = {
   nobles: [],
 }
 
+const initialPlayerState: PlayerState = {
+  cards: [],
+  nobles: [],
+  prestige: 0,
+  tokens: {
+    gold: 0,
+    black: 0,
+    blue: 0,
+    green: 0,
+    red: 0,
+    white: 0,
+  },
+}
+
 export const useGameStore = create<Store>()(
   devtools(
     (set, get) => ({
       board: initialBoardState,
+      players: [initialPlayerState],
       // @ts-ignore
       DECK_ALL: deckAll,
       // @ts-ignore
@@ -156,7 +181,7 @@ export const useGameStore = create<Store>()(
           nobles.push(...allNobles.splice(random(0, allNobles.length - 1), 1))
         }
 
-        const board: Board = {
+        const board: BoardState = {
           cards: {
             level1,
             level2,
@@ -174,8 +199,17 @@ export const useGameStore = create<Store>()(
         }
         set({ board }, false, 'init')
       },
-      // increment: () => set((state) => ({ count: state.count + 1 })),
-      // decrement: () => set((state) => ({ count: get().count > 0 ? state.count - 1 : 0 })),
+      takeToken: (color, playerId) => {
+        if (get().board.tokens[color] > 0) {
+          const players = klona(get().players);
+          players[playerId].tokens[color] = players[playerId].tokens[color] + 1;
+
+          const board = klona(get().board);
+          board.tokens[color] = board.tokens[color] - 1;
+
+          set({ players });
+        }
+      },
     }),
     { enabled: true },
   ),
