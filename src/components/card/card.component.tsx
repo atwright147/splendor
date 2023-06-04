@@ -25,7 +25,7 @@ export const Card: FC<Props> = ({
 
       <div className={styles.bottom}>
         {price.map((gem, index) => (
-            <Gem key={index} color={gem.color} quantity={gem.quantity} width={30} />
+          <Gem key={index} color={gem.color} quantity={gem.quantity} width={30} />
         ))}
       </div>
     </div>
