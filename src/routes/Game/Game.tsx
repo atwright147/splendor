@@ -11,11 +11,12 @@ import { Uuid } from '../../types/utils.types';
 import { TokenColorValues } from '../../types/colors.type';
 
 export const Game: FC = (): JSX.Element => {
-  const { board, init, takeToken } = useGameStore();
+  const { board, buyCard, init, players, takeToken } = useGameStore();
   useEffect(() => init(), [init]);
 
   const handleCardClick = (id: Uuid, level: number): void => {
     console.info(id, level);
+    buyCard(id, level, 0);
   }
 
   const handleTokenClick = (color: TokenColorValues): void => {
@@ -26,6 +27,12 @@ export const Game: FC = (): JSX.Element => {
   return (
     <div className={styles.table}>
       <div className={styles.players}>
+        {players.map((player, index) => (
+          <PlayerInfo key={index} ownedTokens={player.cards} tempTokens={player.tokens} />
+        ))}
+
+        <hr />
+
         <PlayerInfo />
         <PlayerInfo />
         <PlayerInfo />

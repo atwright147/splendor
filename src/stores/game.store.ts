@@ -10,6 +10,7 @@ import type { Noble } from '../types/noble.type';
 import { random } from 'radash';
 import { TokenColorValues } from '../types/colors.type';
 import { klona } from 'klona';
+import { Uuid } from '../types/utils.types';
 
 // type BoardState = {
 //   cards: {
@@ -104,7 +105,9 @@ interface BoardState {
 }
 
 interface PlayerState {
-  cards: Card[],
+  cards: {
+    [color in TokenColorValues]: number;
+  },
   nobles: Noble[],
   prestige: number,
   tokens: {
@@ -119,6 +122,7 @@ export interface Store {
   NOBLES_ALL: Noble[],
   init: () => void,
   takeToken: (color: TokenColorValues, playerId: number) => void,
+  buyCard: (id: Uuid, level: number, playerId: number) => void,
 }
 
 const initialBoardState: BoardState = {
@@ -139,7 +143,14 @@ const initialBoardState: BoardState = {
 }
 
 const initialPlayerState: PlayerState = {
-  cards: [],
+  cards: {
+    gold: 0,
+    black: 0,
+    blue: 0,
+    green: 0,
+    red: 0,
+    white: 0,
+  },
   nobles: [],
   prestige: 0,
   tokens: {
@@ -207,9 +218,23 @@ export const useGameStore = create<Store>()(
           const board = klona(get().board);
           board.tokens[color] = board.tokens[color] - 1;
 
-          set({ players });
+          set({ players, board }, false, 'takeCard');
         }
       },
+      buyCard: (id, level, playerId) => {
+        const board = klona(get().board);
+        const index = (board.cards[`level${level}`] as Card[]).findIndex((card) => card.id === id);
+        const cardToMove = (board.cards[`level${level}`] as Card[]).splice(index, 1)[0];
+
+        const allCardsOfLevel = get().DECK_ALL.filter((card) => card.level === level);
+        const cardToAdd = allCardsOfLevel.splice(random(0, allCardsOfLevel.length - 1), 1)[0];
+        (board.cards[`level${level}`] as Card[])[index] = cardToAdd;
+
+        const players = klona(get().players);
+        (players[playerId] as PlayerState).cards[cardToMove.gemColor] += 1;
+
+        set({ board, players }, false, 'buyCard');
+      }
     }),
     { enabled: true },
   ),
