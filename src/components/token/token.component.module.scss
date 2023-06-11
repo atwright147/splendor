@@ -6,6 +6,16 @@
   display: flex;
   text-align: center;
   cursor: pointer;
+  border-width: 3px;
+  border-style: solid;
+  box-sizing: border-box;
+  user-select: none;
+
+  &.empty {
+    background-color: transparent;
+    border-style: dashed;
+    color: black;
+  }
 }
 
 .container + .container {
@@ -14,26 +24,32 @@
 
 .black {
   background-color: black;
+  border-color: black;
 }
 
 .red {
   background-color: red;
+  border-color: red;
 }
 
 .green {
   background-color: green;
+  border-color: green;
 }
 
 .blue {
   background-color: blue;
+  border-color: blue;
 }
 
 .white {
   background-color: white;
+  border-color: white;
 }
 
 .gold {
   background-color: gold;
+  border-color: gold;
 }
 
 .gold,

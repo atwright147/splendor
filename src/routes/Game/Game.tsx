@@ -1,4 +1,4 @@
-import { FC, useEffect } from 'react';
+import { FC, useEffect, useMemo } from 'react';
 import { useGameStore } from '../../stores/game.store';
 
 import { Card } from '../../components/card/card.component';
@@ -11,16 +11,16 @@ import { Uuid } from '../../types/utils.types';
 import { TokenColorValues } from '../../types/colors.type';
 
 export const Game: FC = (): JSX.Element => {
-  const { board, buyCard, init, players, takeToken } = useGameStore();
+  const board = useGameStore((state) => state.board);
+  const boardState = useMemo(() => board, [board])
+  const { buyCard, init, players, takeToken } = useGameStore();
   useEffect(() => init(), [init]);
 
   const handleCardClick = (id: Uuid, level: number): void => {
-    console.info(id, level);
     buyCard(id, level, 0);
   }
 
   const handleTokenClick = (color: TokenColorValues): void => {
-    console.info(color);
     takeToken(color, 0);
   }
 
@@ -79,16 +79,16 @@ export const Game: FC = (): JSX.Element => {
       </div>
 
       <div className={styles.tokens}>
-        <Token color="gold" label={5} />
-        <Token onClick={() => handleTokenClick('black')} color="black" label={board.tokens.black} />
-        <Token onClick={() => handleTokenClick('blue')} color="blue" label={board.tokens.blue} />
-        <Token onClick={() => handleTokenClick('green')} color="green" label={board.tokens.green} />
-        <Token onClick={() => handleTokenClick('red')} color="red" label={board.tokens.red} />
-        <Token onClick={() => handleTokenClick('white')} color="white" label={board.tokens.white} />
+        <Token color="gold" label={5} quantity={5} />
+        <Token onClick={() => handleTokenClick('black')} color="black" quantity={boardState.tokens.black} />
+        <Token onClick={() => handleTokenClick('blue')} color="blue" quantity={boardState.tokens.blue} />
+        <Token onClick={() => handleTokenClick('green')} color="green" quantity={boardState.tokens.green} />
+        <Token onClick={() => handleTokenClick('red')} color="red" quantity={boardState.tokens.red} />
+        <Token onClick={() => handleTokenClick('white')} color="white" quantity={boardState.tokens.white} />
       </div>
 
       <div className={styles.nobles}>
-        {board.nobles.map((noble) => (
+        {boardState.nobles.map((noble) => (
           <Noble key={noble.id} price={noble.price} prestige={noble.prestige} />
         ))}
       </div>

@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
+import { random } from 'radash';
+import { klona } from 'klona';
 
 import deckAll from '../../ref/cards.json';
 import noblesAll from '../../ref/nobles.json';
 
 import type { Card } from '../types/cards.type';
 import type { Noble } from '../types/noble.type';
-import { random } from 'radash';
 import { TokenColorValues } from '../types/colors.type';
-import { klona } from 'klona';
 import { Uuid } from '../types/utils.types';
 
 // type BoardState = {
@@ -118,8 +118,7 @@ interface PlayerState {
 export interface Store {
   board: BoardState,
   players: PlayerState[],
-  DECK_ALL: Card[],
-  NOBLES_ALL: Noble[],
+  deck: Card[],
   init: () => void,
   takeToken: (color: TokenColorValues, playerId: number) => void,
   buyCard: (id: Uuid, level: number, playerId: number) => void,
@@ -168,28 +167,34 @@ export const useGameStore = create<Store>()(
     (set, get) => ({
       board: initialBoardState,
       players: [initialPlayerState],
-      // @ts-ignore
-      DECK_ALL: deckAll,
-      // @ts-ignore
-      NOBLES_ALL: noblesAll,
+      deck: [],
       init: () => {
-        const allNobles: Noble[] = get().NOBLES_ALL;
-        const allLevel1: Card[] = get().DECK_ALL.filter((card) => card.level === 1);
-        const allLevel2: Card[] = get().DECK_ALL.filter((card) => card.level === 2);
-        const allLevel3: Card[] = get().DECK_ALL.filter((card) => card.level === 3);
+        const deck = deckAll as Card[];
+
+        const allLevel1: Card[] = deck.filter((card) => card.level === 1);
+        const allLevel2: Card[] = deck.filter((card) => card.level === 2);
+        const allLevel3: Card[] = deck.filter((card) => card.level === 3);
         const level1: Card[] = [];
         const level2: Card[] = [];
         const level3: Card[] = [];
 
         for (let cardIndex = 1; cardIndex <= 4; cardIndex++) {
-          level1.push(...allLevel1.splice(random(0, allLevel1.length - 1), 1))
-          level2.push(...allLevel2.splice(random(0, allLevel2.length - 1), 1))
-          level3.push(...allLevel3.splice(random(0, allLevel3.length - 1), 1))
+          const level1Card = allLevel1.splice(random(0, allLevel1.length - 1), 1)[0];
+          const level2Card = allLevel2.splice(random(0, allLevel2.length - 1), 1)[0];
+          const level3Card = allLevel3.splice(random(0, allLevel3.length - 1), 1)[0];
+
+          level1.push(level1Card);
+          level2.push(level2Card);
+          level3.push(level3Card);
+
+          deck.splice(deck.findIndex((card) => card.id === level1Card.id), 1);
+          deck.splice(deck.findIndex((card) => card.id === level2Card.id), 1);
+          deck.splice(deck.findIndex((card) => card.id === level3Card.id), 1);
         }
 
         const nobles: Noble[] = [];
-        for (let nobleIndex = 0; nobleIndex < allNobles.length; nobleIndex++) {
-          nobles.push(...allNobles.splice(random(0, allNobles.length - 1), 1))
+        for (let nobleIndex = 0; nobleIndex < noblesAll.length; nobleIndex++) {
+          nobles.push(...(noblesAll as Noble[]).splice(random(0, noblesAll.length - 1), 1));
         }
 
         const board: BoardState = {
@@ -208,7 +213,7 @@ export const useGameStore = create<Store>()(
           },
           nobles,
         }
-        set({ board }, false, 'init')
+        set({ board, deck: deckAll as Card[] }, false, 'init')
       },
       takeToken: (color, playerId) => {
         if (get().board.tokens[color] > 0) {
@@ -223,17 +228,20 @@ export const useGameStore = create<Store>()(
       },
       buyCard: (id, level, playerId) => {
         const board = klona(get().board);
+        const deck = klona(get().deck);
         const index = (board.cards[`level${level}`] as Card[]).findIndex((card) => card.id === id);
         const cardToMove = (board.cards[`level${level}`] as Card[]).splice(index, 1)[0];
+        deck.splice(deck.findIndex((card) => card.id === id), 1);
 
-        const allCardsOfLevel = get().DECK_ALL.filter((card) => card.level === level);
+        const allCardsOfLevel = get().deck.filter((card) => card.level === level);
         const cardToAdd = allCardsOfLevel.splice(random(0, allCardsOfLevel.length - 1), 1)[0];
-        (board.cards[`level${level}`] as Card[])[index] = cardToAdd;
+        // (board.cards[`level${level}`] as Card[])[index] = cardToAdd;
+        (board.cards[`level${level}`] as Card[]).splice(index, 0, cardToAdd);
 
         const players = klona(get().players);
         (players[playerId] as PlayerState).cards[cardToMove.gemColor] += 1;
 
-        set({ board, players }, false, 'buyCard');
+        set({ board, deck, players }, false, 'buyCard');
       }
     }),
     { enabled: true },
