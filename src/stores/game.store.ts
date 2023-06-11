@@ -239,7 +239,7 @@ export const useGameStore = create<Store>()(
         (board.cards[`level${level}`] as Card[]).splice(index, 0, cardToAdd);
 
         const players = klona(get().players);
-        (players[playerId] as PlayerState).cards[cardToMove.gemColor] += 1;
+        (players[playerId] as PlayerState).cards[cardToMove.gemColor] += cardToMove.gemQuantity;
 
         set({ board, deck, players }, false, 'buyCard');
       }
