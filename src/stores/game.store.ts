@@ -254,6 +254,6 @@ export const useGameStore = create<Store>()(
         set({ board, deck, players }, false, 'buyCard');
       }
     }),
-    { enabled: true },
+    { enabled: true, name: 'GameStore' },
   ),
 );
