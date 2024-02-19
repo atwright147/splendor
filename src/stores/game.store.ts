@@ -120,6 +120,7 @@ export interface Store {
   players: PlayerState[],
   deck: Card[],
   init: () => void,
+  getPrestige: (playerId: number) => any,
   takeToken: (color: TokenColorValues, playerId: number) => void,
   buyCard: (id: Uuid, level: number, playerId: number) => void,
 }
@@ -214,6 +215,15 @@ export const useGameStore = create<Store>()(
           nobles,
         }
         set({ board, deck: deckAll as Card[] }, false, 'init')
+      },
+      getPrestige: (playerId) => {
+        const player = get().players[playerId];
+        const prestige = {};
+        ['red', 'green', 'blue', 'white', 'black', 'gold'].forEach((color) => {
+          prestige[color] = player.cards[color] + player.tokens[color];
+        });
+
+        return prestige;
       },
       takeToken: (color, playerId) => {
         if (get().board.tokens[color] > 0) {
