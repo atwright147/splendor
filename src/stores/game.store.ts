@@ -238,14 +238,16 @@ export const useGameStore = create<Store>()(
       },
       buyCard: (id, level, playerId) => {
         const board = klona(get().board);
-        const deck = klona(get().deck);
         const index = (board.cards[`level${level}`] as Card[]).findIndex((card) => card.id === id);
         const cardToMove = (board.cards[`level${level}`] as Card[]).splice(index, 1)[0];
+
+        console.table([get().getPrestige(playerId)]);
+
+        const deck = klona(get().deck);
         deck.splice(deck.findIndex((card) => card.id === id), 1);
 
         const allCardsOfLevel = get().deck.filter((card) => card.level === level);
         const cardToAdd = allCardsOfLevel.splice(random(0, allCardsOfLevel.length - 1), 1)[0];
-        // (board.cards[`level${level}`] as Card[])[index] = cardToAdd;
         (board.cards[`level${level}`] as Card[]).splice(index, 0, cardToAdd);
 
         const players = klona(get().players);
