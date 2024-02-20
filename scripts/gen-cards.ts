@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import fs from 'node:fs';
 import path from 'node:path';
 import { v4 as uuidv4 } from 'uuid';
@@ -8,7 +7,7 @@ import type { GemColorValues } from '../src/types/colors.type';
 
 const numberOrZero = (num: string): number => {
   return +num || 0;
-}
+};
 
 const cardsCsv = fs.readFileSync(path.resolve('ref', 'cards.csv'));
 const cardLines = cardsCsv.toString().split('\n').slice(2);
@@ -31,11 +30,12 @@ for (const cardLine of cardLines) {
     priceBlack,
   ] = cardLine.split(',');
 
-  /* eslint-disable @typescript-eslint/no-non-null-assertion */
+  // biome-ignore lint/style/noNonNullAssertion: necessary
   currentLevel = level?.length ? level : currentLevel!;
-  currentGemColor = gemColor?.length ? gemColor as GemColorValues : currentGemColor!;
+  // biome-ignore lint/style/noNonNullAssertion: necessary
+  currentGemColor = gemColor?.length ? (gemColor as GemColorValues) : currentGemColor!;
+  // biome-ignore lint/style/noNonNullAssertion: necessary
   currentGemQuantity = gemQuantity?.length ? gemQuantity : currentGemQuantity!;
-  /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
   const card: Card = {
     id: uuidv4(),
@@ -44,23 +44,23 @@ for (const cardLine of cardLines) {
     price: [
       {
         color: 'black',
-        quantity: numberOrZero(priceBlack || '0')
+        quantity: numberOrZero(priceBlack || '0'),
       },
       {
         color: 'blue',
-        quantity: numberOrZero(priceBlue || '0')
+        quantity: numberOrZero(priceBlue || '0'),
       },
       {
         color: 'red',
-        quantity: numberOrZero(priceRed || '0')
+        quantity: numberOrZero(priceRed || '0'),
       },
       {
         color: 'green',
-        quantity: numberOrZero(priceGreen || '0')
+        quantity: numberOrZero(priceGreen || '0'),
       },
       {
         color: 'white',
-        quantity: numberOrZero(priceWhite || '0')
+        quantity: numberOrZero(priceWhite || '0'),
       },
     ],
     gemQuantity: +currentGemQuantity,

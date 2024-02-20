@@ -1,15 +1,14 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
+import { klona } from 'klona';
+import { random } from 'radash';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { random } from 'radash';
-import { klona } from 'klona';
 
 import deckAll from '../../ref/cards.json';
 import noblesAll from '../../ref/nobles.json';
 
 import type { Card } from '../types/cards.type';
-import type { Noble } from '../types/noble.type';
 import { TokenColorValues } from '../types/colors.type';
+import type { Noble } from '../types/noble.type';
 import { Uuid } from '../types/utils.types';
 
 // type BoardState = {
@@ -94,35 +93,35 @@ import { Uuid } from '../types/utils.types';
 
 interface BoardState {
   cards: {
-    level1: Card[],
-    level2: Card[],
-    level3: Card[],
-  },
+    level1: Card[];
+    level2: Card[];
+    level3: Card[];
+  };
   tokens: {
-    [color in TokenColorValues]: number
-  },
-  nobles: Noble[],
+    [color in TokenColorValues]: number;
+  };
+  nobles: Noble[];
 }
 
 interface PlayerState {
   cards: {
     [color in TokenColorValues]: number;
-  },
-  nobles: Noble[],
-  prestige: number,
+  };
+  nobles: Noble[];
+  prestige: number;
   tokens: {
     [color in TokenColorValues]: number;
-  },
+  };
 }
 
 export interface Store {
-  board: BoardState,
-  players: PlayerState[],
-  deck: Card[],
-  init: () => void,
-  getPrestige: (playerId: number) => any,
-  takeToken: (color: TokenColorValues, playerId: number) => void,
-  buyCard: (id: Uuid, level: number, playerId: number) => void,
+  board: BoardState;
+  players: PlayerState[];
+  deck: Card[];
+  init: () => void;
+  getPrestige: (playerId: number) => any;
+  takeToken: (color: TokenColorValues, playerId: number) => void;
+  buyCard: (id: Uuid, level: number, playerId: number) => void;
 }
 
 const initialBoardState: BoardState = {
@@ -140,7 +139,7 @@ const initialBoardState: BoardState = {
     white: 0,
   },
   nobles: [],
-}
+};
 
 const initialPlayerState: PlayerState = {
   cards: {
@@ -161,7 +160,7 @@ const initialPlayerState: PlayerState = {
     red: 0,
     white: 0,
   },
-}
+};
 
 export const useGameStore = create<Store>()(
   devtools(
@@ -188,9 +187,18 @@ export const useGameStore = create<Store>()(
           level2.push(level2Card);
           level3.push(level3Card);
 
-          deck.splice(deck.findIndex((card) => card.id === level1Card.id), 1);
-          deck.splice(deck.findIndex((card) => card.id === level2Card.id), 1);
-          deck.splice(deck.findIndex((card) => card.id === level3Card.id), 1);
+          deck.splice(
+            deck.findIndex((card) => card.id === level1Card.id),
+            1,
+          );
+          deck.splice(
+            deck.findIndex((card) => card.id === level2Card.id),
+            1,
+          );
+          deck.splice(
+            deck.findIndex((card) => card.id === level3Card.id),
+            1,
+          );
         }
 
         const nobles: Noble[] = [];
@@ -213,15 +221,15 @@ export const useGameStore = create<Store>()(
             white: 4,
           },
           nobles,
-        }
-        set({ board, deck: deckAll as Card[] }, false, 'init')
+        };
+        set({ board, deck: deckAll as Card[] }, false, 'init');
       },
       getPrestige: (playerId) => {
         const player = get().players[playerId];
         const prestige = {};
-        ['red', 'green', 'blue', 'white', 'black', 'gold'].forEach((color) => {
+        for (const color of ['red', 'green', 'blue', 'white', 'black', 'gold'] as const) {
           prestige[color] = player.cards[color] + player.tokens[color];
-        });
+        }
 
         return prestige;
       },
@@ -244,7 +252,10 @@ export const useGameStore = create<Store>()(
         console.table([get().getPrestige(playerId)]);
 
         const deck = klona(get().deck);
-        deck.splice(deck.findIndex((card) => card.id === id), 1);
+        deck.splice(
+          deck.findIndex((card) => card.id === id),
+          1,
+        );
 
         const allCardsOfLevel = get().deck.filter((card) => card.level === level);
         const cardToAdd = allCardsOfLevel.splice(random(0, allCardsOfLevel.length - 1), 1)[0];
@@ -254,7 +265,7 @@ export const useGameStore = create<Store>()(
         (players[playerId] as PlayerState).cards[cardToMove.gemColor] += cardToMove.gemQuantity;
 
         set({ board, deck, players }, false, 'buyCard');
-      }
+      },
     }),
     { enabled: true, name: 'GameStore' },
   ),

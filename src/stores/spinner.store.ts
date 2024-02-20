@@ -2,9 +2,9 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
 export interface State {
-  count: number,
-  increment: () => void,
-  decrement: () => void,
+  count: number;
+  increment: () => void;
+  decrement: () => void;
 }
 
 export const useSpinnerStore = create<State>()(

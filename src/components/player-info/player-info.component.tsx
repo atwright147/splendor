@@ -6,26 +6,23 @@ import styles from './player-info.component.module.scss';
 
 interface Props {
   ownedTokens?: {
-    [color in TokenColorValues]: number
-  },
+    [color in TokenColorValues]: number;
+  };
   tempTokens?: {
-    [color in TokenColorValues]: number
-  },
+    [color in TokenColorValues]: number;
+  };
 }
 
-const initialTokens: {[color in TokenColorValues]: number} = {
-  'black': 0,
-  'blue': 0,
-  'green': 0,
-  'red': 0,
-  'white': 0,
-  'gold': 0,
-}
+const initialTokens: { [color in TokenColorValues]: number } = {
+  black: 0,
+  blue: 0,
+  green: 0,
+  red: 0,
+  white: 0,
+  gold: 0,
+};
 
-export const PlayerInfo: FC<Props> = ({
-  ownedTokens = initialTokens,
-  tempTokens = initialTokens
-}): JSX.Element => (
+export const PlayerInfo: FC<Props> = ({ ownedTokens = initialTokens, tempTokens = initialTokens }): JSX.Element => (
   <div className={styles.container}>
     <div className={classNames(styles.item, styles.red)}>
       <div className={styles.card}>{ownedTokens.red}</div>
@@ -52,4 +49,4 @@ export const PlayerInfo: FC<Props> = ({
       <div className={styles.gem}>{tempTokens.gold}</div>
     </div>
   </div>
-)
+);

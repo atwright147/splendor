@@ -11,7 +11,9 @@ export const Spinner: FC = (): JSX.Element | null => {
 
   return (
     <div className={styles.spinner}>
-      <p className={styles.info} aria-live="assertive" aria-busy="true">Loading&hellip;</p>
+      <p className={styles.info} aria-live="assertive" aria-busy="true">
+        Loading&hellip;
+      </p>
     </div>
   );
 };

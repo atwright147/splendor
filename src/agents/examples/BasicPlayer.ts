@@ -78,8 +78,6 @@
 // //       };
 // //     };
 
-
-
 // import { playerCanSubmitTransaction } from './splendor-rules';
 // import { PrintLogger } from './utils';
 

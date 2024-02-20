@@ -10,4 +10,4 @@ export const useTitle = (title: string): void => {
       document.title = prevTitle;
     };
   }, [title]);
-}
+};

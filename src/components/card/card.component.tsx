@@ -8,15 +8,7 @@ import styles from './card.component.module.scss';
 // https://stackoverflow.com/a/66810748/633056
 type Props = Omit<CardType, 'id'> & ComponentPropsWithoutRef<'div'>;
 
-export const Card: FC<Props> = ({
-  level,
-  gemColor,
-  price,
-  gemQuantity,
-  className,
-  ...props
-}): JSX.Element => {
-
+export const Card: FC<Props> = ({ level, gemColor, price, gemQuantity, className, ...props }): JSX.Element => {
   return (
     <div className={classnames(styles.container, className)} {...props} data-level={level}>
       <div className={styles.top}>
@@ -29,5 +21,5 @@ export const Card: FC<Props> = ({
         ))}
       </div>
     </div>
-  )
-}
+  );
+};

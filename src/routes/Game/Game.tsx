@@ -12,17 +12,17 @@ import { TokenColorValues } from '../../types/colors.type';
 
 export const Game: FC = (): JSX.Element => {
   const board = useGameStore((state) => state.board);
-  const boardState = useMemo(() => board, [board])
+  const boardState = useMemo(() => board, [board]);
   const { buyCard, init, players, takeToken } = useGameStore();
   useEffect(() => init(), [init]);
 
   const handleCardClick = (id: Uuid, level: number): void => {
     buyCard(id, level, 0);
-  }
+  };
 
   const handleTokenClick = (color: TokenColorValues): void => {
     takeToken(color, 0);
-  }
+  };
 
   return (
     <div className={styles.table}>
@@ -93,5 +93,5 @@ export const Game: FC = (): JSX.Element => {
         ))}
       </div>
     </div>
-  )
-}
+  );
+};

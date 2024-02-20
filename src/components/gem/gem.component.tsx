@@ -5,9 +5,9 @@ import { GemColorValues } from '../../types/colors.type';
 import styles from './gem.component.module.scss';
 
 interface Props {
-  color: GemColorValues,
-  quantity: number,
-  width?: number,
+  color: GemColorValues;
+  quantity: number;
+  width?: number;
 }
 
 export const Gem: FC<Props> = ({ color, quantity, width = 20 }): JSX.Element | null => {
@@ -21,5 +21,5 @@ export const Gem: FC<Props> = ({ color, quantity, width = 20 }): JSX.Element | n
         <div className={styles.quantity}>{quantity}</div>
       </div>
     </div>
-  )
-}
+  );
+};

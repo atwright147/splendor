@@ -7,7 +7,7 @@ export const GemColors = {
 } as const;
 
 export type GemColorKeys = keyof typeof GemColors;
-export type GemColorValues = typeof GemColors[keyof typeof GemColors];
+export type GemColorValues = (typeof GemColors)[keyof typeof GemColors];
 
 export const TokenColors = {
   Black: 'black',
@@ -19,5 +19,4 @@ export const TokenColors = {
 } as const;
 
 export type TokenColorKeys = keyof typeof TokenColors;
-export type TokenColorValues = typeof TokenColors[keyof typeof TokenColors];
-
+export type TokenColorValues = (typeof TokenColors)[keyof typeof TokenColors];
