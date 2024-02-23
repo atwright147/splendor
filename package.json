@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "gen:cards": "ts-node --esm ./scripts/gen-cards.ts",
+    "gen:cards": "tsx ./scripts/gen-cards.ts",
     "build": "tsc && vite build",
     "lint": "biome lint .",
     "preview": "vite preview",
@@ -30,7 +30,7 @@
     "@types/react": "^18.2.57",
     "@types/react-dom": "^18.2.19",
     "@vitejs/plugin-react": "^4.2.1",
-    "ts-node": "^10.9.2",
+    "tsx": "^4.7.1",
     "typescript": "^5.3.3",
     "vite": "^5.1.3"
   }
