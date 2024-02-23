@@ -69,4 +69,27 @@ for (const cardLine of cardLines) {
   cards.push(card);
 }
 
-fs.writeFileSync(path.resolve('ref', 'cards.json'), JSON.stringify(cards, null, 2));
+const cardsById: Record<string, number> = {};
+for (const card of cards) {
+  if (!cardsById[card.id]) {
+    cardsById[card.id] = 1;
+  } else {
+    cardsById[card.id] += 1;
+  }
+}
+
+if (Object.values(cardsById).some((count) => count > 1)) {
+  console.info('Duplicate cards found!');
+  process.exitCode = 1;
+  process.exit();
+}
+
+try {
+  fs.writeFileSync(path.resolve('ref', 'cards.json'), JSON.stringify(cards, null, 2));
+} catch (err) {
+  console.error(err);
+  process.exitCode = 1;
+  process.exit();
+}
+
+console.info(`Successsfully generated ${cards.length} cards.`);
