@@ -260,8 +260,10 @@ export const useGameStore = create<Store>()(
         );
 
         const allCardsOfLevel = get().deck.filter((card) => card.level === level);
-        const cardToAdd = allCardsOfLevel.splice(random(0, allCardsOfLevel.length - 1), 1)[0];
-        (board.cards[`level${level}`] as Card[]).splice(index, 0, cardToAdd);
+        if (allCardsOfLevel?.length > 0) {
+          const cardToAdd = allCardsOfLevel.splice(random(0, allCardsOfLevel.length - 1), 1)[0];
+          (board.cards[`level${level}`] as Card[]).splice(index, 0, cardToAdd);
+        }
 
         const players = klona(get().players);
         (players[playerId] as PlayerState).cards[cardToMove.gemColor] += cardToMove.gemQuantity;
