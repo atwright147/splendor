@@ -91,6 +91,8 @@ import { Uuid } from '../types/utils.types';
 //       };
 //     };
 
+type PrestigeColors = 'red' | 'green' | 'blue' | 'white' | 'black' | 'gold';
+
 interface BoardState {
   cards: {
     level1: Card[];
@@ -119,7 +121,7 @@ export interface Store {
   players: PlayerState[];
   deck: Card[];
   init: () => void;
-  getPrestige: (playerId: number) => any;
+  getPrestige: (playerId: number) => Record<PrestigeColors, number>;
   takeToken: (color: TokenColorValues, playerId: number) => void;
   buyCard: (id: Uuid, level: number, playerId: number) => void;
 }
@@ -226,7 +228,7 @@ export const useGameStore = create<Store>()(
       },
       getPrestige: (playerId) => {
         const player = get().players[playerId];
-        const prestige = {};
+        const prestige: Record<PrestigeColors, number> = { red: 0, green: 0, blue: 0, white: 0, black: 0, gold: 0 };
         for (const color of ['red', 'green', 'blue', 'white', 'black', 'gold'] as const) {
           prestige[color] = player.cards[color] + player.tokens[color];
         }
