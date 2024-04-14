@@ -1,14 +1,15 @@
 import { FC, useEffect, useMemo } from 'react';
 import { useGameStore } from '../../stores/game.store';
 
-import { Card } from '../../components/card/card.component';
-import { Token } from '../../components/token/token.component';
 import { CardBack } from '../../components/card-back/card-back.component';
+import { Card } from '../../components/card/card.component';
+import { MainPlayerInfo } from '../../components/main-player-info/main-player-info.component';
 import { Noble } from '../../components/noble/noble.component';
-import styles from './Game.module.scss';
 import { PlayerInfo } from '../../components/player-info/player-info.component';
-import { Uuid } from '../../types/utils.types';
+import { Token } from '../../components/token/token.component';
 import { TokenColorValues } from '../../types/colors.type';
+import { Uuid } from '../../types/utils.types';
+import styles from './Game.module.scss';
 
 export const Game: FC = (): JSX.Element => {
   const board = useGameStore((state) => state.board);
@@ -91,6 +92,10 @@ export const Game: FC = (): JSX.Element => {
         {boardState.nobles.map((noble) => (
           <Noble key={noble.id} price={noble.price} prestige={noble.prestige} />
         ))}
+      </div>
+
+      <div className={styles.mainPlayerInfo}>
+        <MainPlayerInfo />
       </div>
     </div>
   );

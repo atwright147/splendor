@@ -15,6 +15,13 @@ body {
   display: grid;
   grid-template-columns: repeat(5, min-content);
   gap: 1rem;
+  grid-template-areas:
+    "players decks cards tokens nobles"
+    "mainPlayerInfo mainPlayerInfo mainPlayerInfo mainPlayerInfo mainPlayerInfo";
+}
+
+.players {
+  grid-area: players;
 }
 
 .cards {
@@ -22,12 +29,24 @@ body {
 
   display: grid;
   grid-template-columns: repeat(4, minmax(var(--size), 1fr));
+  grid-area: cards;
   gap: 1rem;
   max-width: min-content;
 }
 
 .decks {
+  grid-area: decks;
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+.nobles {
+  grid-area: nobles;
+}
+
+.mainPlayerInfo {
+  grid-area: mainPlayerInfo;
+  display: flex;
+  justify-content: center;
 }

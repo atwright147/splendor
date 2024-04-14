@@ -109,6 +109,7 @@ interface PlayerState {
   cards: {
     [color in TokenColorValues]: number;
   };
+  id?: Uuid;
   nobles: Noble[];
   prestige: number;
   tokens: {
