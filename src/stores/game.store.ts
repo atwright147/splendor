@@ -122,6 +122,7 @@ export interface Store {
   players: PlayerState[];
   deck: Card[];
   init: () => void;
+  deal: () => void;
   getPrestige: (playerId: number) => Record<PrestigeColors, number>;
   takeToken: (color: TokenColorValues, playerId: number) => void;
   buyCard: (id: Uuid, level: number, playerId: number) => void;
@@ -172,11 +173,13 @@ export const useGameStore = create<Store>()(
       players: [initialPlayerState],
       deck: [],
       init: () => {
-        const deck = deckAll as Card[];
-
-        const allLevel1: Card[] = deck.filter((card) => card.level === 1);
-        const allLevel2: Card[] = deck.filter((card) => card.level === 2);
-        const allLevel3: Card[] = deck.filter((card) => card.level === 3);
+        get().deck = deckAll as Card[];
+        get().deal();
+      },
+      deal: () => {
+        const allLevel1: Card[] = get().deck.filter((card) => card.level === 1);
+        const allLevel2: Card[] = get().deck.filter((card) => card.level === 2);
+        const allLevel3: Card[] = get().deck.filter((card) => card.level === 3);
         const level1: Card[] = [];
         const level2: Card[] = [];
         const level3: Card[] = [];
@@ -190,16 +193,16 @@ export const useGameStore = create<Store>()(
           level2.push(level2Card);
           level3.push(level3Card);
 
-          deck.splice(
-            deck.findIndex((card) => card.id === level1Card.id),
+          get().deck.splice(
+            get().deck.findIndex((card) => card.id === level1Card.id),
             1,
           );
-          deck.splice(
-            deck.findIndex((card) => card.id === level2Card.id),
+          get().deck.splice(
+            get().deck.findIndex((card) => card.id === level2Card.id),
             1,
           );
-          deck.splice(
-            deck.findIndex((card) => card.id === level3Card.id),
+          get().deck.splice(
+            get().deck.findIndex((card) => card.id === level3Card.id),
             1,
           );
         }
