@@ -1,9 +1,5 @@
 import { create } from 'zustand';
 
-// type TokenColor = 'red' | 'green' | 'blue' | 'white' | 'black' | 'gold';
-
-// export type Token = Record<TokenColor, number>;
-
 export interface Tokens {
   red?: number;
   green?: number;

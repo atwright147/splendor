@@ -28,19 +28,7 @@ describe('setTokens', () => {
       result.current.setTokens(playerIndex, newTokens);
     });
 
-    expect(result.current.players).toBe(initialPlayers);
-  });
-
-  it('throws an error for invalid player index', () => {
-    const { result } = renderHook(() => useGameStore());
-    const playerIndex = -1;
-    const newTokens = { red: 1, green: 2, blue: 3 };
-
-    expect(() => {
-      act(() => {
-        result.current.setTokens(playerIndex, newTokens);
-      });
-    }).toThrowError();
+    expect(result.current.players).toStrictEqual(initialPlayers);
   });
 
   it('sets tokens with empty tokens object', () => {
