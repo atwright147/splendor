@@ -1,280 +1,113 @@
-import { klona } from 'klona';
-import { random } from 'radash';
 import { create } from 'zustand';
-import { devtools } from 'zustand/middleware';
 
-import deckAll from '../../ref/cards.json';
-import noblesAll from '../../ref/nobles.json';
+// type TokenColor = 'red' | 'green' | 'blue' | 'white' | 'black' | 'gold';
 
-import type { Card } from '../types/cards.type';
-import { TokenColorValues } from '../types/colors.type';
-import type { Noble } from '../types/noble.type';
-import { Uuid } from '../types/utils.types';
+// export type Token = Record<TokenColor, number>;
 
-// type BoardState = {
-//   cards: {
-//     level1: {
-//       id: number;
-//       color: Color;
-//       points: number;
-//       cost: {
-//         [color in Color]?: number;
-//       };
-//     }[];
-//     level2: {
-//       id: number;
-//       color: Color;
-//       points: number;
-//       cost: {
-//         [color in Color]?: number;
-//       };
-//     }[];
-//     level3: {
-//       id: number;
-//       color: Color;
-//       points: number;
-//       cost: {
-//         [color in Color]?: number;
-//       };
-//     }[];
-//   };
-//   tokens: {
-//     [color in Color]: number;
-//   };
-//   nobles: Noble[];
-// };
+export interface Tokens {
+  red?: number;
+  green?: number;
+  blue?: number;
+  white?: number;
+  black?: number;
+  gold?: number;
+}
 
-// type Color = 'white' | 'blue' | 'green' | 'red' | 'black';
+interface Card {
+  id: string;
+  cost: Tokens;
+  prestige: number;
+}
 
-// type Noble = {
-//   id: number;
-//   requirement: {
-//     [color in Color]: number;
-//   };
-//   points: number;
-// };
-
-// type Player = {
-//   name: string;
-//   playTurn: (
-//     opponentsStates: PlayerState[],
-//     selfState: PlayerState,
-//     boardState: BoardState
-//   ) => Transaction;
-// };
-
-// type PlayerState = {
-//   tokens: {
-//     [color in Color]?: number;
-//   };
-//   cards: {
-//     id: number;
-//     color: Color;
-//     points: number;
-//     cost: {
-//       [color in Color]?: number;
-//     };
-//   }[];
-//   points: number;
-//   nobles: Noble[];
-// };
-
-// type Transaction =
-//   | {
-//       type: 'CARD_BUYING';
-//       cardId: number;
-//     }
-//   | {
-//       type: 'TOKENS_EXCHANGE';
-//       tokens: {
-//         [color in Color]: number;
-//       };
-//     };
-
-type PrestigeColors = 'red' | 'green' | 'blue' | 'white' | 'black' | 'gold';
-
-interface BoardState {
-  cards: {
-    level1: Card[];
-    level2: Card[];
-    level3: Card[];
-  };
-  tokens: {
-    [color in TokenColorValues]: number;
-  };
-  nobles: Noble[];
+interface Noble {
+  id: string;
+  cost: Tokens;
+  prestige: number;
 }
 
 interface PlayerState {
-  cards: {
-    [color in TokenColorValues]: number;
-  };
-  id?: Uuid;
-  nobles: Noble[];
+  tokens: Tokens;
+  cards: Card[];
+  reservedCards: Card[];
   prestige: number;
-  tokens: {
-    [color in TokenColorValues]: number;
-  };
 }
 
-export interface Store {
-  board: BoardState;
+interface GameState {
   players: PlayerState[];
-  deck: Card[];
-  init: () => void;
-  deal: () => void;
-  getPrestige: (playerId: number) => Record<PrestigeColors, number>;
-  takeToken: (color: TokenColorValues, playerId: number) => void;
-  buyCard: (id: Uuid, level: number, playerId: number) => void;
+  nobles: Noble[];
+  currentPlayerIndex: number;
+  setTokens: (playerIndex: number, tokens: Tokens) => void;
+  addCard: (playerIndex: number, card: Card) => void;
+  reserveCard: (playerIndex: number, card: Card) => void;
+  claimNoble: (playerIndex: number, noble: Noble) => void;
+  nextPlayer: () => void;
 }
 
-const initialBoardState: BoardState = {
-  cards: {
-    level1: [],
-    level2: [],
-    level3: [],
-  },
-  tokens: {
-    gold: 0,
-    black: 0,
-    blue: 0,
-    green: 0,
-    red: 0,
-    white: 0,
-  },
-  nobles: [],
-};
-
-const initialPlayerState: PlayerState = {
-  cards: {
-    gold: 0,
-    black: 0,
-    blue: 0,
-    green: 0,
-    red: 0,
-    white: 0,
-  },
-  nobles: [],
-  prestige: 0,
-  tokens: {
-    gold: 0,
-    black: 0,
-    blue: 0,
-    green: 0,
-    red: 0,
-    white: 0,
-  },
-};
-
-export const useGameStore = create<Store>()(
-  devtools(
-    (set, get) => ({
-      board: initialBoardState,
-      players: [initialPlayerState],
-      deck: [],
-      init: () => {
-        get().deck = deckAll as Card[];
-        get().deal();
+export const useGameStore = create<GameState>()(
+  (set, get): GameState => ({
+    players: [
+      {
+        tokens: { red: 0, green: 0, blue: 0, white: 0, black: 0, gold: 0 },
+        cards: [],
+        reservedCards: [],
+        prestige: 0,
       },
-      deal: () => {
-        const allLevel1: Card[] = get().deck.filter((card) => card.level === 1);
-        const allLevel2: Card[] = get().deck.filter((card) => card.level === 2);
-        const allLevel3: Card[] = get().deck.filter((card) => card.level === 3);
-        const level1: Card[] = [];
-        const level2: Card[] = [];
-        const level3: Card[] = [];
-
-        for (let cardIndex = 1; cardIndex <= 4; cardIndex++) {
-          const level1Card = allLevel1.splice(random(0, allLevel1.length - 1), 1)[0];
-          const level2Card = allLevel2.splice(random(0, allLevel2.length - 1), 1)[0];
-          const level3Card = allLevel3.splice(random(0, allLevel3.length - 1), 1)[0];
-
-          level1.push(level1Card);
-          level2.push(level2Card);
-          level3.push(level3Card);
-
-          get().deck.splice(
-            get().deck.findIndex((card) => card.id === level1Card.id),
-            1,
-          );
-          get().deck.splice(
-            get().deck.findIndex((card) => card.id === level2Card.id),
-            1,
-          );
-          get().deck.splice(
-            get().deck.findIndex((card) => card.id === level3Card.id),
-            1,
-          );
-        }
-
-        const nobles: Noble[] = [];
-        for (let nobleIndex = 0; nobleIndex < noblesAll.length; nobleIndex++) {
-          nobles.push(...(noblesAll as Noble[]).splice(random(0, noblesAll.length - 1), 1));
-        }
-
-        const board: BoardState = {
-          cards: {
-            level1,
-            level2,
-            level3,
-          },
-          tokens: {
-            gold: 5, // always 5 (I think?)
-            black: 4,
-            blue: 4,
-            green: 4,
-            red: 4,
-            white: 4,
-          },
-          nobles,
-        };
-        set({ board, deck: deckAll as Card[] }, false, 'init');
+      {
+        tokens: { red: 0, green: 0, blue: 0, white: 0, black: 0, gold: 0 },
+        cards: [],
+        reservedCards: [],
+        prestige: 0,
       },
-      getPrestige: (playerId) => {
-        const player = get().players[playerId];
-        const prestige: Record<PrestigeColors, number> = { red: 0, green: 0, blue: 0, white: 0, black: 0, gold: 0 };
-        for (const color of ['red', 'green', 'blue', 'white', 'black', 'gold'] as const) {
-          prestige[color] = player.cards[color] + player.tokens[color];
-        }
-
-        return prestige;
+      {
+        tokens: { red: 0, green: 0, blue: 0, white: 0, black: 0, gold: 0 },
+        cards: [],
+        reservedCards: [],
+        prestige: 0,
       },
-      takeToken: (color, playerId) => {
-        if (get().board.tokens[color] > 0) {
-          const players = klona(get().players);
-          players[playerId].tokens[color] = players[playerId].tokens[color] + 1;
-
-          const board = klona(get().board);
-          board.tokens[color] = board.tokens[color] - 1;
-
-          set({ players, board }, false, 'takeCard');
-        }
+      {
+        tokens: { red: 0, green: 0, blue: 0, white: 0, black: 0, gold: 0 },
+        cards: [],
+        reservedCards: [],
+        prestige: 0,
       },
-      buyCard: (id, level, playerId) => {
-        const board = klona(get().board);
-        const index = (board.cards[`level${level}`] as Card[]).findIndex((card) => card.id === id);
-        const cardToMove = (board.cards[`level${level}`] as Card[]).splice(index, 1)[0];
-
-        console.table([get().getPrestige(playerId)]);
-
-        const deck = klona(get().deck);
-        deck.splice(
-          deck.findIndex((card) => card.id === id),
-          1,
-        );
-
-        const allCardsOfLevel = get().deck.filter((card) => card.level === level);
-        if (allCardsOfLevel?.length > 0) {
-          const cardToAdd = allCardsOfLevel.splice(random(0, allCardsOfLevel.length - 1), 1)[0];
-          (board.cards[`level${level}`] as Card[]).splice(index, 0, cardToAdd);
-        }
-
-        const players = klona(get().players);
-        (players[playerId] as PlayerState).cards[cardToMove.gemColor] += cardToMove.gemQuantity;
-
-        set({ board, deck, players }, false, 'buyCard');
-      },
-    }),
-    { enabled: true, name: 'GameStore' },
-  ),
+    ],
+    nobles: [],
+    currentPlayerIndex: 0,
+    setTokens: (playerIndex, tokens) =>
+      set((state) => ({
+        players: state.players.map((player, i) =>
+          i === playerIndex ? { ...player, tokens } : player,
+        ),
+      })),
+    addCard: (playerIndex, card) =>
+      set((state) => ({
+        players: state.players.map((player, i) =>
+          i === playerIndex
+            ? { ...player, cards: [...player.cards, card] }
+            : player,
+        ),
+      })),
+    reserveCard: (playerIndex, card) =>
+      set((state) => ({
+        players: state.players.map((player, i) =>
+          i === playerIndex
+            ? { ...player, reservedCards: [...player.reservedCards, card] }
+            : player,
+        ),
+      })),
+    claimNoble: (playerIndex, noble) =>
+      set((state) => ({
+        players: state.players.map((player, i) =>
+          i === playerIndex
+            ? { ...player, prestige: player.prestige + noble.prestige }
+            : player,
+        ),
+        nobles: state.nobles.filter((n) => n.id !== noble.id),
+      })),
+    nextPlayer: () =>
+      set((state) => ({
+        currentPlayerIndex:
+          (state.currentPlayerIndex + 1) % state.players.length,
+      })),
+  }),
 );

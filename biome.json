@@ -14,8 +14,7 @@
     "ignore": [".vscode", "tsconfig*.json"],
     "enabled": true,
     "indentStyle": "space",
-    "indentWidth": 2,
-    "lineWidth": 140
+    "indentWidth": 2
   },
   "javascript": {
     "formatter": {
