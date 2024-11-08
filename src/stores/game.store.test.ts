@@ -52,7 +52,7 @@ describe('Game Store', () => {
     });
   });
 
-  describe('setTokens()', () => {
+  describe('takeTokens()', () => {
     beforeEach(() => {
       const { result } = renderHook(() => useGameStore());
       const quantity = 4;
@@ -70,7 +70,7 @@ describe('Game Store', () => {
 
       act(() => {
         result.current.setCurrentPlayerIndex(playerIndex);
-        result.current.setTokens(newTokens);
+        result.current.takeTokens(newTokens);
       });
 
       expect(result.current.players[playerIndex].tokens).toEqual(newTokens);
@@ -85,7 +85,7 @@ describe('Game Store', () => {
 
       act(() => {
         result.current.setCurrentPlayerIndex(playerIndex);
-        result.current.setTokens(newTokens);
+        result.current.takeTokens(newTokens);
       });
 
       expect(result.current.players).toStrictEqual(initialPlayers);
@@ -98,7 +98,7 @@ describe('Game Store', () => {
 
       act(() => {
         result.current.setCurrentPlayerIndex(playerIndex);
-        result.current.setTokens(newTokens);
+        result.current.takeTokens(newTokens);
       });
 
       expect(result.current.players[playerIndex].tokens).toEqual(newTokens);
@@ -111,7 +111,7 @@ describe('Game Store', () => {
 
       act(() => {
         result.current.setCurrentPlayerIndex(playerIndex);
-        result.current.setTokens(newTokens);
+        result.current.takeTokens(newTokens);
       });
 
       expect(result.current.players[playerIndex].tokens).toEqual({
@@ -121,7 +121,7 @@ describe('Game Store', () => {
     });
   });
 
-  describe('addCard()', () => {
+  describe('takeCard()', () => {
     beforeEach(() => {
       const { result } = renderHook(() => useGameStore());
       const quantity = 2;
@@ -142,7 +142,7 @@ describe('Game Store', () => {
 
       act(() => {
         result.current.setCurrentPlayerIndex(0);
-        result.current.addCard(card);
+        result.current.takeCard(card);
       });
 
       expect(result.current.players[0].cards).toContain(card);
@@ -166,8 +166,8 @@ describe('Game Store', () => {
 
       act(() => {
         result.current.setCurrentPlayerIndex(0);
-        result.current.addCard(card1);
-        result.current.addCard(card2);
+        result.current.takeCard(card1);
+        result.current.takeCard(card2);
       });
 
       expect(result.current.players[0].cards).toContain(card1);

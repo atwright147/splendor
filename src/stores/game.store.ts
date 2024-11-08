@@ -43,8 +43,8 @@ interface GameState {
   currentPlayerIndex: number;
   setCurrentPlayerIndex: (index: number) => void;
   createPlayers: (quantity: number) => void;
-  setTokens: (tokens: Tokens) => void;
-  addCard: (card: Card) => void;
+  takeTokens: (tokens: Tokens) => void;
+  takeCard: (card: Card) => void;
   reserveCard: (card: Card) => void;
   claimNoble: (noble: Noble) => void;
   nextPlayer: () => void;
@@ -83,14 +83,14 @@ export const useGameStore = create<GameState>()(
       const players = Array.from({ length: qtyPlayersToCreate }, createPlayer);
       set({ players });
     },
-    setTokens: (tokens) => {
+    takeTokens: (tokens) => {
       set((state) => ({
         players: state.players.map((player, i) =>
           i === get().currentPlayerIndex ? { ...player, tokens } : player,
         ),
       }));
     },
-    addCard: (card) => {
+    takeCard: (card) => {
       set((state) => ({
         players: state.players.map((player, i) =>
           i === get().currentPlayerIndex
