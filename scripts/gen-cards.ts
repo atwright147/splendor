@@ -2,8 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { v4 as uuidv4 } from 'uuid';
 
-import type { Card } from '../src/types/cards.type';
-import type { GemColorValues } from '../src/types/colors.type';
+import { Card, TokenColor } from '../src/stores/game.store';
 
 const numberOrZero = (num: string): number => {
   return +num || 0;
@@ -13,7 +12,7 @@ const cardsCsv = fs.readFileSync(path.resolve('ref', 'cards.csv'));
 const cardLines = cardsCsv.toString().split('\n').slice(2);
 const cards: Card[] = [];
 let currentLevel: string;
-let currentGemColor: GemColorValues;
+let currentGemColor: TokenColor;
 let currentGemQuantity: string;
 
 for (const cardLine of cardLines) {
@@ -32,40 +31,26 @@ for (const cardLine of cardLines) {
 
   // biome-ignore lint/style/noNonNullAssertion: necessary
   currentLevel = level?.length ? level : currentLevel!;
-  // biome-ignore lint/style/noNonNullAssertion: necessary
-  currentGemColor = gemColor?.length ? (gemColor as GemColorValues) : currentGemColor!;
+  currentGemColor = gemColor?.length
+    ? (gemColor as TokenColor)
+    : // biome-ignore lint/style/noNonNullAssertion: necessary
+      currentGemColor!;
   // biome-ignore lint/style/noNonNullAssertion: necessary
   currentGemQuantity = gemQuantity?.length ? gemQuantity : currentGemQuantity!;
 
   const card: Card = {
     id: uuidv4(),
     level: numberOrZero(currentLevel),
-    gemColor: currentGemColor,
-    price: [
-      {
-        color: 'black',
-        quantity: numberOrZero(priceBlack || '0'),
-      },
-      {
-        color: 'blue',
-        quantity: numberOrZero(priceBlue || '0'),
-      },
-      {
-        color: 'red',
-        quantity: numberOrZero(priceRed || '0'),
-      },
-      {
-        color: 'green',
-        quantity: numberOrZero(priceGreen || '0'),
-      },
-      {
-        color: 'white',
-        quantity: numberOrZero(priceWhite || '0'),
-      },
-    ],
-    gemQuantity: +currentGemQuantity,
+    token: currentGemColor,
+    cost: {
+      black: numberOrZero(priceBlack || '0'),
+      blue: numberOrZero(priceBlue || '0'),
+      red: numberOrZero(priceRed || '0'),
+      green: numberOrZero(priceGreen || '0'),
+      white: numberOrZero(priceWhite || '0'),
+    },
+    prestige: +currentGemQuantity,
   };
-
   cards.push(card);
 }
 
@@ -85,7 +70,10 @@ if (Object.values(cardsById).some((count) => count > 1)) {
 }
 
 try {
-  fs.writeFileSync(path.resolve('ref', 'cards.json'), JSON.stringify(cards, null, 2));
+  fs.writeFileSync(
+    path.resolve('ref', 'cards.json'),
+    JSON.stringify(cards, null, 2),
+  );
 } catch (err) {
   console.error(err);
   process.exitCode = 1;

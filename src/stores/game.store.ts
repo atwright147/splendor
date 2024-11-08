@@ -2,6 +2,10 @@ import type { RequireExactlyOne } from 'type-fest';
 import { v4 as uuidv4 } from 'uuid';
 import { create } from 'zustand';
 
+import { random } from 'radash';
+import deckAll from '../../ref/cards.json';
+import noblesAll from '../../ref/nobles.json';
+
 export interface Tokens {
   red?: number;
   green?: number;
@@ -11,7 +15,7 @@ export interface Tokens {
   gold?: number;
 }
 
-type TokenColor = keyof Tokens;
+export type TokenColor = keyof Tokens;
 
 type Token = RequireExactlyOne<Tokens>;
 
@@ -20,6 +24,7 @@ export interface Card {
   cost: Tokens;
   prestige: number;
   token: TokenColor;
+  level: number;
 }
 
 export interface Noble {
@@ -37,9 +42,24 @@ interface PlayerState {
   prestige: number;
 }
 
-interface GameState {
-  players: PlayerState[];
+interface BoardState {
+  cards: {
+    level1: Card[];
+    level2: Card[];
+    level3: Card[];
+  };
+  tokens: {
+    [color in TokenColor]: number;
+  };
   nobles: Noble[];
+}
+
+interface GameState {
+  board: BoardState;
+  init: () => void;
+  deal: () => void;
+  deck: Card[];
+  players: PlayerState[];
   currentPlayerIndex: number;
   setCurrentPlayerIndex: (index: number) => void;
   createPlayers: (quantity: number) => void;
@@ -61,6 +81,23 @@ const defaultPlayerState: PlayerState = {
   prestige: 0,
 };
 
+const initialBoardState: BoardState = {
+  cards: {
+    level1: [],
+    level2: [],
+    level3: [],
+  },
+  tokens: {
+    red: 0,
+    green: 0,
+    blue: 0,
+    white: 0,
+    black: 0,
+    gold: 0,
+  },
+  nobles: [],
+};
+
 const createPlayer = (): PlayerState => ({
   uuid: uuidv4(),
   ...defaultPlayerState,
@@ -68,8 +105,78 @@ const createPlayer = (): PlayerState => ({
 
 export const useGameStore = create<GameState>()(
   (set, get): GameState => ({
+    board: initialBoardState,
+    deck: [],
+    init: () => {
+      get().deck = deckAll as Card[];
+      get().deal();
+    },
+    deal: () => {
+      const allLevel1: Card[] = get().deck.filter((card) => card.level === 1);
+      const allLevel2: Card[] = get().deck.filter((card) => card.level === 2);
+      const allLevel3: Card[] = get().deck.filter((card) => card.level === 3);
+      const level1: Card[] = [];
+      const level2: Card[] = [];
+      const level3: Card[] = [];
+
+      for (let cardIndex = 1; cardIndex <= 4; cardIndex++) {
+        const level1Card = allLevel1.splice(
+          random(0, allLevel1.length - 1),
+          1,
+        )[0];
+        const level2Card = allLevel2.splice(
+          random(0, allLevel2.length - 1),
+          1,
+        )[0];
+        const level3Card = allLevel3.splice(
+          random(0, allLevel3.length - 1),
+          1,
+        )[0];
+
+        level1.push(level1Card);
+        level2.push(level2Card);
+        level3.push(level3Card);
+
+        get().deck.splice(
+          get().deck.findIndex((card) => card.id === level1Card.id),
+          1,
+        );
+        get().deck.splice(
+          get().deck.findIndex((card) => card.id === level2Card.id),
+          1,
+        );
+        get().deck.splice(
+          get().deck.findIndex((card) => card.id === level3Card.id),
+          1,
+        );
+      }
+
+      const nobles: Noble[] = [];
+      for (let nobleIndex = 0; nobleIndex < noblesAll.length; nobleIndex++) {
+        nobles.push(
+          ...(noblesAll as Noble[]).splice(random(0, noblesAll.length - 1), 1),
+        );
+      }
+
+      const board: BoardState = {
+        cards: {
+          level1,
+          level2,
+          level3,
+        },
+        tokens: {
+          gold: 5, // always 5 (I think?)
+          black: 4,
+          blue: 4,
+          green: 4,
+          red: 4,
+          white: 4,
+        },
+        nobles,
+      };
+      set({ board, deck: deckAll as Card[] }, false);
+    },
     players: [],
-    nobles: [],
     currentPlayerIndex: 0,
     setCurrentPlayerIndex: (index) => set({ currentPlayerIndex: index }),
     createPlayers: (quantity) => {
@@ -125,7 +232,6 @@ export const useGameStore = create<GameState>()(
               }
             : player,
         ),
-        nobles: state.nobles.filter((n) => n.id !== noble.id),
       }));
     },
     nextPlayer: () => {
