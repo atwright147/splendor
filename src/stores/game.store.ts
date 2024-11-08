@@ -1,3 +1,5 @@
+import type { RequireExactlyOne } from 'type-fest';
+import { v4 as uuidv4 } from 'uuid';
 import { create } from 'zustand';
 
 export interface Tokens {
@@ -9,21 +11,28 @@ export interface Tokens {
   gold?: number;
 }
 
-interface Card {
+type TokenColor = keyof Tokens;
+
+type Token = RequireExactlyOne<Tokens>;
+
+export interface Card {
   id: string;
   cost: Tokens;
   prestige: number;
+  token: TokenColor;
 }
 
-interface Noble {
+export interface Noble {
   id: string;
   cost: Tokens;
   prestige: number;
 }
 
 interface PlayerState {
+  uuid: string;
   tokens: Tokens;
   cards: Card[];
+  nobles: Noble[];
   reservedCards: Card[];
   prestige: number;
 }
@@ -32,78 +41,98 @@ interface GameState {
   players: PlayerState[];
   nobles: Noble[];
   currentPlayerIndex: number;
-  setTokens: (playerIndex: number, tokens: Tokens) => void;
-  addCard: (playerIndex: number, card: Card) => void;
-  reserveCard: (playerIndex: number, card: Card) => void;
-  claimNoble: (playerIndex: number, noble: Noble) => void;
+  setCurrentPlayerIndex: (index: number) => void;
+  createPlayers: (quantity: number) => void;
+  setTokens: (tokens: Tokens) => void;
+  addCard: (card: Card) => void;
+  reserveCard: (card: Card) => void;
+  claimNoble: (noble: Noble) => void;
   nextPlayer: () => void;
 }
 
+const MAX_PLAYERS = 4;
+
+const defaultPlayerState: PlayerState = {
+  uuid: '',
+  tokens: { red: 0, green: 0, blue: 0, white: 0, black: 0, gold: 0 },
+  cards: [],
+  nobles: [],
+  reservedCards: [],
+  prestige: 0,
+};
+
+const createPlayer = (): PlayerState => ({
+  uuid: uuidv4(),
+  ...defaultPlayerState,
+});
+
 export const useGameStore = create<GameState>()(
   (set, get): GameState => ({
-    players: [
-      {
-        tokens: { red: 0, green: 0, blue: 0, white: 0, black: 0, gold: 0 },
-        cards: [],
-        reservedCards: [],
-        prestige: 0,
-      },
-      {
-        tokens: { red: 0, green: 0, blue: 0, white: 0, black: 0, gold: 0 },
-        cards: [],
-        reservedCards: [],
-        prestige: 0,
-      },
-      {
-        tokens: { red: 0, green: 0, blue: 0, white: 0, black: 0, gold: 0 },
-        cards: [],
-        reservedCards: [],
-        prestige: 0,
-      },
-      {
-        tokens: { red: 0, green: 0, blue: 0, white: 0, black: 0, gold: 0 },
-        cards: [],
-        reservedCards: [],
-        prestige: 0,
-      },
-    ],
+    players: [],
     nobles: [],
     currentPlayerIndex: 0,
-    setTokens: (playerIndex, tokens) =>
+    setCurrentPlayerIndex: (index) => set({ currentPlayerIndex: index }),
+    createPlayers: (quantity) => {
+      let qtyPlayersToCreate = quantity;
+      if (qtyPlayersToCreate > MAX_PLAYERS) {
+        qtyPlayersToCreate = MAX_PLAYERS;
+        console.info(
+          `Only ${MAX_PLAYERS} players can be created, ${quantity} requested.`,
+        );
+      }
+      const players = Array.from({ length: qtyPlayersToCreate }, createPlayer);
+      set({ players });
+    },
+    setTokens: (tokens) => {
       set((state) => ({
         players: state.players.map((player, i) =>
-          i === playerIndex ? { ...player, tokens } : player,
+          i === get().currentPlayerIndex ? { ...player, tokens } : player,
         ),
-      })),
-    addCard: (playerIndex, card) =>
+      }));
+    },
+    addCard: (card) => {
       set((state) => ({
         players: state.players.map((player, i) =>
-          i === playerIndex
+          i === get().currentPlayerIndex
             ? { ...player, cards: [...player.cards, card] }
             : player,
         ),
-      })),
-    reserveCard: (playerIndex, card) =>
+      }));
+    },
+    reserveCard: (card) => {
+      const { reservedCards } = get().players[get().currentPlayerIndex];
+      if (reservedCards.some((reservedCard) => reservedCard.id === card.id)) {
+        console.warn('Card already reserved');
+        return;
+      }
+
       set((state) => ({
         players: state.players.map((player, i) =>
-          i === playerIndex
+          i === get().currentPlayerIndex
             ? { ...player, reservedCards: [...player.reservedCards, card] }
             : player,
         ),
-      })),
-    claimNoble: (playerIndex, noble) =>
+      }));
+    },
+    claimNoble: (noble) => {
       set((state) => ({
         players: state.players.map((player, i) =>
-          i === playerIndex
-            ? { ...player, prestige: player.prestige + noble.prestige }
+          i === get().currentPlayerIndex
+            ? {
+                ...player,
+                prestige: player.prestige + noble.prestige,
+                nobles: [...player.nobles, noble],
+              }
             : player,
         ),
         nobles: state.nobles.filter((n) => n.id !== noble.id),
-      })),
-    nextPlayer: () =>
+      }));
+    },
+    nextPlayer: () => {
       set((state) => ({
         currentPlayerIndex:
           (state.currentPlayerIndex + 1) % state.players.length,
-      })),
+      }));
+    },
   }),
 );
