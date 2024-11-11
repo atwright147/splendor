@@ -86,7 +86,7 @@ const defaultPlayerState: PlayerState = {
   prestige: 0,
 };
 
-const initialBoardState: BoardState = {
+export const initialBoardState: BoardState = {
   cards: {
     level1: [],
     level2: [],
@@ -133,6 +133,34 @@ export const useGameStore = create<GameState>()(
       get().deal();
     },
     deal: () => {
+      if (get().players.length === 0) {
+        console.warn('Players not created');
+        return;
+      }
+
+      let qtyTokens = 0;
+      let qtyNobles = 0;
+
+      switch (get().players.length) {
+        case 2:
+          qtyTokens = 4;
+          qtyNobles = 3;
+          break;
+
+        case 3:
+          qtyTokens = 5;
+          qtyNobles = 4;
+          break;
+
+        case 4:
+          qtyTokens = 7;
+          qtyNobles = 5;
+          break;
+
+        default:
+          break;
+      }
+
       const allLevel1: Card[] = get().deck.filter((card) => card.level === 1);
       const allLevel2: Card[] = get().deck.filter((card) => card.level === 2);
       const allLevel3: Card[] = get().deck.filter((card) => card.level === 3);
@@ -172,10 +200,11 @@ export const useGameStore = create<GameState>()(
         );
       }
 
+      const noblesAllCopy = [...noblesAll];
       const nobles: Noble[] = [];
-      for (let nobleIndex = 0; nobleIndex < noblesAll.length; nobleIndex++) {
+      for (let nobleIndex = 1; nobleIndex <= qtyNobles; nobleIndex++) {
         nobles.push(
-          ...(noblesAll as Noble[]).splice(random(0, noblesAll.length - 1), 1),
+          ...noblesAllCopy.splice(random(0, noblesAllCopy.length - 1), 1),
         );
       }
 
@@ -186,12 +215,12 @@ export const useGameStore = create<GameState>()(
           level3,
         },
         tokens: {
-          gold: 5, // always 5 (I think?)
-          black: 4,
-          blue: 4,
-          green: 4,
-          red: 4,
-          white: 4,
+          gold: 5, // always 5
+          black: qtyTokens,
+          blue: qtyTokens,
+          green: qtyTokens,
+          red: qtyTokens,
+          white: qtyTokens,
         },
         nobles,
       };

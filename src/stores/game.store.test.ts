@@ -1,15 +1,142 @@
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { Card, Noble, Token, Tokens, useGameStore } from './game.store';
+import {
+  Card,
+  Noble,
+  Token,
+  Tokens,
+  initialBoardState,
+  useGameStore,
+} from './game.store';
 
 describe('Game Store', () => {
   beforeEach(() => {
     const { result } = renderHook(() => useGameStore());
 
+    result.current.board = { ...initialBoardState };
+
     act(() => {
       result.current.setCurrentPlayerIndex(0);
       result.current.resetBoardSnapshot();
+    });
+  });
+
+  describe('deal function', () => {
+    it('returns early when no players are created', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      result.current.deal();
+
+      expect(result.current.board).toEqual({ ...initialBoardState });
+    });
+
+    describe('sets the correct number of tokens and nobles based on the number of players', () => {
+      it('2 players, 4 tokens, 3 nobles', () => {
+        const { result } = renderHook(() => useGameStore());
+
+        act(() => {
+          result.current.createPlayers(2);
+        });
+
+        act(() => {
+          result.current.deal();
+        });
+
+        expect(result.current.board.tokens.black).toBe(4);
+        expect(result.current.board.nobles.length).toBe(3);
+      });
+
+      it('3 players, 5 tokens, 4 nobles', () => {
+        const { result } = renderHook(() => useGameStore());
+
+        act(() => {
+          result.current.createPlayers(3);
+        });
+
+        act(() => {
+          result.current.deal();
+        });
+
+        expect(result.current.board.tokens.black).toBe(5);
+        expect(result.current.board.nobles.length).toBe(4);
+      });
+
+      it('4 players, 7 tokens, 5 nobles', () => {
+        const { result } = renderHook(() => useGameStore());
+
+        act(() => {
+          result.current.createPlayers(4);
+        });
+
+        act(() => {
+          result.current.deal();
+        });
+
+        expect(result.current.board.tokens.black).toBe(7);
+        expect(result.current.board.nobles.length).toBe(5);
+      });
+
+      it('should deal 5 unique nobles', () => {
+        const { result } = renderHook(() => useGameStore());
+
+        act(() => {
+          result.current.createPlayers(4);
+        });
+
+        act(() => {
+          result.current.deal();
+        });
+
+        console.info(result.current.board.nobles.map((noble) => noble.id));
+
+        expect(
+          new Set(result.current.board.nobles.map((noble) => noble.id)).size,
+        ).toBe(5);
+      });
+    });
+
+    it('deals the correct number of cards for each level', () => {
+      const { result } = renderHook(() => useGameStore());
+      result.current.createPlayers(2);
+      result.current.deal();
+
+      expect(result.current.board.cards.level1.length).toBe(4);
+      expect(result.current.board.cards.level2.length).toBe(4);
+      expect(result.current.board.cards.level3.length).toBe(4);
+    });
+
+    it('removes dealt cards from the deck', () => {
+      const { result } = renderHook(() => useGameStore());
+      result.current.createPlayers(2);
+
+      const initialDeckLength = result.current.deck.length;
+      result.current.deal();
+
+      expect(result.current.deck.length).toBeLessThan(initialDeckLength);
+    });
+
+    it('sets the correct board state', () => {
+      const { result } = renderHook(() => useGameStore());
+      result.current.createPlayers(2);
+      result.current.deal();
+
+      expect(result.current.board).toEqual({
+        cards: {
+          level1: expect.any(Array),
+          level2: expect.any(Array),
+          level3: expect.any(Array),
+        },
+        tokens: {
+          gold: 5,
+          black: 4,
+          blue: 4,
+          green: 4,
+          red: 4,
+          white: 4,
+        },
+        nobles: expect.any(Array),
+      });
     });
   });
 
