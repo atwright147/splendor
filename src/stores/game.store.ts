@@ -17,7 +17,7 @@ export interface Tokens {
 
 export type TokenColor = keyof Tokens;
 
-type Token = RequireExactlyOne<Tokens>;
+export type Token = RequireExactlyOne<Tokens>;
 
 export interface Card {
   id: string;
@@ -33,7 +33,7 @@ export interface Noble {
   prestige: number;
 }
 
-interface PlayerState {
+export interface PlayerState {
   uuid: string;
   tokens: Tokens;
   cards: Card[];
@@ -42,7 +42,7 @@ interface PlayerState {
   prestige: number;
 }
 
-interface BoardState {
+export interface BoardState {
   cards: {
     level1: Card[];
     level2: Card[];
@@ -56,6 +56,11 @@ interface BoardState {
 
 interface GameState {
   board: BoardState;
+  boardSnapshot: BoardState;
+  setBoardSnapshot: () => void;
+  resetBoardSnapshot: () => void;
+  reservedTokens: Tokens;
+  commitTokens: () => void;
   init: () => void;
   deal: () => void;
   deck: Card[];
@@ -63,7 +68,7 @@ interface GameState {
   currentPlayerIndex: number;
   setCurrentPlayerIndex: (index: number) => void;
   createPlayers: (quantity: number) => void;
-  takeTokens: (tokens: Tokens) => void;
+  reserveToken: (tokenColor: string) => void;
   takeCard: (card: Card) => void;
   reserveCard: (card: Card) => void;
   claimNoble: (noble: Noble) => void;
@@ -105,8 +110,24 @@ const createPlayer = (): PlayerState => ({
 
 export const useGameStore = create<GameState>()(
   (set, get): GameState => ({
-    board: initialBoardState,
+    board: { ...initialBoardState },
+    boardSnapshot: { ...initialBoardState },
+    setBoardSnapshot: () => set({ boardSnapshot: get().board }),
+    resetBoardSnapshot: () => set({ boardSnapshot: { ...initialBoardState } }),
     deck: [],
+    reservedTokens: { ...initialBoardState.tokens },
+    commitTokens: () => {
+      set((state) => ({
+        players: state.players.map((player, index) =>
+          index === get().currentPlayerIndex
+            ? {
+                ...player,
+                tokens: { ...player.tokens, ...get().reservedTokens },
+              }
+            : player,
+        ),
+      }));
+    },
     init: () => {
       get().deck = deckAll as Card[];
       get().deal();
@@ -190,11 +211,93 @@ export const useGameStore = create<GameState>()(
       const players = Array.from({ length: qtyPlayersToCreate }, createPlayer);
       set({ players });
     },
-    takeTokens: (tokens) => {
+    reserveToken: (tokenColor: TokenColor) => {
+      const { reservedTokens, board, boardSnapshot } = get();
+
+      // Don't allow taking gold tokens directly
+      if (tokenColor === 'gold') {
+        console.info('Gold tokens cannot be taken directly');
+        return;
+      }
+
+      // Get total number of tokens currently reserved
+      const totalReservedTokens = Object.values(reservedTokens).reduce(
+        (sum, count) => sum + count,
+        0,
+      );
+
+      // Get number of tokens of this color already reserved
+      const currentColorCount = reservedTokens[tokenColor] || 0;
+
+      // Get number of tokens available at the start of the turn
+      const availableTokens = boardSnapshot.tokens[tokenColor];
+
+      // Rule 1: Taking 2 tokens of the same color
+      if (currentColorCount === 1) {
+        // Can only take 2 if there were at least 4 available at start of turn
+        if (availableTokens < 4) {
+          console.info(
+            'Cannot take 2 tokens of the same color unless 4 or more were available at start of turn',
+          );
+          return;
+        }
+        // Can't take more than 2 of the same color
+        if (currentColorCount >= 2) {
+          console.info('Cannot take more than 2 tokens of the same color');
+          return;
+        }
+      }
+
+      // Rule 2: Taking 3 different colored tokens
+      else if (currentColorCount === 0) {
+        // Check if player is trying to take a different colored token
+        const differentColorTokens = Object.entries(reservedTokens).filter(
+          ([color, count]) => color !== tokenColor && count > 0,
+        );
+
+        // If already has tokens of different colors
+        if (differentColorTokens.length > 0) {
+          // Ensure not exceeding 3 different colors
+          if (differentColorTokens.length >= 3) {
+            console.info('Cannot take more than 3 different colored tokens');
+            return;
+          }
+          // Ensure not taking 2 of any color when taking different colors
+          if (differentColorTokens.some(([_, count]) => count >= 2)) {
+            console.info('Cannot mix taking 2 of one color with other colors');
+            return;
+          }
+        }
+      }
+
+      // Rule 3: Check if there are any tokens of this color left to take
+      if (board.tokens[tokenColor] <= 0) {
+        console.info('No tokens of this color remaining');
+        return;
+      }
+
+      // Rule 4: Players can't hold more than 10 tokens total
+      const playerCurrentTokens = Object.values(
+        get().players[get().currentPlayerIndex].tokens,
+      ).reduce((sum, count) => sum + count, 0);
+      if (playerCurrentTokens + totalReservedTokens + 1 > 10) {
+        console.info('Cannot hold more than 10 tokens total');
+        return;
+      }
+
+      // If all checks pass, reserve the token
       set((state) => ({
-        players: state.players.map((player, i) =>
-          i === get().currentPlayerIndex ? { ...player, tokens } : player,
-        ),
+        reservedTokens: {
+          ...state.reservedTokens,
+          [tokenColor]: (state.reservedTokens[tokenColor] || 0) + 1,
+        },
+        board: {
+          ...state.board,
+          tokens: {
+            ...state.board.tokens,
+            [tokenColor]: state.board.tokens[tokenColor] - 1,
+          },
+        },
       }));
     },
     takeCard: (card) => {
@@ -236,6 +339,8 @@ export const useGameStore = create<GameState>()(
     },
     nextPlayer: () => {
       set((state) => ({
+        // TODO: commit reserved items etc
+        boardSnapshot: state.board,
         currentPlayerIndex:
           (state.currentPlayerIndex + 1) % state.players.length,
       }));
