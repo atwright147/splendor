@@ -112,7 +112,7 @@ export const useGameStore = create<GameState>()(
   (set, get): GameState => ({
     board: { ...initialBoardState },
     boardSnapshot: { ...initialBoardState },
-    setBoardSnapshot: () => set({ boardSnapshot: get().board }),
+    setBoardSnapshot: () => set({ boardSnapshot: { ...get().board } }),
     resetBoardSnapshot: () => set({ boardSnapshot: { ...initialBoardState } }),
     deck: [],
     reservedTokens: { ...initialBoardState.tokens },
@@ -129,8 +129,10 @@ export const useGameStore = create<GameState>()(
       }));
     },
     init: () => {
-      get().deck = deckAll as Card[];
+      const deckAllCopy = [...deckAll] as Card[];
+      get().deck = deckAllCopy;
       get().deal();
+      get().setBoardSnapshot();
     },
     deal: () => {
       if (get().players.length === 0) {
@@ -194,6 +196,7 @@ export const useGameStore = create<GameState>()(
           get().deck.findIndex((card) => card.id === level2Card.id),
           1,
         );
+        // console.log(level3Card);
         get().deck.splice(
           get().deck.findIndex((card) => card.id === level3Card.id),
           1,
@@ -261,7 +264,18 @@ export const useGameStore = create<GameState>()(
       // Get number of tokens available at the start of the turn
       const availableTokens = boardSnapshot.tokens[tokenColor];
 
-      // Rule 1: Taking 2 tokens of the same color
+      // Rule 1: Cannot reserve two of the same color if a different color is already reserved
+      const differentColorTokens = Object.entries(reservedTokens).filter(
+        ([color, count]) => color !== tokenColor && count > 0,
+      );
+      if (differentColorTokens.length > 0 && currentColorCount >= 1) {
+        console.info(
+          'Cannot reserve two of the same color when a different color is already reserved',
+        );
+        return;
+      }
+
+      // Rule 2: Taking 2 tokens of the same color
       if (currentColorCount === 1) {
         // Can only take 2 if there were at least 4 available at start of turn
         if (availableTokens < 4) {
@@ -277,35 +291,27 @@ export const useGameStore = create<GameState>()(
         }
       }
 
-      // Rule 2: Taking 3 different colored tokens
+      // Rule 3: Taking 3 different colored tokens
       else if (currentColorCount === 0) {
         // Check if player is trying to take a different colored token
-        const differentColorTokens = Object.entries(reservedTokens).filter(
-          ([color, count]) => color !== tokenColor && count > 0,
-        );
-
-        // If already has tokens of different colors
-        if (differentColorTokens.length > 0) {
-          // Ensure not exceeding 3 different colors
-          if (differentColorTokens.length >= 3) {
-            console.info('Cannot take more than 3 different colored tokens');
-            return;
-          }
-          // Ensure not taking 2 of any color when taking different colors
-          if (differentColorTokens.some(([_, count]) => count >= 2)) {
-            console.info('Cannot mix taking 2 of one color with other colors');
-            return;
-          }
+        if (differentColorTokens.length >= 3) {
+          console.info('Cannot take more than 3 different colored tokens');
+          return;
+        }
+        // Ensure not taking 2 of any color when taking different colors
+        if (differentColorTokens.some(([_, count]) => count >= 2)) {
+          console.info('Cannot mix taking 2 of one color with other colors');
+          return;
         }
       }
 
-      // Rule 3: Check if there are any tokens of this color left to take
+      // Rule 4: Check if there are any tokens of this color left to take
       if (board.tokens[tokenColor] <= 0) {
         console.info('No tokens of this color remaining');
         return;
       }
 
-      // Rule 4: Players can't hold more than 10 tokens total
+      // Rule 5: Players can't hold more than 10 tokens total
       const playerCurrentTokens = Object.values(
         get().players[get().currentPlayerIndex].tokens,
       ).reduce((sum, count) => sum + count, 0);

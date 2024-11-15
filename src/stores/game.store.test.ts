@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import deckAll from '../../ref/cards.json';
 import {
   Card,
   Noble,
@@ -15,6 +16,8 @@ describe('Game Store', () => {
     const { result } = renderHook(() => useGameStore());
 
     result.current.board = { ...initialBoardState };
+    // result.current.boardSnapshot = { ...initialBoardState };
+    // result.current.players = [];
 
     act(() => {
       result.current.setCurrentPlayerIndex(0);
@@ -22,7 +25,7 @@ describe('Game Store', () => {
     });
   });
 
-  describe('deal function', () => {
+  describe('deal()', () => {
     it('returns early when no players are created', () => {
       const { result } = renderHook(() => useGameStore());
 
@@ -88,8 +91,6 @@ describe('Game Store', () => {
           result.current.deal();
         });
 
-        console.info(result.current.board.nobles.map((noble) => noble.id));
-
         expect(
           new Set(result.current.board.nobles.map((noble) => noble.id)).size,
         ).toBe(5);
@@ -98,8 +99,11 @@ describe('Game Store', () => {
 
     it('deals the correct number of cards for each level', () => {
       const { result } = renderHook(() => useGameStore());
-      result.current.createPlayers(2);
-      result.current.deal();
+
+      act(() => {
+        result.current.createPlayers(2);
+        result.current.deal();
+      });
 
       expect(result.current.board.cards.level1.length).toBe(4);
       expect(result.current.board.cards.level2.length).toBe(4);
@@ -118,8 +122,17 @@ describe('Game Store', () => {
 
     it('sets the correct board state', () => {
       const { result } = renderHook(() => useGameStore());
-      result.current.createPlayers(2);
-      result.current.deal();
+
+      result.current.deck = [...deckAll] as Card[];
+      result.current.board = { ...initialBoardState };
+
+      act(() => {
+        result.current.createPlayers(2);
+      });
+
+      act(() => {
+        result.current.deal();
+      });
 
       expect(result.current.board).toEqual({
         cards: {
@@ -157,6 +170,8 @@ describe('Game Store', () => {
       const { result } = renderHook(() => useGameStore());
       const quantity = 4;
 
+      result.current.players = [];
+
       expect(result.current.players.length).toBe(0);
 
       act(() => {
@@ -182,6 +197,7 @@ describe('Game Store', () => {
 
   describe('reserveToken()', () => {
     let defaultTokens: Tokens;
+
     beforeEach(() => {
       const { result } = renderHook(() => useGameStore());
 
@@ -235,8 +251,21 @@ describe('Game Store', () => {
       const token2 = otherTokenColor;
       const token3 = tokenColor;
 
+      result.current.board = {
+        ...initialBoardState,
+      };
+      result.current.boardSnapshot = {
+        ...initialBoardState,
+      };
+      result.current.reservedTokens = {
+        ...defaultTokens,
+      };
       result.current.boardSnapshot.tokens[tokenColor] = 4;
       result.current.boardSnapshot.tokens[otherTokenColor] = 4;
+
+      act(() => {
+        result.current.createPlayers(2);
+      });
 
       act(() => {
         result.current.reserveToken(token1);
@@ -250,7 +279,6 @@ describe('Game Store', () => {
         result.current.reserveToken(token3);
       });
 
-      console.info(result.current.reservedTokens);
       expect(result.current.reservedTokens[tokenColor]).toBe(1);
     });
 
@@ -258,10 +286,37 @@ describe('Game Store', () => {
       const { result } = renderHook(() => useGameStore());
       const token1 = 'red';
       const token2 = 'blue';
+
+      result.current.board = {
+        ...initialBoardState,
+      };
+      result.current.boardSnapshot = {
+        ...initialBoardState,
+      };
+      result.current.reservedTokens = {
+        ...defaultTokens,
+      };
+
+      act(() => {
+        result.current.createPlayers(2);
+      });
+
+      act(() => {
+        result.current.init();
+      });
+
+      act(() => {
+        result.current.deal();
+      });
+
       act(() => {
         result.current.reserveToken(token1);
+      });
+
+      act(() => {
         result.current.reserveToken(token2);
       });
+
       expect(result.current.reservedTokens).toContain(token1);
       expect(result.current.reservedTokens).toContain(token2);
     });
