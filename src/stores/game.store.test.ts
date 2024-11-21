@@ -3,10 +3,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import deckAll from '../../ref/cards.json';
 import {
-  Card,
-  Noble,
+  type Card,
+  type Noble,
   Token,
-  Tokens,
+  type Tokens,
   initialBoardState,
   useGameStore,
 } from './game.store';
@@ -102,6 +102,9 @@ describe('Game Store', () => {
 
       act(() => {
         result.current.createPlayers(2);
+      });
+
+      act(() => {
         result.current.deal();
       });
 
@@ -112,10 +115,20 @@ describe('Game Store', () => {
 
     it('removes dealt cards from the deck', () => {
       const { result } = renderHook(() => useGameStore());
-      result.current.createPlayers(2);
+
+      act(() => {
+        result.current.init();
+      });
 
       const initialDeckLength = result.current.deck.length;
-      result.current.deal();
+
+      act(() => {
+        result.current.createPlayers(2);
+      });
+
+      act(() => {
+        result.current.deal();
+      });
 
       expect(result.current.deck.length).toBeLessThan(initialDeckLength);
     });

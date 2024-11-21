@@ -131,8 +131,8 @@ export const useGameStore = create<GameState>()(
     init: () => {
       const deckAllCopy = [...deckAll] as Card[];
       get().deck = deckAllCopy;
-      get().deal();
-      get().setBoardSnapshot();
+      // get().deal();
+      // get().setBoardSnapshot();
     },
     deal: () => {
       if (get().players.length === 0) {
@@ -227,7 +227,7 @@ export const useGameStore = create<GameState>()(
         },
         nobles,
       };
-      set({ board, deck: deckAll as Card[] }, false);
+      set({ board }, false);
     },
     players: [],
     currentPlayerIndex: 0,
