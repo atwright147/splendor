@@ -12,8 +12,19 @@ import {
 } from './game.store';
 
 describe('Game Store', () => {
+  let defaultTokens: Tokens;
+
   beforeEach(() => {
     const { result } = renderHook(() => useGameStore());
+
+    defaultTokens = {
+      red: 0,
+      blue: 0,
+      green: 0,
+      white: 0,
+      black: 0,
+      gold: 0,
+    };
 
     result.current.board = { ...initialBoardState };
     // result.current.boardSnapshot = { ...initialBoardState };
@@ -484,7 +495,7 @@ describe('Game Store', () => {
     });
   });
 
-  describe.skip('claimNoble()', () => {
+  describe('claimNoble()', () => {
     it('should update the current player with the noble prestige and add the noble to the nobles list', () => {
       const { result } = renderHook(() => useGameStore());
       const noble: Noble = {
@@ -492,6 +503,20 @@ describe('Game Store', () => {
         prestige: 10,
         cost: { red: 1, green: 1, blue: 1 },
       };
+
+      result.current.board = {
+        ...initialBoardState,
+      };
+      result.current.boardSnapshot = {
+        ...initialBoardState,
+      };
+      result.current.reservedTokens = {
+        ...defaultTokens,
+      };
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
 
       act(() => {
         result.current.claimNoble(noble);
