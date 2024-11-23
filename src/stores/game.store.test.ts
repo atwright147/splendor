@@ -320,19 +320,32 @@ describe('Game Store', () => {
       expect(result.current.reservedTokens[token2]).toBe(1);
     });
 
-    it.skip('does not reserve a token when a token of the same color is already reserved and other tokens are reserved', () => {
+    it('does not reserve a token when a token of the same color is already reserved and other tokens are reserved', () => {
       const { result } = renderHook(() => useGameStore());
       const token1 = 'red';
       const token2 = 'blue';
       const token3 = 'red';
-      act(() => {
-        result.current.reserveToken(token1);
-        result.current.reserveToken(token2);
-        result.current.reserveToken(token3);
-      });
-      expect(result.current.reservedTokens).toContain(token1);
-      expect(result.current.reservedTokens).toContain(token2);
-      expect(result.current.reservedTokens).not.toContain(token3);
+
+      result.current.board = {
+        ...initialBoardState,
+      };
+      result.current.boardSnapshot = {
+        ...initialBoardState,
+      };
+      result.current.reservedTokens = {
+        ...defaultTokens,
+      };
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.reserveToken(token1));
+      act(() => result.current.reserveToken(token2));
+      act(() => result.current.reserveToken(token3));
+
+      expect(result.current.reservedTokens[token1]).toBe(1);
+      expect(result.current.reservedTokens[token2]).toBe(1);
+      expect(result.current.reservedTokens[token3]).toBe(1); // should not be 2
     });
 
     it('does not reserve a token when the available tokens are less than 4', () => {
