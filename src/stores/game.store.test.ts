@@ -295,7 +295,7 @@ describe('Game Store', () => {
       expect(result.current.reservedTokens[tokenColor]).toBe(1);
     });
 
-    it.skip('reserves a token when a token of a different color is already reserved', () => {
+    it('reserves a token when a token of a different color is already reserved', () => {
       const { result } = renderHook(() => useGameStore());
       const token1 = 'red';
       const token2 = 'blue';
@@ -310,28 +310,14 @@ describe('Game Store', () => {
         ...defaultTokens,
       };
 
-      act(() => {
-        result.current.createPlayers(2);
-      });
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.reserveToken(token1));
+      act(() => result.current.reserveToken(token2));
 
-      act(() => {
-        result.current.init();
-      });
-
-      act(() => {
-        result.current.deal();
-      });
-
-      act(() => {
-        result.current.reserveToken(token1);
-      });
-
-      act(() => {
-        result.current.reserveToken(token2);
-      });
-
-      expect(result.current.reservedTokens).toContain(token1);
-      expect(result.current.reservedTokens).toContain(token2);
+      expect(result.current.reservedTokens[token1]).toBe(1);
+      expect(result.current.reservedTokens[token2]).toBe(1);
     });
 
     it.skip('does not reserve a token when a token of the same color is already reserved and other tokens are reserved', () => {

@@ -324,7 +324,7 @@ export const useGameStore = create<GameState>()(
       set((state) => ({
         reservedTokens: {
           ...state.reservedTokens,
-          [tokenColor]: (state.reservedTokens[tokenColor] || 0) + 1,
+          [tokenColor]: state.reservedTokens[tokenColor] + 1,
         },
         board: {
           ...state.board,
