@@ -530,35 +530,52 @@ describe('Game Store', () => {
       ).toContainEqual(noble);
     });
 
-    // it('should remove the noble from the nobles list', () => {
-    //   const { result } = renderHook(() => useGameStore());
-    //   const noble: Noble = {
-    //     id: '1',
-    //     prestige: 10,
-    //     cost: { red: 1, green: 1, blue: 1 },
-    //   };
+    it('should remove the noble from the nobles list', () => {
+      const { result } = renderHook(() => useGameStore());
+      result.current.board = {
+        ...initialBoardState,
+      };
+      result.current.boardSnapshot = {
+        ...initialBoardState,
+      };
 
-    //   act(() => {
-    //     result.current.claimNoble(noble);
-    //   });
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
 
-    //   expect(result.current.nobles).not.toContainEqual(noble);
-    // });
+      const noble = result.current.board.nobles[0];
+
+      result.current.reservedTokens = {
+        ...noble.cost,
+      };
+
+      act(() => result.current.claimNoble(noble));
+
+      expect(result.current.board.nobles).not.toContainEqual(noble);
+    });
 
     it('should not update other players', () => {
       const { result } = renderHook(() => useGameStore());
-      const noble: Noble = {
-        id: '1',
-        prestige: 10,
-        cost: { red: 1, green: 1, blue: 1 },
+      result.current.board = {
+        ...initialBoardState,
+      };
+      result.current.boardSnapshot = {
+        ...initialBoardState,
       };
 
-      act(() => {
-        result.current.claimNoble(noble);
-      });
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
 
-      const otherPlayerIndex =
-        (result.current.currentPlayerIndex + 1) % result.current.players.length;
+      const noble = result.current.board.nobles[0];
+
+      result.current.reservedTokens = {
+        ...noble.cost,
+      };
+
+      act(() => result.current.claimNoble(noble));
+
+      const otherPlayerIndex = result.current.currentPlayerIndex === 0 ? 1 : 0;
 
       expect(result.current.players[otherPlayerIndex].prestige).toBe(0);
       expect(

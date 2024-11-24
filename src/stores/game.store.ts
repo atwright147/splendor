@@ -370,6 +370,10 @@ export const useGameStore = create<GameState>()(
               }
             : player,
         ),
+        board: {
+          ...state.board,
+          nobles: state.board.nobles.filter((n) => n.id !== noble.id),
+        },
       }));
     },
     nextPlayer: () => {
