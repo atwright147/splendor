@@ -1,14 +1,10 @@
 import { Outlet } from 'react-router-dom';
 import { Header } from '../../components/Header/Header';
-// import { Nav } from '../../components/Nav/Nav';
-import { Spinner } from '../../components/Spinner/Spinner';
 
 import './Root.scss';
 
 export const Root = (): JSX.Element => (
   <>
-    <Spinner />
-
     <div className="app grid">
       <div className="header">
         <Header>
