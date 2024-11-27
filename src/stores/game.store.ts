@@ -105,8 +105,8 @@ export const initialBoardState: BoardState = {
 };
 
 const createPlayer = (): PlayerState => ({
-  uuid: uuidv4(),
   ...defaultPlayerState,
+  uuid: uuidv4(),
 });
 
 export const useGameStore = create<GameState>()(
