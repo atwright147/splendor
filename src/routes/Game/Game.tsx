@@ -1,28 +1,54 @@
-import { FC, useEffect, useMemo } from 'react';
-import { type CardType, useGameStore } from '../../stores/game.store';
+import { type FC, useEffect } from 'react';
+import { type Card as CardType, useGameStore } from '../../stores/game.store';
 
+import { useShallow } from 'zustand/shallow';
+import { PlayerInfo } from '../../components/PlayerInfo/PlayerInfo';
 import { CardBack } from '../../components/card-back/card-back.component';
 import { Card } from '../../components/card/card.component';
 import { MainPlayerInfo } from '../../components/main-player-info/main-player-info.component';
 import { Noble } from '../../components/noble/noble.component';
-import { PlayerInfo } from '../../components/player-info/player-info.component';
 import { Token } from '../../components/token/token.component';
-import { TokenColorValues } from '../../types/colors.type';
+import type { TokenColorValues } from '../../types/colors.type';
 import { Uuid } from '../../types/utils.types';
 import styles from './Game.module.scss';
 
 export const Game: FC = (): JSX.Element => {
-  const board = useGameStore((state) => state.board);
-  const boardState = useMemo(() => board, [board]);
-  const { takeCard, init, players, reserveTokens: takeTokens } = useGameStore();
-  useEffect(() => init(), [init]);
+  const {
+    board,
+    createPlayers,
+    deal,
+    init,
+    nextPlayer,
+    players,
+    reserveCard,
+    reserveToken,
+    takeCard,
+  } = useGameStore(
+    useShallow((state) => ({
+      board: state.board,
+      createPlayers: state.createPlayers,
+      deal: state.deal,
+      init: state.init,
+      nextPlayer: state.nextPlayer,
+      players: state.players,
+      reserveCard: state.reserveCard,
+      reserveToken: state.reserveToken,
+      takeCard: state.takeCard,
+    })),
+  );
+
+  useEffect(() => {
+    createPlayers(2);
+    init();
+    deal();
+  }, [createPlayers, deal, init]);
 
   const handleCardClick = (card: CardType): void => {
-    takeCard(card);
+    reserveCard(card);
   };
 
   const handleTokenClick = (color: TokenColorValues): void => {
-    takeTokens(color, 0);
+    reserveToken(color, 0);
   };
 
   return (
@@ -30,18 +56,15 @@ export const Game: FC = (): JSX.Element => {
       <div className={styles.players}>
         {players.map((player, index) => (
           <PlayerInfo
-            key={index}
-            ownedTokens={player.cards}
-            tempTokens={player.tokens}
+            key={player.uuid}
+            tokens={player.tokens}
+            cards={player.cards}
           />
         ))}
 
-        <hr />
-
-        <PlayerInfo />
-        <PlayerInfo />
-        <PlayerInfo />
-        <PlayerInfo />
+        {/* <pre style={{ whiteSpace: 'pre-wrap' }}>
+          {JSON.stringify(board, null, 2)}
+        </pre> */}
       </div>
 
       <div className={styles.decks}>
@@ -53,32 +76,32 @@ export const Game: FC = (): JSX.Element => {
       <div className={styles.cards}>
         {board.cards.level3.map((card) => (
           <Card
-            onClick={() => handleCardClick(card.id, card.level)}
+            onClick={() => handleCardClick(card)}
             key={card.id}
             level={card.level}
-            gemColor={card.gemColor}
-            price={card.price}
-            gemQuantity={card.gemQuantity}
+            cost={card.cost}
+            token={card.token}
+            prestige={card.prestige}
           />
         ))}
         {board.cards.level2.map((card) => (
           <Card
-            onClick={() => handleCardClick(card.id, card.level)}
+            onClick={() => handleCardClick(card)}
             key={card.id}
             level={card.level}
-            gemColor={card.gemColor}
-            price={card.price}
-            gemQuantity={card.gemQuantity}
+            cost={card.cost}
+            token={card.token}
+            prestige={card.prestige}
           />
         ))}
         {board.cards.level1.map((card) => (
           <Card
-            onClick={() => handleCardClick(card.id, card.level)}
+            onClick={() => handleCardClick(card)}
             key={card.id}
             level={card.level}
-            gemColor={card.gemColor}
-            price={card.price}
-            gemQuantity={card.gemQuantity}
+            cost={card.cost}
+            token={card.token}
+            prestige={card.prestige}
           />
         ))}
       </div>
@@ -88,35 +111,35 @@ export const Game: FC = (): JSX.Element => {
         <Token
           onClick={() => handleTokenClick('black')}
           color="black"
-          quantity={boardState.tokens.black}
+          quantity={board.tokens.black}
         />
         <Token
           onClick={() => handleTokenClick('blue')}
           color="blue"
-          quantity={boardState.tokens.blue}
+          quantity={board.tokens.blue}
         />
         <Token
           onClick={() => handleTokenClick('green')}
           color="green"
-          quantity={boardState.tokens.green}
+          quantity={board.tokens.green}
         />
         <Token
           onClick={() => handleTokenClick('red')}
           color="red"
-          quantity={boardState.tokens.red}
+          quantity={board.tokens.red}
         />
         <Token
           onClick={() => handleTokenClick('white')}
           color="white"
-          quantity={boardState.tokens.white}
+          quantity={board.tokens.white}
         />
       </div>
 
-      <div className={styles.nobles}>
+      {/* <div className={styles.nobles}>
         {boardState.nobles.map((noble) => (
           <Noble key={noble.id} price={noble.price} prestige={noble.prestige} />
         ))}
-      </div>
+      </div> */}
 
       <div className={styles.mainPlayerInfo}>
         <MainPlayerInfo />
