@@ -21,7 +21,8 @@ export const ErrorPage = () => {
       <p>Sorry, an unexpected error has occurred.</p>
       <p>
         <i>
-          {(error as RouterError).statusText}: {(error as RouterError).error.message}
+          {(error as RouterError).statusText}:{' '}
+          {(error as RouterError).error?.message}
         </i>
       </p>
     </div>
