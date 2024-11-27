@@ -359,6 +359,31 @@ describe('Game Store', () => {
       expect(result.current.players[0].cards).toContain(card1);
       expect(result.current.players[0].cards).toContain(card2);
     });
+
+    it.skip('removes card from the board', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      result.current.board = {
+        ...initialBoardState,
+      };
+      result.current.boardSnapshot = {
+        ...initialBoardState,
+      };
+      result.current.reservedTokens = {
+        ...defaultTokens,
+      };
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+
+      const card = result.current.board.cards.level1[0];
+
+      act(() => result.current.setCurrentPlayerIndex(0));
+      act(() => result.current.reserveCard(card));
+
+      expect(result.current.board.cards.level1).not.toContain(card);
+    });
   });
 
   describe('reserveCard()', () => {
