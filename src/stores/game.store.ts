@@ -70,6 +70,7 @@ interface GameState {
   setCurrentPlayerIndex: (index: number) => void;
   createPlayers: (quantity: number) => void;
   reserveToken: (tokenColor: string) => void;
+  canAffordCard: (card: Card) => boolean;
   takeCard: (card: Card) => void;
   reserveCard: (card: Card) => void;
   claimNoble: (noble: Noble) => void;
@@ -341,6 +342,35 @@ export const useGameStore = create<GameState>()(
           },
         }));
       },
+      canAffordCard: (card) => {
+        const player = get().players[get().currentPlayerIndex];
+
+        const canAffordWithTokens = Object.entries(card.cost).every(
+          ([color, qty]) => player.tokens[color] >= qty,
+        );
+
+        if (!canAffordWithTokens) {
+          const requiredTokens = Object.entries(card.cost).reduce(
+            (sum, [color, qty]) => sum + qty,
+            0,
+          );
+
+          // count how many tokens the player has that match the cost of the card
+          const matchingTokens = Object.entries(player.tokens).reduce(
+            (sum, [color, qty]): number => {
+              if (card.cost[color]) {
+                return sum + qty;
+              }
+              return sum;
+            },
+            0,
+          );
+
+          return matchingTokens + player.tokens.gold >= requiredTokens;
+        }
+
+        return true;
+      },
       // FIXME: this should be commitCard()
       takeCard: (card) => {
         set((state) => ({
@@ -358,12 +388,28 @@ export const useGameStore = create<GameState>()(
           return;
         }
 
+        const randomCard = get().deck[random(0, get().deck.length - 1)];
+        const level = card.level;
+        const cardLevelKey = `level${level}`;
+        const cardsOfSameLevel: Card[] = get().board.cards[cardLevelKey];
+        const index = cardsOfSameLevel.indexOf(card);
+        const newCards = [...cardsOfSameLevel];
+        newCards.splice(index, 1, randomCard);
+
         set((state) => ({
           players: state.players.map((player, i) =>
             i === get().currentPlayerIndex
               ? { ...player, reservedCards: [...player.reservedCards, card] }
               : player,
           ),
+          deck: get().deck.filter((deckCard) => deckCard.id !== randomCard.id),
+          board: {
+            ...state.board,
+            cards: {
+              ...state.board.cards,
+              [cardLevelKey]: newCards,
+            },
+          },
         }));
       },
       claimNoble: (noble) => {

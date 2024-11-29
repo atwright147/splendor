@@ -22,15 +22,15 @@ export const Card: FC<Props> = ({
       {...props}
       data-level={level}
     >
-      {/* <div className={styles.top}>
-        <Gem color={token} quantity={gemQuantity} width={50} />
-      </div> */}
+      <div className={styles.top}>
+        <Gem color={token} quantity={1} width={50} />
+      </div>
 
-      {/* <div className={styles.bottom}>
-        {Object.values(cost).map(([color, quantity]) => (
+      <div className={styles.bottom}>
+        {Object.entries(cost).map(([color, quantity]) => (
           <Gem key={color} color={color} quantity={quantity} width={30} />
         ))}
-      </div> */}
+      </div>
     </div>
   );
 };

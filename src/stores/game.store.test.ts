@@ -310,6 +310,82 @@ describe('Game Store', () => {
     });
   });
 
+  describe('canAffordCard()', () => {
+    it('returns true if the player can afford the card', () => {
+      const { result } = renderHook(() => useGameStore());
+      const card: Card = {
+        id: 'mockUuid-1',
+        cost: { red: 1, green: 2 },
+        prestige: 1,
+        token: 'red',
+        level: 1,
+      };
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      result.current.players[0].tokens.red = 1;
+      result.current.players[0].tokens.green = 2;
+      result.current.players[0].tokens.blue = 0;
+      result.current.players[0].tokens.black = 0;
+      result.current.players[0].tokens.white = 0;
+
+      expect(result.current.canAffordCard(card)).toBe(true);
+    });
+
+    it('returns false if the player cannot afford the card', () => {
+      const { result } = renderHook(() => useGameStore());
+      const card: Card = {
+        id: 'mockUuid-1',
+        cost: { red: 1, green: 2 },
+        prestige: 1,
+        token: 'red',
+        level: 1,
+      };
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      result.current.players[0].tokens.red = 1;
+      result.current.players[0].tokens.green = 0;
+      result.current.players[0].tokens.blue = 0;
+      result.current.players[0].tokens.black = 0;
+      result.current.players[0].tokens.white = 0;
+      result.current.players[0].tokens.gold = 0;
+
+      expect(result.current.canAffordCard(card)).toBe(false);
+    });
+
+    it('returns true if the player cannot afford the card with token but has enough gold', () => {
+      const { result } = renderHook(() => useGameStore());
+      const card: Card = {
+        id: 'mockUuid-1',
+        cost: { red: 1, green: 2 },
+        prestige: 1,
+        token: 'red',
+        level: 1,
+      };
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      result.current.players[0].tokens.red = 1;
+      result.current.players[0].tokens.green = 1;
+      result.current.players[0].tokens.blue = 0;
+      result.current.players[0].tokens.black = 0;
+      result.current.players[0].tokens.white = 0;
+      result.current.players[0].tokens.gold = 1;
+
+      expect(result.current.canAffordCard(card)).toBe(true);
+    });
+  });
+
   describe('takeCard()', () => {
     beforeEach(() => {
       const { result } = renderHook(() => useGameStore());
@@ -360,88 +436,90 @@ describe('Game Store', () => {
       expect(result.current.players[0].cards).toContain(card2);
     });
 
-    it.skip('removes card from the board', () => {
-      const { result } = renderHook(() => useGameStore());
+    describe('reserveCard()', () => {
+      beforeEach(() => {
+        const { result } = renderHook(() => useGameStore());
 
-      result.current.board = {
-        ...initialBoardState,
-      };
-      result.current.boardSnapshot = {
-        ...initialBoardState,
-      };
-      result.current.reservedTokens = {
-        ...defaultTokens,
-      };
+        act(() => result.current.createPlayers(2));
+      });
 
-      act(() => result.current.createPlayers(2));
-      act(() => result.current.init());
-      act(() => result.current.deal());
+      it('reserves a card for the current player', () => {
+        const { result } = renderHook(() => useGameStore());
+        const card: Card = {
+          id: 'mockUuid-1',
+          cost: { red: 1, green: 2 },
+          prestige: 1,
+          token: 'red',
+          level: 1,
+        };
 
-      const card = result.current.board.cards.level1[0];
+        act(() => result.current.reserveCard(card));
 
-      act(() => result.current.setCurrentPlayerIndex(0));
-      act(() => result.current.reserveCard(card));
+        expect(result.current.players[0].reservedCards).toContain(card);
+      });
 
-      expect(result.current.board.cards.level1).not.toContain(card);
-    });
-  });
+      it('reserves a card when there are multiple players', () => {
+        const { result } = renderHook(() => useGameStore());
+        const card: Card = {
+          id: 'mockUuid-1',
+          cost: { red: 1, green: 2 },
+          prestige: 1,
+          token: 'red',
+          level: 1,
+        };
 
-  describe('reserveCard()', () => {
-    beforeEach(() => {
-      const { result } = renderHook(() => useGameStore());
+        act(() => result.current.setCurrentPlayerIndex(1));
+        act(() => result.current.reserveCard(card));
 
-      act(() => result.current.createPlayers(2));
-    });
+        expect(result.current.players[1].reservedCards).toContain(card);
+      });
 
-    it('reserves a card for the current player', () => {
-      const { result } = renderHook(() => useGameStore());
-      const card: Card = {
-        id: 'mockUuid-1',
-        cost: { red: 1, green: 2 },
-        prestige: 1,
-        token: 'red',
-        level: 1,
-      };
+      it('does not reserve a card when the card is already reserved by the current player', () => {
+        vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-      act(() => result.current.reserveCard(card));
+        const PLAYER_INDEX = 1;
+        const { result } = renderHook(() => useGameStore());
+        const card: Card = {
+          id: 'mockUuid-1',
+          cost: { red: 1, green: 2 },
+          prestige: 1,
+          token: 'red',
+          level: 1,
+        };
 
-      expect(result.current.players[0].reservedCards).toContain(card);
-    });
+        act(() => result.current.setCurrentPlayerIndex(PLAYER_INDEX));
+        act(() => result.current.reserveCard(card));
+        act(() => result.current.reserveCard(card));
 
-    it('reserves a card when there are multiple players', () => {
-      const { result } = renderHook(() => useGameStore());
-      const card: Card = {
-        id: 'mockUuid-1',
-        cost: { red: 1, green: 2 },
-        prestige: 1,
-        token: 'red',
-        level: 1,
-      };
+        expect(result.current.players[PLAYER_INDEX].reservedCards.length).toBe(
+          1,
+        );
+      });
 
-      act(() => result.current.setCurrentPlayerIndex(1));
-      act(() => result.current.reserveCard(card));
+      it('removes card from the board', () => {
+        const { result } = renderHook(() => useGameStore());
 
-      expect(result.current.players[1].reservedCards).toContain(card);
-    });
+        result.current.board = {
+          ...initialBoardState,
+        };
+        result.current.boardSnapshot = {
+          ...initialBoardState,
+        };
+        result.current.reservedTokens = {
+          ...defaultTokens,
+        };
 
-    it('does not reserve a card when the card is already reserved by the current player', () => {
-      vi.spyOn(console, 'warn').mockImplementation(() => {});
+        act(() => result.current.createPlayers(2));
+        act(() => result.current.init());
+        act(() => result.current.deal());
 
-      const PLAYER_INDEX = 1;
-      const { result } = renderHook(() => useGameStore());
-      const card: Card = {
-        id: 'mockUuid-1',
-        cost: { red: 1, green: 2 },
-        prestige: 1,
-        token: 'red',
-        level: 1,
-      };
+        const card = result.current.board.cards.level1[0];
 
-      act(() => result.current.setCurrentPlayerIndex(PLAYER_INDEX));
-      act(() => result.current.reserveCard(card));
-      act(() => result.current.reserveCard(card));
+        act(() => result.current.setCurrentPlayerIndex(0));
+        act(() => result.current.reserveCard(card));
 
-      expect(result.current.players[PLAYER_INDEX].reservedCards.length).toBe(1);
+        expect(result.current.board.cards.level1).not.toContain(card);
+      });
     });
   });
 

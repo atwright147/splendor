@@ -61,10 +61,6 @@ export const Game: FC = (): JSX.Element => {
             cards={player.cards}
           />
         ))}
-
-        {/* <pre style={{ whiteSpace: 'pre-wrap' }}>
-          {JSON.stringify(board, null, 2)}
-        </pre> */}
       </div>
 
       <div className={styles.decks}>
