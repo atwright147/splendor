@@ -48,7 +48,7 @@ export const Game: FC = (): JSX.Element => {
   };
 
   const handleTokenClick = (color: TokenColorValues): void => {
-    reserveToken(color, 0);
+    reserveToken(color);
   };
 
   return (
@@ -131,11 +131,11 @@ export const Game: FC = (): JSX.Element => {
         />
       </div>
 
-      {/* <div className={styles.nobles}>
-        {boardState.nobles.map((noble) => (
-          <Noble key={noble.id} price={noble.price} prestige={noble.prestige} />
+      <div className={styles.nobles}>
+        {board.nobles.map((noble) => (
+          <Noble key={noble.id} cost={noble.cost} prestige={noble.prestige} />
         ))}
-      </div> */}
+      </div>
 
       <div className={styles.mainPlayerInfo}>
         <MainPlayerInfo />
