@@ -4,7 +4,7 @@ import type { RequireExactlyOne } from 'type-fest';
 
 import type { TokenColor } from '../../stores/game.store';
 
-import styles from './gem.component.module.scss';
+import styles from './Gem.module.scss';
 
 interface Props {
   color: RequireExactlyOne<TokenColor>;

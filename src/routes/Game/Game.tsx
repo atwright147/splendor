@@ -2,14 +2,15 @@ import { type FC, useEffect } from 'react';
 import { type Card as CardType, useGameStore } from '../../stores/game.store';
 
 import { useShallow } from 'zustand/shallow';
+import { Card } from '../../components/Card/Card';
+import { CardBack } from '../../components/CardBack/CardBack';
+import { MainPlayerInfo } from '../../components/MainPlayerInfo/MainPlayerInfo';
+import { Noble } from '../../components/Noble/Noble';
 import { PlayerInfo } from '../../components/PlayerInfo/PlayerInfo';
-import { CardBack } from '../../components/card-back/card-back.component';
-import { Card } from '../../components/card/card.component';
-import { MainPlayerInfo } from '../../components/main-player-info/main-player-info.component';
-import { Noble } from '../../components/noble/noble.component';
-import { Token } from '../../components/token/token.component';
+import { Token } from '../../components/Token/Token';
 import type { TokenColorValues } from '../../types/colors.type';
 import { Uuid } from '../../types/utils.types';
+
 import styles from './Game.module.scss';
 
 export const Game: FC = (): JSX.Element => {

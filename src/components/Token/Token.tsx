@@ -1,8 +1,9 @@
-import { ComponentPropsWithoutRef, FC } from 'react';
 import classnames from 'classnames';
-import { TokenColorValues } from '../../types/colors.type';
+import type { ComponentPropsWithoutRef, FC } from 'react';
 
-import styles from './token.component.module.scss';
+import type { TokenColorValues } from '../../types/colors.type';
+
+import styles from './Token.module.scss';
 
 interface Props extends ComponentPropsWithoutRef<'div'> {
   color: TokenColorValues;
@@ -11,8 +12,19 @@ interface Props extends ComponentPropsWithoutRef<'div'> {
   size?: number;
 }
 
-export const Token: FC<Props> = ({ color, label, quantity, size = 50, className, ...props }): JSX.Element => (
-  <div className={classnames(styles.container, className)} {...props} data-level={color}>
+export const Token: FC<Props> = ({
+  color,
+  label,
+  quantity,
+  size = 50,
+  className,
+  ...props
+}): JSX.Element => (
+  <div
+    className={classnames(styles.container, className)}
+    {...props}
+    data-level={color}
+  >
     <div
       className={classnames(styles.token, styles[color], {
         [styles.empty]: !quantity,

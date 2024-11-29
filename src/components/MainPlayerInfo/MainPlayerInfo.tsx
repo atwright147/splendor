@@ -1,8 +1,8 @@
 import classNames from 'classnames';
-import { FC } from 'react';
-import { TokenColorValues } from '../../types/colors.type';
+import type { FC } from 'react';
+import type { TokenColorValues } from '../../types/colors.type';
 
-import styles from './main-player-info.component.module.scss';
+import styles from './MainPlayerInfo.module.scss';
 
 interface Props {
   ownedTokens?: {
@@ -22,7 +22,10 @@ const initialTokens: { [color in TokenColorValues]: number } = {
   gold: 0,
 };
 
-export const MainPlayerInfo: FC<Props> = ({ ownedTokens = initialTokens, tempTokens = initialTokens }): JSX.Element => (
+export const MainPlayerInfo: FC<Props> = ({
+  ownedTokens = initialTokens,
+  tempTokens = initialTokens,
+}): JSX.Element => (
   <div className={styles.container}>
     <div className={classNames(styles.item, styles.red)}>
       <div className={styles.card}>{ownedTokens.red}</div>

@@ -1,9 +1,9 @@
 import classnames from 'classnames';
 import type { ComponentPropsWithoutRef, FC } from 'react';
 import type { Card as CardType } from '../../stores/game.store';
-import { Gem } from '../gem/gem.component';
+import { Gem } from '../Gem/Gem';
 
-import styles from './card.component.module.scss';
+import styles from './Card.module.scss';
 
 // https://stackoverflow.com/a/66810748/633056
 type Props = Omit<CardType, 'id'> & ComponentPropsWithoutRef<'div'>;
