@@ -11,6 +11,7 @@ import { Token } from '../../components/Token/Token';
 import type { TokenColorValues } from '../../types/colors.type';
 import { Uuid } from '../../types/utils.types';
 
+import { Notifications } from '../../components/Notifications/Notifications';
 import { Reserved } from '../../components/Reserved/Reserved';
 import styles from './Game.module.scss';
 
@@ -55,6 +56,8 @@ export const Game: FC = (): JSX.Element => {
 
   return (
     <div className={styles.table}>
+      <Notifications />
+
       <div className={styles.players}>
         {players.map((player, index) => (
           <PlayerInfo
