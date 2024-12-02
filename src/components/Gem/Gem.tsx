@@ -10,12 +10,14 @@ interface Props {
   color: RequireExactlyOne<TokenColor>;
   quantity: number;
   width?: number;
+  showQuantity?: boolean;
 }
 
 export const Gem: FC<Props> = ({
   color,
   quantity,
   width = 20,
+  showQuantity = true,
 }): JSX.Element | null => {
   if (quantity === 0) {
     return null;
@@ -28,7 +30,7 @@ export const Gem: FC<Props> = ({
         className={classNames(styles.gem, styles[color as any])}
         style={{ width: `${width}px` }}
       >
-        <div className={styles.quantity}>{quantity}</div>
+        <div className={styles.quantity}>{showQuantity && quantity}</div>
       </div>
     </div>
   );

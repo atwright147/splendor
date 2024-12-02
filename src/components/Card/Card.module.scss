@@ -1,6 +1,5 @@
 .container {
   aspect-ratio: 3 / 4;
-  width: 200px;
   background-color: bisque;
   border-radius: .5rem;
   display: flex;
@@ -10,8 +9,4 @@
   box-sizing: border-box;
   cursor: pointer;
   user-select: none;
-}
-
-.top,
-.bottom {
 }

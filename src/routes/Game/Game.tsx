@@ -11,6 +11,7 @@ import { Token } from '../../components/Token/Token';
 import type { TokenColorValues } from '../../types/colors.type';
 import { Uuid } from '../../types/utils.types';
 
+import { Reserved } from '../../components/Reserved/Reserved';
 import styles from './Game.module.scss';
 
 export const Game: FC = (): JSX.Element => {
@@ -140,6 +141,7 @@ export const Game: FC = (): JSX.Element => {
 
       <div className={styles.mainPlayerInfo}>
         <MainPlayerInfo />
+        <Reserved />
       </div>
     </div>
   );

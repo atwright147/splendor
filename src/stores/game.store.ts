@@ -39,7 +39,6 @@ export interface PlayerState {
   tokens: Tokens;
   cards: Card[];
   nobles: Noble[];
-  reservedCards: Card[];
   prestige: number;
 }
 
@@ -53,6 +52,7 @@ export interface BoardState {
     [color in TokenColor]: number;
   };
   nobles: Noble[];
+  reservedCards: Card | null;
 }
 
 interface GameState {
@@ -61,6 +61,7 @@ interface GameState {
   setBoardSnapshot: () => void;
   resetBoardSnapshot: () => void;
   reservedTokens: Tokens;
+  reservedCard: Card;
   commitTokens: () => void;
   init: () => void;
   deal: () => void;
@@ -84,7 +85,6 @@ const defaultPlayerState: PlayerState = {
   tokens: { red: 0, green: 0, blue: 0, white: 0, black: 0, gold: 0 },
   cards: [],
   nobles: [],
-  reservedCards: [],
   prestige: 0,
 };
 
@@ -103,6 +103,7 @@ export const initialBoardState: BoardState = {
     gold: 0,
   },
   nobles: [],
+  reservedCards: null,
 };
 
 const createPlayer = (): PlayerState => ({
@@ -230,6 +231,7 @@ export const useGameStore = create<GameState>()(
             white: qtyTokens,
           },
           nobles,
+          reservedCards: null,
         };
         set({ board }, false);
       },
@@ -382,36 +384,40 @@ export const useGameStore = create<GameState>()(
         }));
       },
       reserveCard: (card) => {
-        const { reservedCards } = get().players[get().currentPlayerIndex];
-        if (reservedCards.some((reservedCard) => reservedCard.id === card.id)) {
-          console.warn('Card already reserved');
-          return;
-        }
-
-        const randomCard = get().deck[random(0, get().deck.length - 1)];
-        const level = card.level;
-        const cardLevelKey = `level${level}`;
-        const cardsOfSameLevel: Card[] = get().board.cards[cardLevelKey];
-        const index = cardsOfSameLevel.indexOf(card);
-        const newCards = [...cardsOfSameLevel];
-        newCards.splice(index, 1, randomCard);
-
-        set((state) => ({
-          players: state.players.map((player, i) =>
-            i === get().currentPlayerIndex
-              ? { ...player, reservedCards: [...player.reservedCards, card] }
-              : player,
-          ),
-          deck: get().deck.filter((deckCard) => deckCard.id !== randomCard.id),
-          board: {
-            ...state.board,
-            cards: {
-              ...state.board.cards,
-              [cardLevelKey]: newCards,
-            },
-          },
-        }));
+        set({ reservedCard: card });
       },
+      // reserveCard: (card) => {
+      //   const { reservedCards } = get().players[get().currentPlayerIndex];
+      //   if (reservedCards.some((reservedCard) => reservedCard.id === card.id)) {
+      //     console.warn('Card already reserved');
+      //     return;
+      //   }
+
+      //   const randomCard = get().deck[random(0, get().deck.length - 1)];
+      //   const level = card.level;
+      //   const cardLevelKey = `level${level}`;
+      //   const cardsOfSameLevel: Card[] = get().board.cards[cardLevelKey];
+      //   const index = cardsOfSameLevel.indexOf(card);
+      //   const newCards = [...cardsOfSameLevel];
+      //   newCards.splice(index, 1, randomCard);
+
+      //   set((state) => ({
+      //     players: state.players.map((player, i) =>
+      //       i === get().currentPlayerIndex
+      //         ? { ...player, reservedCards: [...player.reservedCards, card] }
+      //         : player,
+      //     ),
+      //     deck: get().deck.filter((deckCard) => deckCard.id !== randomCard.id),
+      //     board: {
+      //       ...state.board,
+      //       cards: {
+      //         ...state.board.cards,
+      //         [cardLevelKey]: newCards,
+      //       },
+      //     },
+      //   }));
+      // },
+      reservedCard: null,
       claimNoble: (noble) => {
         set((state) => ({
           players: state.players.map((player, i) =>
