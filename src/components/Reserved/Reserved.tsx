@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import type { FC } from 'react';
 
 import { useShallow } from 'zustand/shallow';
-import { useGameStore } from '../../stores/game.store';
+import { type TokenColor, useGameStore } from '../../stores/game.store';
 import { Card } from '../Card/Card';
 import { Gem } from '../Gem/Gem';
 import styles from './Reserved.module.scss';
@@ -25,7 +25,7 @@ export const Reserved: FC = (): JSX.Element => {
         {Object.entries(reservedTokens).map(([color, quantity]) => (
           <Gem
             key={color}
-            color={color}
+            color={color as TokenColor}
             quantity={quantity}
             width={30}
             showQuantity={false}

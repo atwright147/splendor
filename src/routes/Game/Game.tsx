@@ -25,7 +25,7 @@ export const Game: FC = (): JSX.Element => {
     players,
     reserveCard,
     reserveToken,
-    takeCard,
+    commitCard,
   } = useGameStore(
     useShallow((state) => ({
       board: state.board,
@@ -36,7 +36,7 @@ export const Game: FC = (): JSX.Element => {
       players: state.players,
       reserveCard: state.reserveCard,
       reserveToken: state.reserveToken,
-      takeCard: state.takeCard,
+      commitCard: state.commitCard,
     })),
   );
 

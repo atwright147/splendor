@@ -40,6 +40,7 @@ export interface PlayerState {
   cards: Card[];
   nobles: Noble[];
   prestige: number;
+  reservedCards: Card[];
 }
 
 export interface BoardState {
@@ -52,7 +53,6 @@ export interface BoardState {
     [color in TokenColor]: number;
   };
   nobles: Noble[];
-  reservedCards: Card | null;
 }
 
 interface GameState {
@@ -72,7 +72,8 @@ interface GameState {
   createPlayers: (quantity: number) => void;
   reserveToken: (tokenColor: string) => void;
   canAffordCard: (card: Card) => boolean;
-  takeCard: (card: Card) => void;
+  removePlayerTokensByCardCost: (cardCost: Tokens) => Tokens;
+  commitCard: (card: Card) => void;
   reserveCard: (card: Card) => void;
   claimNoble: (noble: Noble) => void;
   nextPlayer: () => void;
@@ -86,6 +87,7 @@ const defaultPlayerState: PlayerState = {
   cards: [],
   nobles: [],
   prestige: 0,
+  reservedCards: [],
 };
 
 export const initialBoardState: BoardState = {
@@ -103,7 +105,6 @@ export const initialBoardState: BoardState = {
     gold: 0,
   },
   nobles: [],
-  reservedCards: null,
 };
 
 const createPlayer = (): PlayerState => ({
@@ -231,7 +232,6 @@ export const useGameStore = create<GameState>()(
             white: qtyTokens,
           },
           nobles,
-          reservedCards: null,
         };
         set({ board }, false);
       },
@@ -373,12 +373,31 @@ export const useGameStore = create<GameState>()(
 
         return true;
       },
-      // FIXME: this should be commitCard()
-      takeCard: (card) => {
+      removePlayerTokensByCardCost: (cardCost) => {
+        const player = get().players[get().currentPlayerIndex];
+        const newTokens = { ...player.tokens };
+
+        for (const [color, qty] of Object.entries(cardCost)) {
+          newTokens[color] -= qty;
+        }
+
+        return newTokens;
+      },
+      commitCard: (card) => {
+        if (!get().canAffordCard(card)) {
+          console.warn('Cannot afford card');
+          return;
+        }
+
         set((state) => ({
           players: state.players.map((player, i) =>
             i === get().currentPlayerIndex
-              ? { ...player, cards: [...player.cards, card] }
+              ? {
+                  ...player,
+                  cards: [...player.cards, card],
+                  prestige: player.prestige + card.prestige,
+                  tokens: get().removePlayerTokensByCardCost(card.cost),
+                }
               : player,
           ),
         }));

@@ -386,7 +386,7 @@ describe('Game Store', () => {
     });
   });
 
-  describe('takeCard()', () => {
+  describe('commitCard()', () => {
     beforeEach(() => {
       const { result } = renderHook(() => useGameStore());
       const quantity = 2;
@@ -405,7 +405,7 @@ describe('Game Store', () => {
       };
 
       act(() => result.current.setCurrentPlayerIndex(0));
-      act(() => result.current.takeCard(card));
+      act(() => result.current.commitCard(card));
 
       expect(result.current.players[0].cards).toContain(card);
     });
@@ -429,8 +429,19 @@ describe('Game Store', () => {
       };
 
       act(() => result.current.setCurrentPlayerIndex(0));
-      act(() => result.current.takeCard(card1));
-      act(() => result.current.takeCard(card2));
+
+      // Set tokens for the player to afford both cards
+      result.current.players[0].tokens = {
+        red: 1,
+        green: 2,
+        blue: 2,
+        black: 0,
+        white: 1,
+        gold: 0,
+      };
+
+      act(() => result.current.commitCard(card1));
+      act(() => result.current.commitCard(card2));
 
       expect(result.current.players[0].cards).toContain(card1);
       expect(result.current.players[0].cards).toContain(card2);
@@ -519,6 +530,43 @@ describe('Game Store', () => {
         act(() => result.current.reserveCard(card));
 
         expect(result.current.board.cards.level1).not.toContain(card);
+      });
+    });
+
+    it("should deduct tokens from player's inventory", () => {
+      const { result } = renderHook(() => useGameStore());
+
+      result.current.board = {
+        ...initialBoardState,
+      };
+      result.current.boardSnapshot = {
+        ...initialBoardState,
+      };
+      result.current.reservedTokens = {
+        ...defaultTokens,
+      };
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+
+      const card = result.current.board.cards.level1[0];
+
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      const currentPlayer =
+        result.current.players[result.current.currentPlayerIndex];
+
+      currentPlayer.tokens = { ...card.cost };
+
+      act(() => result.current.commitCard(card));
+
+      expect(currentPlayer.tokens).toEqual({
+        red: 0,
+        green: 0,
+        blue: 0,
+        black: 0,
+        white: 0,
       });
     });
   });

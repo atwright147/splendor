@@ -7,7 +7,7 @@ import type { TokenColor } from '../../stores/game.store';
 import styles from './Gem.module.scss';
 
 interface Props {
-  color: RequireExactlyOne<TokenColor>;
+  color: TokenColor;
   quantity: number;
   width?: number;
   showQuantity?: boolean;

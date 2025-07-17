@@ -1,6 +1,7 @@
 import classnames from 'classnames';
 import type { ComponentPropsWithoutRef, FC } from 'react';
-import type { Card as CardType } from '../../stores/game.store';
+
+import type { Card as CardType, TokenColor } from '../../stores/game.store';
 import { Gem } from '../Gem/Gem';
 
 import styles from './Card.module.scss';
@@ -34,7 +35,7 @@ export const Card: FC<Props> = ({
         {Object.entries(cost).map(([color, quantity]) => (
           <Gem
             key={color}
-            color={color}
+            color={color as TokenColor}
             quantity={quantity}
             width={width / 5}
           />
