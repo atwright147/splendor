@@ -40,8 +40,6 @@ export interface PlayerState {
   cards: Card[];
   nobles: Noble[];
   prestige: number;
-  pickedCard: Card;
-  pickedTokens: Token[];
 }
 
 export interface BoardState {
@@ -59,9 +57,10 @@ export interface BoardState {
 interface GameState {
   board: BoardState;
   boardSnapshot: BoardState;
+  pickedCard: Card | null;
+  pickedTokens: { [color in TokenColor]: number };
   setBoardSnapshot: () => void;
   resetBoardSnapshot: () => void;
-  reservedTokens: Tokens;
   commitTokens: () => void;
   init: () => void;
   deal: () => void;
@@ -71,7 +70,7 @@ interface GameState {
   setCurrentPlayerIndex: (index: number) => void;
   getCurrentPlayer: () => PlayerState;
   createPlayers: (quantity: number) => void;
-  reserveToken: (tokenColor: string) => void;
+  pickToken: (tokenColor: string) => void;
   canAffordCard: (card: Card) => boolean;
   removePlayerTokensByCardCost: (cardCost: Tokens) => Tokens;
   commitCard: (card: Card) => void;
@@ -88,8 +87,6 @@ const defaultPlayerState: PlayerState = {
   cards: [],
   nobles: [],
   prestige: 0,
-  pickedCard: null,
-  pickedTokens: [],
 };
 
 export const initialBoardState: BoardState = {
@@ -119,18 +116,20 @@ export const useGameStore = create<GameState>()(
     (set, get): GameState => ({
       board: { ...initialBoardState },
       boardSnapshot: { ...initialBoardState },
+      pickedCard: null,
+      pickedTokens: { red: 0, green: 0, blue: 0, white: 0, black: 0, gold: 0 },
+
       setBoardSnapshot: () => set({ boardSnapshot: { ...get().board } }),
       resetBoardSnapshot: () =>
         set({ boardSnapshot: { ...initialBoardState } }),
       deck: [],
-      reservedTokens: { ...initialBoardState.tokens },
       commitTokens: () => {
         set((state) => ({
           players: state.players.map((player, index) =>
             index === get().currentPlayerIndex
               ? {
                   ...player,
-                  tokens: { ...player.tokens, ...get().reservedTokens },
+                  tokens: { ...player.tokens, ...state.pickedTokens },
                 }
               : player,
           ),
@@ -258,8 +257,8 @@ export const useGameStore = create<GameState>()(
         );
         set({ players });
       },
-      reserveToken: (tokenColor: TokenColor) => {
-        const { reservedTokens, board, boardSnapshot } = get();
+      pickToken: (tokenColor: TokenColor) => {
+        const { board, boardSnapshot } = get();
 
         // Don't allow taking gold tokens directly
         if (tokenColor === 'gold') {
@@ -267,20 +266,20 @@ export const useGameStore = create<GameState>()(
           return;
         }
 
-        // Get total number of tokens currently reserved
-        const totalReservedTokens = Object.values(reservedTokens).reduce(
+        // Get total number of tokens currently picked
+        const totalPickedTokens = Object.values(get().pickedTokens).reduce(
           (sum, count) => sum + count,
           0,
         );
 
-        // Get number of tokens of this color already reserved
-        const currentColorCount = reservedTokens[tokenColor] || 0;
+        // Get number of tokens of this color already picked
+        const currentColorCount = get().pickedTokens[tokenColor] || 0;
 
         // Get number of tokens available at the start of the turn
         const availableTokens = boardSnapshot.tokens[tokenColor];
 
         // Rule 1: Cannot reserve two of the same color if a different color is already reserved
-        const differentColorTokens = Object.entries(reservedTokens).filter(
+        const differentColorTokens = Object.entries(get().pickedTokens).filter(
           ([color, count]) => color !== tokenColor && count > 0,
         );
         if (differentColorTokens.length > 0 && currentColorCount >= 1) {
@@ -314,7 +313,7 @@ export const useGameStore = create<GameState>()(
             return;
           }
           // Ensure not taking 2 of any color when taking different colors
-          if (differentColorTokens.some(([_, count]) => count >= 2)) {
+          if (differentColorTokens.some(([_, count]) => Number(count) >= 2)) {
             console.info('Cannot mix taking 2 of one color with other colors');
             return;
           }
@@ -330,25 +329,27 @@ export const useGameStore = create<GameState>()(
         const playerCurrentTokens = Object.values(
           get().players[get().currentPlayerIndex].tokens,
         ).reduce((sum, count) => sum + count, 0);
-        if (playerCurrentTokens + totalReservedTokens + 1 > 10) {
+        if (playerCurrentTokens + totalPickedTokens + 1 > 10) {
           console.info('Cannot hold more than 10 tokens total');
           return;
         }
 
         // If all checks pass, reserve the token
-        set((state) => ({
-          reservedTokens: {
-            ...state.reservedTokens,
-            [tokenColor]: state.reservedTokens[tokenColor] + 1,
-          },
-          board: {
-            ...state.board,
-            tokens: {
-              ...state.board.tokens,
-              [tokenColor]: state.board.tokens[tokenColor] - 1,
+        set((state) => {
+          return {
+            board: {
+              ...state.board,
+              tokens: {
+                ...state.board.tokens,
+                [tokenColor]: state.board.tokens[tokenColor] - 1,
+              },
             },
-          },
-        }));
+            pickedTokens: {
+              ...state.pickedTokens,
+              [tokenColor]: state.pickedTokens[tokenColor] + 1,
+            },
+          };
+        });
       },
       canAffordCard: (card) => {
         const player = get().players[get().currentPlayerIndex];
@@ -359,7 +360,7 @@ export const useGameStore = create<GameState>()(
 
         if (!canAffordWithTokens) {
           const requiredTokens = Object.entries(card.cost).reduce(
-            (sum, [color, qty]) => sum + qty,
+            (sum, [_color, qty]) => sum + qty,
             0,
           );
 
@@ -390,9 +391,7 @@ export const useGameStore = create<GameState>()(
         return newTokens;
       },
       commitCard: (card) => {
-        const player = get().players[get().currentPlayerIndex];
-
-        if (player.pickedCard !== card) {
+        if (get().pickedCard !== card) {
           console.warn('Card not picked');
           return;
         }
@@ -417,14 +416,6 @@ export const useGameStore = create<GameState>()(
         }
 
         set((state) => ({
-          players: state.players.map((player, i) =>
-            i === get().currentPlayerIndex
-              ? {
-                  ...player,
-                  pickedCard: card,
-                }
-              : player,
-          ),
           board: {
             ...state.board,
             cards: {
@@ -434,6 +425,7 @@ export const useGameStore = create<GameState>()(
               ].filter((c) => c.id !== card.id),
             },
           },
+          pickedCard: card,
         }));
       },
       claimNoble: (noble) => {

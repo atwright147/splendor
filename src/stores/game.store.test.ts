@@ -198,7 +198,7 @@ describe('Game Store', () => {
       const tokenColor = 'red';
       result.current.boardSnapshot.tokens[tokenColor] = 4;
 
-      act(() => result.current.reserveToken(tokenColor));
+      act(() => result.current.pickToken(tokenColor));
 
       expect(result.current.reservedTokens[tokenColor]).toBe(1);
     });
@@ -211,8 +211,8 @@ describe('Game Store', () => {
 
       result.current.boardSnapshot.tokens[tokenColor] = 4;
 
-      act(() => result.current.reserveToken(token1));
-      act(() => result.current.reserveToken(token2));
+      act(() => result.current.pickToken(token1));
+      act(() => result.current.pickToken(token2));
 
       expect(result.current.reservedTokens[tokenColor]).toBe(2);
     });
@@ -238,9 +238,9 @@ describe('Game Store', () => {
       result.current.boardSnapshot.tokens[otherTokenColor] = 4;
 
       act(() => result.current.createPlayers(2));
-      act(() => result.current.reserveToken(token1));
-      act(() => result.current.reserveToken(token2));
-      act(() => result.current.reserveToken(token3));
+      act(() => result.current.pickToken(token1));
+      act(() => result.current.pickToken(token2));
+      act(() => result.current.pickToken(token3));
 
       expect(result.current.reservedTokens[tokenColor]).toBe(1);
     });
@@ -263,8 +263,8 @@ describe('Game Store', () => {
       act(() => result.current.createPlayers(2));
       act(() => result.current.init());
       act(() => result.current.deal());
-      act(() => result.current.reserveToken(token1));
-      act(() => result.current.reserveToken(token2));
+      act(() => result.current.pickToken(token1));
+      act(() => result.current.pickToken(token2));
 
       expect(result.current.reservedTokens[token1]).toBe(1);
       expect(result.current.reservedTokens[token2]).toBe(1);
@@ -289,9 +289,9 @@ describe('Game Store', () => {
       act(() => result.current.createPlayers(2));
       act(() => result.current.init());
       act(() => result.current.deal());
-      act(() => result.current.reserveToken(token1));
-      act(() => result.current.reserveToken(token2));
-      act(() => result.current.reserveToken(token3));
+      act(() => result.current.pickToken(token1));
+      act(() => result.current.pickToken(token2));
+      act(() => result.current.pickToken(token3));
 
       expect(result.current.reservedTokens[token1]).toBe(1);
       expect(result.current.reservedTokens[token2]).toBe(1);
@@ -305,7 +305,7 @@ describe('Game Store', () => {
       // simulate available tokens being less than 4
       result.current.board.tokens.red = 3;
 
-      act(() => result.current.reserveToken(token));
+      act(() => result.current.pickToken(token));
 
       expect(result.current.reservedTokens).not.toContain(token);
     });
