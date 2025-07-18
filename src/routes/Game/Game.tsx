@@ -34,7 +34,7 @@ export const Game: FC = (): JSX.Element => {
       init: state.init,
       nextPlayer: state.nextPlayer,
       players: state.players,
-      reserveCard: state.reserveCard,
+      reserveCard: state.pickCard,
       reserveToken: state.reserveToken,
       commitCard: state.commitCard,
     })),

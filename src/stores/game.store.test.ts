@@ -5,6 +5,7 @@ import deckAll from '../../ref/cards.json';
 import {
   type Card,
   type Noble,
+  type PlayerState,
   Token,
   type Tokens,
   initialBoardState,
@@ -405,53 +406,35 @@ describe('Game Store', () => {
       };
 
       act(() => result.current.setCurrentPlayerIndex(0));
+
+      const player = result.current.getCurrentPlayer();
+      player.tokens = {
+        red: 1,
+        green: 2,
+        blue: 0,
+        black: 0,
+        white: 0,
+        gold: 0,
+      };
+
+      act(() => result.current.pickCard(card));
       act(() => result.current.commitCard(card));
 
       expect(result.current.players[0].cards).toContain(card);
     });
 
-    it("adds multiple cards to current player's hand", () => {
-      const { result } = renderHook(() => useGameStore());
-      const card1: Card = {
-        id: 'mockUuid-1',
-        cost: { red: 1, green: 2 },
-        prestige: 1,
-        token: 'red',
-        level: 1,
-      };
-
-      const card2: Card = {
-        id: 'mockUuid-2',
-        cost: { blue: 2, white: 1 },
-        prestige: 2,
-        token: 'green',
-        level: 1,
-      };
-
-      act(() => result.current.setCurrentPlayerIndex(0));
-
-      // Set tokens for the player to afford both cards
-      result.current.players[0].tokens = {
-        red: 1,
-        green: 2,
-        blue: 2,
-        black: 0,
-        white: 1,
-        gold: 0,
-      };
-
-      act(() => result.current.commitCard(card1));
-      act(() => result.current.commitCard(card2));
-
-      expect(result.current.players[0].cards).toContain(card1);
-      expect(result.current.players[0].cards).toContain(card2);
-    });
-
     describe('reserveCard()', () => {
+      let player: PlayerState;
+
       beforeEach(() => {
         const { result } = renderHook(() => useGameStore());
 
+        act(() => result.current.init());
+        act(() => result.current.deal());
         act(() => result.current.createPlayers(2));
+        act(() => result.current.setCurrentPlayerIndex(0));
+
+        player = result.current.getCurrentPlayer();
       });
 
       it('reserves a card for the current player', () => {
@@ -464,9 +447,18 @@ describe('Game Store', () => {
           level: 1,
         };
 
-        act(() => result.current.reserveCard(card));
+        player.tokens = {
+          red: 1,
+          green: 2,
+          blue: 0,
+          black: 0,
+          white: 0,
+          gold: 0,
+        };
 
-        expect(result.current.players[0].reservedCards).toContain(card);
+        act(() => result.current.pickCard(card));
+
+        expect(result.current.players[0].pickedCard).toBe(card);
       });
 
       it('reserves a card when there are multiple players', () => {
@@ -479,32 +471,19 @@ describe('Game Store', () => {
           level: 1,
         };
 
-        act(() => result.current.setCurrentPlayerIndex(1));
-        act(() => result.current.reserveCard(card));
-
-        expect(result.current.players[1].reservedCards).toContain(card);
-      });
-
-      it('does not reserve a card when the card is already reserved by the current player', () => {
-        vi.spyOn(console, 'warn').mockImplementation(() => {});
-
-        const PLAYER_INDEX = 1;
-        const { result } = renderHook(() => useGameStore());
-        const card: Card = {
-          id: 'mockUuid-1',
-          cost: { red: 1, green: 2 },
-          prestige: 1,
-          token: 'red',
-          level: 1,
+        result.current.players[1].tokens = {
+          red: 1,
+          green: 2,
+          blue: 0,
+          black: 0,
+          white: 0,
+          gold: 0,
         };
 
-        act(() => result.current.setCurrentPlayerIndex(PLAYER_INDEX));
-        act(() => result.current.reserveCard(card));
-        act(() => result.current.reserveCard(card));
+        act(() => result.current.setCurrentPlayerIndex(1));
+        act(() => result.current.pickCard(card));
 
-        expect(result.current.players[PLAYER_INDEX].reservedCards.length).toBe(
-          1,
-        );
+        expect(result.current.players[1].pickedCard).toBe(card);
       });
 
       it('removes card from the board', () => {
@@ -520,53 +499,19 @@ describe('Game Store', () => {
           ...defaultTokens,
         };
 
-        act(() => result.current.createPlayers(2));
         act(() => result.current.init());
         act(() => result.current.deal());
 
+        act(() => result.current.createPlayers(2));
         const card = result.current.board.cards.level1[0];
 
         act(() => result.current.setCurrentPlayerIndex(0));
-        act(() => result.current.reserveCard(card));
+        const player = result.current.getCurrentPlayer();
+        player.tokens = card.cost;
+
+        act(() => result.current.pickCard(card));
 
         expect(result.current.board.cards.level1).not.toContain(card);
-      });
-    });
-
-    it("should deduct tokens from player's inventory", () => {
-      const { result } = renderHook(() => useGameStore());
-
-      result.current.board = {
-        ...initialBoardState,
-      };
-      result.current.boardSnapshot = {
-        ...initialBoardState,
-      };
-      result.current.reservedTokens = {
-        ...defaultTokens,
-      };
-
-      act(() => result.current.createPlayers(2));
-      act(() => result.current.init());
-      act(() => result.current.deal());
-
-      const card = result.current.board.cards.level1[0];
-
-      act(() => result.current.setCurrentPlayerIndex(0));
-
-      const currentPlayer =
-        result.current.players[result.current.currentPlayerIndex];
-
-      currentPlayer.tokens = { ...card.cost };
-
-      act(() => result.current.commitCard(card));
-
-      expect(currentPlayer.tokens).toEqual({
-        red: 0,
-        green: 0,
-        blue: 0,
-        black: 0,
-        white: 0,
       });
     });
   });

@@ -40,7 +40,8 @@ export interface PlayerState {
   cards: Card[];
   nobles: Noble[];
   prestige: number;
-  reservedCards: Card[];
+  pickedCard: Card;
+  pickedTokens: Token[];
 }
 
 export interface BoardState {
@@ -61,7 +62,6 @@ interface GameState {
   setBoardSnapshot: () => void;
   resetBoardSnapshot: () => void;
   reservedTokens: Tokens;
-  reservedCard: Card;
   commitTokens: () => void;
   init: () => void;
   deal: () => void;
@@ -69,12 +69,13 @@ interface GameState {
   players: PlayerState[];
   currentPlayerIndex: number;
   setCurrentPlayerIndex: (index: number) => void;
+  getCurrentPlayer: () => PlayerState;
   createPlayers: (quantity: number) => void;
   reserveToken: (tokenColor: string) => void;
   canAffordCard: (card: Card) => boolean;
   removePlayerTokensByCardCost: (cardCost: Tokens) => Tokens;
   commitCard: (card: Card) => void;
-  reserveCard: (card: Card) => void;
+  pickCard: (card: Card) => void;
   claimNoble: (noble: Noble) => void;
   nextPlayer: () => void;
 }
@@ -87,7 +88,8 @@ const defaultPlayerState: PlayerState = {
   cards: [],
   nobles: [],
   prestige: 0,
-  reservedCards: [],
+  pickedCard: null,
+  pickedTokens: [],
 };
 
 export const initialBoardState: BoardState = {
@@ -238,6 +240,10 @@ export const useGameStore = create<GameState>()(
       players: [],
       currentPlayerIndex: 0,
       setCurrentPlayerIndex: (index) => set({ currentPlayerIndex: index }),
+      getCurrentPlayer: () => {
+        const { players, currentPlayerIndex } = get();
+        return players[currentPlayerIndex];
+      },
       createPlayers: (quantity) => {
         let qtyPlayersToCreate = quantity;
         if (qtyPlayersToCreate > MAX_PLAYERS) {
@@ -384,8 +390,10 @@ export const useGameStore = create<GameState>()(
         return newTokens;
       },
       commitCard: (card) => {
-        if (!get().canAffordCard(card)) {
-          console.warn('Cannot afford card');
+        const player = get().players[get().currentPlayerIndex];
+
+        if (player.pickedCard !== card) {
+          console.warn('Card not picked');
           return;
         }
 
@@ -402,41 +410,32 @@ export const useGameStore = create<GameState>()(
           ),
         }));
       },
-      reserveCard: (card) => {
-        set({ reservedCard: card });
+      pickCard: (card) => {
+        if (!get().canAffordCard(card)) {
+          console.warn('Cannot afford card');
+          return;
+        }
+
+        set((state) => ({
+          players: state.players.map((player, i) =>
+            i === get().currentPlayerIndex
+              ? {
+                  ...player,
+                  pickedCard: card,
+                }
+              : player,
+          ),
+          board: {
+            ...state.board,
+            cards: {
+              ...state.board.cards,
+              [`level${card.level}`]: state.board.cards[
+                `level${card.level}`
+              ].filter((c) => c.id !== card.id),
+            },
+          },
+        }));
       },
-      // reserveCard: (card) => {
-      //   const { reservedCards } = get().players[get().currentPlayerIndex];
-      //   if (reservedCards.some((reservedCard) => reservedCard.id === card.id)) {
-      //     console.warn('Card already reserved');
-      //     return;
-      //   }
-
-      //   const randomCard = get().deck[random(0, get().deck.length - 1)];
-      //   const level = card.level;
-      //   const cardLevelKey = `level${level}`;
-      //   const cardsOfSameLevel: Card[] = get().board.cards[cardLevelKey];
-      //   const index = cardsOfSameLevel.indexOf(card);
-      //   const newCards = [...cardsOfSameLevel];
-      //   newCards.splice(index, 1, randomCard);
-
-      //   set((state) => ({
-      //     players: state.players.map((player, i) =>
-      //       i === get().currentPlayerIndex
-      //         ? { ...player, reservedCards: [...player.reservedCards, card] }
-      //         : player,
-      //     ),
-      //     deck: get().deck.filter((deckCard) => deckCard.id !== randomCard.id),
-      //     board: {
-      //       ...state.board,
-      //       cards: {
-      //         ...state.board.cards,
-      //         [cardLevelKey]: newCards,
-      //       },
-      //     },
-      //   }));
-      // },
-      reservedCard: null,
       claimNoble: (noble) => {
         set((state) => ({
           players: state.players.map((player, i) =>
