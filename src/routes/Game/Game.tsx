@@ -21,6 +21,7 @@ export const Game: FC = (): JSX.Element => {
     createPlayers,
     deal,
     init,
+    setBoardSnapshot,
     nextPlayer,
     players,
     reserveCard,
@@ -32,6 +33,7 @@ export const Game: FC = (): JSX.Element => {
       createPlayers: state.createPlayers,
       deal: state.deal,
       init: state.init,
+      setBoardSnapshot: state.setBoardSnapshot,
       nextPlayer: state.nextPlayer,
       players: state.players,
       reserveCard: state.pickCard,
@@ -44,7 +46,8 @@ export const Game: FC = (): JSX.Element => {
     createPlayers(2);
     init();
     deal();
-  }, [createPlayers, deal, init]);
+    setBoardSnapshot();
+  }, [createPlayers, deal, init, setBoardSnapshot]);
 
   const handleCardClick = (card: CardType): void => {
     reserveCard(card);
@@ -143,7 +146,7 @@ export const Game: FC = (): JSX.Element => {
       </div>
 
       <div className={styles.mainPlayerInfo}>
-        <MainPlayerInfo />
+        {/* <MainPlayerInfo /> */}
         <Reserved />
       </div>
     </div>

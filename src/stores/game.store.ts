@@ -1,11 +1,12 @@
+import { random } from 'radash';
 import type { RequireExactlyOne } from 'type-fest';
 import { v4 as uuidv4 } from 'uuid';
 import { create } from 'zustand';
-
-import { random } from 'radash';
 import { devtools } from 'zustand/middleware';
+
 import deckAll from '../../ref/cards.json';
 import noblesAll from '../../ref/nobles.json';
+import { type Notification, useNotificationStore } from './notifications.store';
 
 export interface Tokens {
   red?: number;
@@ -71,6 +72,7 @@ interface GameState {
   getCurrentPlayer: () => PlayerState;
   createPlayers: (quantity: number) => void;
   pickToken: (tokenColor: string) => void;
+  returnToken: (tokenColor: string) => void;
   canAffordCard: (card: Card) => boolean;
   removePlayerTokensByCardCost: (cardCost: Tokens) => Tokens;
   commitCard: (card: Card) => void;
@@ -111,6 +113,13 @@ const createPlayer = (): PlayerState => ({
   uuid: uuidv4(),
 });
 
+const notify = (message: string, type: Notification['type'] = 'info') => {
+  useNotificationStore.getState().add({
+    message,
+    type,
+  });
+};
+
 export const useGameStore = create<GameState>()(
   devtools(
     (set, get): GameState => ({
@@ -138,8 +147,6 @@ export const useGameStore = create<GameState>()(
       init: () => {
         const deckAllCopy = [...deckAll] as Card[];
         get().deck = deckAllCopy;
-        // get().deal();
-        // get().setBoardSnapshot();
       },
       deal: () => {
         if (get().players.length === 0) {
@@ -203,7 +210,6 @@ export const useGameStore = create<GameState>()(
             get().deck.findIndex((card) => card.id === level2Card.id),
             1,
           );
-          // console.log(level3Card);
           get().deck.splice(
             get().deck.findIndex((card) => card.id === level3Card.id),
             1,
@@ -247,8 +253,9 @@ export const useGameStore = create<GameState>()(
         let qtyPlayersToCreate = quantity;
         if (qtyPlayersToCreate > MAX_PLAYERS) {
           qtyPlayersToCreate = MAX_PLAYERS;
-          console.info(
+          notify(
             `Only ${MAX_PLAYERS} players can be created, ${quantity} requested.`,
+            'info',
           );
         }
         const players = Array.from(
@@ -262,7 +269,7 @@ export const useGameStore = create<GameState>()(
 
         // Don't allow taking gold tokens directly
         if (tokenColor === 'gold') {
-          console.info('Gold tokens cannot be taken directly');
+          notify('Gold tokens cannot be taken directly', 'info');
           return;
         }
 
@@ -283,24 +290,26 @@ export const useGameStore = create<GameState>()(
           ([color, count]) => color !== tokenColor && count > 0,
         );
         if (differentColorTokens.length > 0 && currentColorCount >= 1) {
-          console.info(
+          notify(
             'Cannot reserve two of the same color when a different color is already reserved',
+            'info',
           );
           return;
         }
 
         // Rule 2: Taking 2 tokens of the same color
-        if (currentColorCount === 1) {
+        if (currentColorCount >= 1) {
           // Can only take 2 if there were at least 4 available at start of turn
           if (availableTokens < 4) {
-            console.info(
+            notify(
               'Cannot take 2 tokens of the same color unless 4 or more were available at start of turn',
+              'info',
             );
             return;
           }
           // Can't take more than 2 of the same color
           if (currentColorCount >= 2) {
-            console.info('Cannot take more than 2 tokens of the same color');
+            notify('Cannot take more than 2 tokens of the same color', 'info');
             return;
           }
         }
@@ -309,19 +318,22 @@ export const useGameStore = create<GameState>()(
         else if (currentColorCount === 0) {
           // Check if player is trying to take a different colored token
           if (differentColorTokens.length >= 3) {
-            console.info('Cannot take more than 3 different colored tokens');
+            notify('Cannot take more than 3 different colored tokens', 'info');
             return;
           }
           // Ensure not taking 2 of any color when taking different colors
           if (differentColorTokens.some(([_, count]) => Number(count) >= 2)) {
-            console.info('Cannot mix taking 2 of one color with other colors');
+            notify(
+              'Cannot mix taking 2 of one color with other colors',
+              'info',
+            );
             return;
           }
         }
 
         // Rule 4: Check if there are any tokens of this color left to take
         if (board.tokens[tokenColor] <= 0) {
-          console.info('No tokens of this color remaining');
+          notify('No tokens of this color remaining', 'info');
           return;
         }
 
@@ -330,7 +342,7 @@ export const useGameStore = create<GameState>()(
           get().players[get().currentPlayerIndex].tokens,
         ).reduce((sum, count) => sum + count, 0);
         if (playerCurrentTokens + totalPickedTokens + 1 > 10) {
-          console.info('Cannot hold more than 10 tokens total');
+          notify('Cannot hold more than 10 tokens total', 'info');
           return;
         }
 
@@ -350,6 +362,27 @@ export const useGameStore = create<GameState>()(
             },
           };
         });
+      },
+      returnToken: (tokenColor: TokenColor) => {
+        const { board } = get();
+        if (get().pickedTokens[tokenColor] <= 0) {
+          notify('No tokens of this color to return', 'info');
+          return;
+        }
+
+        set((state) => ({
+          board: {
+            ...state.board,
+            tokens: {
+              ...state.board.tokens,
+              [tokenColor]: state.board.tokens[tokenColor] + 1,
+            },
+          },
+          pickedTokens: {
+            ...state.pickedTokens,
+            [tokenColor]: state.pickedTokens[tokenColor] - 1,
+          },
+        }));
       },
       canAffordCard: (card) => {
         const player = get().players[get().currentPlayerIndex];
@@ -392,7 +425,7 @@ export const useGameStore = create<GameState>()(
       },
       commitCard: (card) => {
         if (get().pickedCard !== card) {
-          console.warn('Card not picked');
+          notify('Card not picked', 'warn');
           return;
         }
 
@@ -411,7 +444,7 @@ export const useGameStore = create<GameState>()(
       },
       pickCard: (card) => {
         if (!get().canAffordCard(card)) {
-          console.warn('Cannot afford card');
+          notify('Cannot afford card', 'info');
           return;
         }
 

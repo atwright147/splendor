@@ -8,7 +8,7 @@ import styles from './Gem.module.scss';
 
 interface Props {
   color: TokenColor;
-  quantity: number;
+  quantity?: number;
   width?: number;
   showQuantity?: boolean;
 }

@@ -9,10 +9,11 @@ import { Gem } from '../Gem/Gem';
 import styles from './Reserved.module.scss';
 
 export const Reserved: FC = (): JSX.Element => {
-  const { pickedCard, pickedTokens } = useGameStore(
+  const { pickedCard, pickedTokens, returnToken } = useGameStore(
     useShallow((state) => ({
       pickedCard: state.pickedCard,
       pickedTokens: state.pickedTokens,
+      returnToken: state.returnToken,
     })),
   );
 
@@ -27,15 +28,26 @@ export const Reserved: FC = (): JSX.Element => {
       </div>
 
       <div className="tokens">
-        {Object.entries(pickedTokens).map(([color, quantity]) => (
-          <Gem
-            key={color}
-            color={color as TokenColor}
-            quantity={quantity as any}
-            width={30}
-            showQuantity={false}
-          />
-        ))}
+        {Object.entries(pickedTokens).flatMap(([color, quantity]) => {
+          return Array.from({ length: quantity }, (_, index) => (
+            <button
+              type="button"
+              className={styles.button}
+              // biome-ignore lint/suspicious/noArrayIndexKey: makes sense here
+              key={`token-${color}-${index}`}
+              onClick={() => {
+                returnToken(color as TokenColor);
+              }}
+            >
+              <Gem
+                color={color as TokenColor}
+                quantity={quantity}
+                width={30}
+                showQuantity={false}
+              />
+            </button>
+          ));
+        })}
       </div>
     </div>
   );

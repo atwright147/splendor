@@ -67,3 +67,13 @@
 .blue {
   color: white;
 }
+
+.button {
+  appearance: none;
+  width: min-content;
+  aspect-ratio: 1;
+  background-color: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
