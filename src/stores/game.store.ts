@@ -6,6 +6,7 @@ import { devtools } from 'zustand/middleware';
 
 import deckAll from '../../ref/cards.json';
 import noblesAll from '../../ref/nobles.json';
+import { mergeTokens } from '../utils/mergeTokens';
 import { type Notification, useNotificationStore } from './notifications.store';
 
 export interface Tokens {
@@ -139,7 +140,7 @@ export const useGameStore = create<GameState>()(
             index === get().currentPlayerIndex
               ? {
                   ...player,
-                  tokens: { ...player.tokens, ...state.pickedTokens },
+                  tokens: mergeTokens(player.tokens, state.pickedTokens),
                 }
               : player,
           ),
@@ -387,7 +388,7 @@ export const useGameStore = create<GameState>()(
         }));
       },
       canAffordCard: (card) => {
-        const player = get().players[get().currentPlayerIndex];
+        const player = get().getCurrentPlayer();
 
         const canAffordWithTokens = Object.entries(card.cost).every(
           ([color, qty]) => player.tokens[color] >= qty,

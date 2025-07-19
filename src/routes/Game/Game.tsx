@@ -62,7 +62,7 @@ export const Game: FC = (): JSX.Element => {
       <Notifications />
 
       <div className={styles.players}>
-        {players.map((player, index) => (
+        {players.map((player) => (
           <PlayerInfo
             key={player.uuid}
             tokens={player.tokens}
