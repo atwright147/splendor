@@ -3,34 +3,26 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
 export interface Notification {
-  id: string;
   message: string;
   timeout?: number;
-  type: 'success' | 'error' | 'info' | 'warning';
+  type: 'success' | 'error' | 'info' | 'warn';
+}
+
+interface NotificationState extends Notification {
+  id: string;
 }
 
 export interface State {
-  notifications: Notification[];
+  notifications: NotificationState[];
   add: (notification: Notification) => void;
-  remove: (id: Notification['id']) => void;
+  remove: (id: NotificationState['id']) => void;
   clear: () => void;
 }
 
 export const useNotificationStore = create<State>()(
   devtools(
     (set, get) => ({
-      notifications: [
-        {
-          id: uuidv4(),
-          message: 'Welcome to Splendor',
-          type: 'info' as Notification['type'],
-        },
-        {
-          id: uuidv4(),
-          message: 'Click on a card to play it',
-          type: 'success' as Notification['type'],
-        },
-      ],
+      notifications: [],
       add: (newNotification) => {
         const notification = {
           ...newNotification,

@@ -1,3 +1,4 @@
+import classnames from 'classnames';
 import type { FC } from 'react';
 import { useShallow } from 'zustand/shallow';
 
@@ -16,7 +17,10 @@ export const Notifications: FC = () => {
   return (
     <div className={styles.container}>
       {notifications.map((notification) => (
-        <section key={notification.id} className={styles.notification}>
+        <section
+          key={notification.id}
+          className={classnames(styles.notification, styles[notification.type])}
+        >
           <p className={styles.message}>{notification.message}</p>
 
           <button

@@ -13,6 +13,7 @@
   background-color: #fff;
   border: 1px solid #ccc;
   border-radius: 5px;
+  border-left: 10px solid transparent;
   padding: 10px;
   margin-bottom: 10px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -22,6 +23,22 @@
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
+
+  &.success {
+    border-left-color: green;
+  }
+
+  &.error {
+    border-left-color: red;
+  }
+
+  &.info {
+    border-left-color: blue;
+  }
+
+  &.warn {
+    border-left-color: orange;
+  }
 }
 
 .message {
@@ -33,4 +50,6 @@
   background: none;
   border: none;
   cursor: pointer;
+  font-size: 2rem;
+  margin-top: -0.25rem;
 }
