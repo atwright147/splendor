@@ -75,10 +75,11 @@ interface GameState {
   returnToken: (tokenColor: string) => void;
   canAffordCard: (card: Card) => boolean;
   removePlayerTokensByCardCost: (cardCost: Tokens) => Tokens;
-  commitCard: (card: Card) => void;
+  commitCard: () => void;
   pickCard: (card: Card) => void;
   claimNoble: (noble: Noble) => void;
   nextPlayer: () => void;
+  endTurn: () => void;
 }
 
 const MAX_PLAYERS = 4;
@@ -142,6 +143,7 @@ export const useGameStore = create<GameState>()(
                 }
               : player,
           ),
+          pickedTokens: initialBoardState.tokens,
         }));
       },
       init: () => {
@@ -423,9 +425,9 @@ export const useGameStore = create<GameState>()(
 
         return newTokens;
       },
-      commitCard: (card) => {
-        if (get().pickedCard !== card) {
-          notify('Card not picked', 'warn');
+      commitCard: () => {
+        if (!get().pickedCard) {
+          console.info('No card picked to commit');
           return;
         }
 
@@ -434,12 +436,15 @@ export const useGameStore = create<GameState>()(
             i === get().currentPlayerIndex
               ? {
                   ...player,
-                  cards: [...player.cards, card],
-                  prestige: player.prestige + card.prestige,
-                  tokens: get().removePlayerTokensByCardCost(card.cost),
+                  cards: [...player.cards, get().pickedCard],
+                  prestige: player.prestige + get().pickedCard.prestige,
+                  tokens: get().removePlayerTokensByCardCost(
+                    get().pickedCard.cost,
+                  ),
                 }
               : player,
           ),
+          pickedCard: null,
         }));
       },
       pickCard: (card) => {
@@ -485,6 +490,12 @@ export const useGameStore = create<GameState>()(
           currentPlayerIndex:
             (state.currentPlayerIndex + 1) % state.players.length,
         }));
+      },
+      endTurn: () => {
+        get().commitCard();
+        get().commitTokens();
+        get().setBoardSnapshot();
+        get().nextPlayer();
       },
     }),
   ),

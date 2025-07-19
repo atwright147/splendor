@@ -9,8 +9,9 @@ import { Gem } from '../Gem/Gem';
 import styles from './Reserved.module.scss';
 
 export const Reserved: FC = (): JSX.Element => {
-  const { pickedCard, pickedTokens, returnToken } = useGameStore(
+  const { endTurn, pickedCard, pickedTokens, returnToken } = useGameStore(
     useShallow((state) => ({
+      endTurn: state.endTurn,
       pickedCard: state.pickedCard,
       pickedTokens: state.pickedTokens,
       returnToken: state.returnToken,
@@ -49,6 +50,10 @@ export const Reserved: FC = (): JSX.Element => {
           ));
         })}
       </div>
+
+      <button type="button" onClick={endTurn}>
+        End Turn
+      </button>
     </div>
   );
 };
