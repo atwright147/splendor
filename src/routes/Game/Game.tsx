@@ -4,12 +4,10 @@ import { type Card as CardType, useGameStore } from '../../stores/game.store';
 import { useShallow } from 'zustand/shallow';
 import { Card } from '../../components/Card/Card';
 import { CardBack } from '../../components/CardBack/CardBack';
-import { MainPlayerInfo } from '../../components/MainPlayerInfo/MainPlayerInfo';
 import { Noble } from '../../components/Noble/Noble';
 import { PlayerInfo } from '../../components/PlayerInfo/PlayerInfo';
 import { Token } from '../../components/Token/Token';
 import type { TokenColorValues } from '../../types/colors.type';
-import { Uuid } from '../../types/utils.types';
 
 import { Notifications } from '../../components/Notifications/Notifications';
 import { Reserved } from '../../components/Reserved/Reserved';
@@ -63,11 +61,7 @@ export const Game: FC = (): JSX.Element => {
 
       <div className={styles.players}>
         {players.map((player) => (
-          <PlayerInfo
-            key={player.uuid}
-            tokens={player.tokens}
-            cards={player.cards}
-          />
+          <PlayerInfo key={player.uuid} id={player.uuid} />
         ))}
       </div>
 

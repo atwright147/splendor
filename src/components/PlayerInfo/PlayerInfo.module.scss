@@ -68,3 +68,11 @@
 .blue {
   color: white;
 }
+
+.prestige {
+  grid-column: span 3;
+  border: 1px solid #444;
+  width: 100%;
+  aspect-ratio: unset;
+  padding: 1rem 0;
+}

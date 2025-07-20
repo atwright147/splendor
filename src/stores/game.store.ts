@@ -6,19 +6,23 @@ import { devtools } from 'zustand/middleware';
 
 import deckAll from '../../ref/cards.json';
 import noblesAll from '../../ref/nobles.json';
+import { addGem } from '../utils/addGem';
 import { mergeTokens } from '../utils/mergeTokens';
 import { type Notification, useNotificationStore } from './notifications.store';
 
 export interface Tokens {
-  red?: number;
-  green?: number;
-  blue?: number;
-  white?: number;
-  black?: number;
+  red: number;
+  green: number;
+  blue: number;
+  white: number;
+  black: number;
+}
+
+export interface TokensWithGold extends Tokens {
   gold?: number;
 }
 
-export type TokenColor = keyof Tokens;
+export type TokenColor = keyof TokensWithGold;
 
 export type Token = RequireExactlyOne<Tokens>;
 
@@ -38,8 +42,9 @@ export interface Noble {
 
 export interface PlayerState {
   uuid: string;
-  tokens: Tokens;
+  tokens: TokensWithGold;
   cards: Card[];
+  gems: Tokens;
   nobles: Noble[];
   prestige: number;
 }
@@ -61,21 +66,23 @@ interface GameState {
   boardSnapshot: BoardState;
   pickedCard: Card | null;
   pickedTokens: { [color in TokenColor]: number };
+  deck: Card[];
+  players: PlayerState[];
+  currentPlayerIndex: number;
   setBoardSnapshot: () => void;
   resetBoardSnapshot: () => void;
   commitTokens: () => void;
   init: () => void;
   deal: () => void;
-  deck: Card[];
-  players: PlayerState[];
-  currentPlayerIndex: number;
   setCurrentPlayerIndex: (index: number) => void;
   getCurrentPlayer: () => PlayerState;
+  getPlayerById: (uuid: string) => PlayerState | undefined;
+  getPlayerByIndex: (index: number) => PlayerState | undefined;
   createPlayers: (quantity: number) => void;
   pickToken: (tokenColor: string) => void;
   returnToken: (tokenColor: string) => void;
   canAffordCard: (card: Card) => boolean;
-  removePlayerTokensByCardCost: (cardCost: Tokens) => Tokens;
+  removePlayerTokensByCardCost: (cardCost: TokensWithGold) => TokensWithGold;
   commitCard: () => void;
   pickCard: (card: Card) => void;
   claimNoble: (noble: Noble) => void;
@@ -85,10 +92,20 @@ interface GameState {
 
 const MAX_PLAYERS = 4;
 
+const defaultGemsAndTokens: TokensWithGold = {
+  red: 0,
+  green: 0,
+  blue: 0,
+  white: 0,
+  black: 0,
+  gold: 0,
+};
+
 const defaultPlayerState: PlayerState = {
   uuid: '',
-  tokens: { red: 0, green: 0, blue: 0, white: 0, black: 0, gold: 0 },
+  tokens: { ...defaultGemsAndTokens },
   cards: [],
+  gems: { ...defaultGemsAndTokens },
   nobles: [],
   prestige: 0,
 };
@@ -99,14 +116,7 @@ export const initialBoardState: BoardState = {
     level2: [],
     level3: [],
   },
-  tokens: {
-    red: 0,
-    green: 0,
-    blue: 0,
-    white: 0,
-    black: 0,
-    gold: 0,
-  },
+  tokens: { ...(defaultGemsAndTokens as Required<TokensWithGold>) },
   nobles: [],
 };
 
@@ -129,11 +139,13 @@ export const useGameStore = create<GameState>()(
       boardSnapshot: { ...initialBoardState },
       pickedCard: null,
       pickedTokens: { red: 0, green: 0, blue: 0, white: 0, black: 0, gold: 0 },
+      deck: [],
+      players: [],
+      currentPlayerIndex: 0,
 
       setBoardSnapshot: () => set({ boardSnapshot: { ...get().board } }),
       resetBoardSnapshot: () =>
         set({ boardSnapshot: { ...initialBoardState } }),
-      deck: [],
       commitTokens: () => {
         set((state) => ({
           players: state.players.map((player, index) =>
@@ -245,12 +257,18 @@ export const useGameStore = create<GameState>()(
         };
         set({ board }, false);
       },
-      players: [],
-      currentPlayerIndex: 0,
       setCurrentPlayerIndex: (index) => set({ currentPlayerIndex: index }),
       getCurrentPlayer: () => {
         const { players, currentPlayerIndex } = get();
         return players[currentPlayerIndex];
+      },
+      getPlayerById: (uuid: string) => {
+        const { players } = get();
+        return players.find((player) => player.uuid === uuid);
+      },
+      getPlayerByIndex: (index: number) => {
+        const { players } = get();
+        return players[index];
       },
       createPlayers: (quantity) => {
         let qtyPlayersToCreate = quantity;
@@ -367,7 +385,6 @@ export const useGameStore = create<GameState>()(
         });
       },
       returnToken: (tokenColor: TokenColor) => {
-        const { board } = get();
         if (get().pickedTokens[tokenColor] <= 0) {
           notify('No tokens of this color to return', 'info');
           return;
@@ -439,6 +456,7 @@ export const useGameStore = create<GameState>()(
                   ...player,
                   cards: [...player.cards, get().pickedCard],
                   prestige: player.prestige + get().pickedCard.prestige,
+                  gems: addGem(player.gems, get().pickedCard.token),
                   tokens: get().removePlayerTokensByCardCost(
                     get().pickedCard.cost,
                   ),
