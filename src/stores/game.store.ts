@@ -407,31 +407,35 @@ export const useGameStore = create<GameState>()(
       canAffordCard: (card) => {
         const player = get().getCurrentPlayer();
 
-        const canAffordWithTokens = Object.entries(card.cost).every(
-          ([color, qty]) => player.tokens[color] >= qty,
+        // Calculate effective tokens (tokens + gems) for each color
+        const effectiveTokens = Object.keys(card.cost).reduce(
+          (acc, color) => {
+            acc[color] =
+              (player.tokens[color] || 0) + (player.gems[color] || 0);
+            return acc;
+          },
+          {} as Record<string, number>,
         );
 
-        if (!canAffordWithTokens) {
-          const requiredTokens = Object.entries(card.cost).reduce(
-            (sum, [_color, qty]) => sum + qty,
-            0,
-          );
+        // Check if player can afford with regular tokens and gems
+        const canAffordWithTokensAndGems = Object.entries(card.cost).every(
+          ([color, qty]) => effectiveTokens[color] >= qty,
+        );
 
-          // count how many tokens the player has that match the cost of the card
-          const matchingTokens = Object.entries(player.tokens).reduce(
-            (sum, [color, qty]): number => {
-              if (card.cost[color]) {
-                return sum + qty;
-              }
-              return sum;
-            },
-            0,
-          );
-
-          return matchingTokens + player.tokens.gold >= requiredTokens;
+        if (canAffordWithTokensAndGems) {
+          return true;
         }
 
-        return false;
+        // If not, check if gold tokens can make up the difference
+        const shortfall = Object.entries(card.cost).reduce(
+          (total, [color, qty]) => {
+            const shortage = Math.max(0, qty - effectiveTokens[color]);
+            return total + shortage;
+          },
+          0,
+        );
+
+        return (player.tokens.gold || 0) >= shortfall;
       },
       removePlayerTokensByCardCost: (cardCost) => {
         const player = get().players[get().currentPlayerIndex];
