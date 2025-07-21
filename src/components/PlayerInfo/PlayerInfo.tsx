@@ -1,9 +1,10 @@
 import classNames from 'classnames';
 import type { FC } from 'react';
+import { useShallow } from 'zustand/shallow';
 
 import { useGameStore } from '../../stores/game.store';
-
 import type { Uuid } from '../../types/utils.types';
+
 import styles from './PlayerInfo.module.scss';
 
 interface Props {
@@ -11,11 +12,26 @@ interface Props {
 }
 
 export const PlayerInfo: FC<Props> = ({ id }): JSX.Element => {
-  const { getPlayerById } = useGameStore();
+  const { getPlayerById, getCurrentPlayer } = useGameStore(
+    useShallow((state) => ({
+      getPlayerById: state.getPlayerById,
+      getCurrentPlayer: state.getCurrentPlayer,
+    })),
+  );
+
   const { tokens, gems, prestige } = getPlayerById(id);
 
+  let isCurrentPlayer = false;
+  if (getCurrentPlayer().uuid === id) {
+    isCurrentPlayer = true;
+  }
+
   return (
-    <div className={styles.container}>
+    <div
+      className={classNames(styles.container, {
+        [styles.current]: isCurrentPlayer,
+      })}
+    >
       <div className={classNames(styles.item, styles.red)}>
         <div className={styles.card}>{gems.red}</div>
         <div className={styles.gem}>{tokens.red}</div>

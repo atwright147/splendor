@@ -1,5 +1,5 @@
 .container {
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 3 / 4.5;
   background-color: bisque;
   border-radius: .5rem;
   display: flex;
@@ -9,4 +9,19 @@
   box-sizing: border-box;
   cursor: pointer;
   user-select: none;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.prestige {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.affordable {
+  outline: 5px solid powderblue;
 }

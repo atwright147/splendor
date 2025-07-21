@@ -74,6 +74,7 @@ export const Game: FC = (): JSX.Element => {
       <div className={styles.cards}>
         {board.cards.level3.map((card) => (
           <Card
+            card={card}
             onClick={() => handleCardClick(card)}
             key={card.id}
             level={card.level}
@@ -84,6 +85,7 @@ export const Game: FC = (): JSX.Element => {
         ))}
         {board.cards.level2.map((card) => (
           <Card
+            card={card}
             onClick={() => handleCardClick(card)}
             key={card.id}
             level={card.level}
@@ -94,6 +96,7 @@ export const Game: FC = (): JSX.Element => {
         ))}
         {board.cards.level1.map((card) => (
           <Card
+            card={card}
             onClick={() => handleCardClick(card)}
             key={card.id}
             level={card.level}

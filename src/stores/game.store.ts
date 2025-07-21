@@ -431,7 +431,7 @@ export const useGameStore = create<GameState>()(
           return matchingTokens + player.tokens.gold >= requiredTokens;
         }
 
-        return true;
+        return false;
       },
       removePlayerTokensByCardCost: (cardCost) => {
         const player = get().players[get().currentPlayerIndex];
