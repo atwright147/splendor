@@ -77,10 +77,6 @@ export const Game: FC = (): JSX.Element => {
             card={card}
             onClick={() => handleCardClick(card)}
             key={card.id}
-            level={card.level}
-            cost={card.cost}
-            token={card.token}
-            prestige={card.prestige}
           />
         ))}
         {board.cards.level2.map((card) => (
@@ -88,10 +84,6 @@ export const Game: FC = (): JSX.Element => {
             card={card}
             onClick={() => handleCardClick(card)}
             key={card.id}
-            level={card.level}
-            cost={card.cost}
-            token={card.token}
-            prestige={card.prestige}
           />
         ))}
         {board.cards.level1.map((card) => (
@@ -99,10 +91,6 @@ export const Game: FC = (): JSX.Element => {
             card={card}
             onClick={() => handleCardClick(card)}
             key={card.id}
-            level={card.level}
-            cost={card.cost}
-            token={card.token}
-            prestige={card.prestige}
           />
         ))}
       </div>

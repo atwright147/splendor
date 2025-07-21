@@ -12,21 +12,18 @@ import { Gem } from '../Gem/Gem';
 import styles from './Card.module.scss';
 
 // https://stackoverflow.com/a/66810748/633056
-type Props = Omit<CardType, 'id'> & {
+type Props = {
   card: CardType;
   width?: number;
 } & ComponentPropsWithoutRef<'div'>;
 
-export const Card: FC<Props> = ({
-  card,
-  level,
-  cost,
-  token,
-  prestige,
-  width = 200,
-  className,
-  ...props
-}): JSX.Element => {
+export const Card: FC<Props> = (props): JSX.Element => {
+  if (!props || !props.card) {
+    return <></>;
+  }
+
+  const { card, width = 200, className, ...restProps } = props;
+
   const { canAffordCard } = useGameStore(
     useShallow((state) => ({
       canAffordCard: state.canAffordCard,
@@ -41,8 +38,9 @@ export const Card: FC<Props> = ({
         { [styles.affordable]: canAffordCard(card) },
         className,
       )}
-      {...props}
+      {...restProps}
       data-level={card.level}
+      data-id={card.id}
     >
       <div className={styles.top}>
         <Gem color={card.token} showQuantity={false} width={width / 4} />
