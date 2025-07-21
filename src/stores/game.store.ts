@@ -454,6 +454,13 @@ export const useGameStore = create<GameState>()(
         }
 
         set((state) => ({
+          board: {
+            ...state.board,
+            tokens: mergeTokens(
+              state.board.tokens,
+              get().pickedCard.cost,
+            ) as Required<TokensWithGold>,
+          },
           players: state.players.map((player, i) =>
             i === get().currentPlayerIndex
               ? {
