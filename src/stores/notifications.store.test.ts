@@ -1,11 +1,30 @@
 import { act, renderHook } from '@testing-library/react';
 import { type Mock, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { type Notification, useNotificationStore } from './notifications.store';
+import {
+  type Notification,
+  notify,
+  useNotificationStore,
+} from './notifications.store';
 
 vi.mock('uuid', () => ({ v4: vi.fn() }));
 
 import { v4 as uuidv4 } from 'uuid';
+
+describe('notify()', () => {
+  it('should add a notification', () => {
+    const { result } = renderHook(() => useNotificationStore());
+
+    act(() => notify('Test notification', 'info'));
+
+    const { notifications } = result.current;
+    expect(notifications).toHaveLength(1);
+    expect(notifications[0]).toMatchObject({
+      message: 'Test notification',
+      type: 'info',
+    });
+  });
+});
 
 describe('useNotificationStore()', () => {
   beforeEach(() => {
