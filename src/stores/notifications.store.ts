@@ -19,6 +19,16 @@ export interface State {
   clear: () => void;
 }
 
+export const notify = (
+  message: string,
+  type: Notification['type'] = 'info',
+) => {
+  useNotificationStore.getState().add({
+    message,
+    type,
+  });
+};
+
 export const useNotificationStore = create<State>()(
   devtools(
     (set, get) => ({

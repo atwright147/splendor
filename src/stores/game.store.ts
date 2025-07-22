@@ -8,7 +8,7 @@ import deckAll from '../../ref/cards.json';
 import noblesAll from '../../ref/nobles.json';
 import { addGem } from '../utils/addGem';
 import { mergeTokens } from '../utils/mergeTokens';
-import { type Notification, useNotificationStore } from './notifications.store';
+import { notify } from './notifications.store';
 
 export interface Tokens {
   red: number;
@@ -124,13 +124,6 @@ const createPlayer = (): PlayerState => ({
   ...defaultPlayerState,
   uuid: uuidv4(),
 });
-
-const notify = (message: string, type: Notification['type'] = 'info') => {
-  useNotificationStore.getState().add({
-    message,
-    type,
-  });
-};
 
 export const useGameStore = create<GameState>()(
   devtools(
