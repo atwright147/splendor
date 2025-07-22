@@ -65,7 +65,7 @@ interface GameState {
   board: BoardState;
   boardSnapshot: BoardState;
   pickedCard: Card | null;
-  pickedTokens: { [color in TokenColor]: number };
+  pickedTokens: Tokens;
   deck: Card[];
   players: PlayerState[];
   currentPlayerIndex: number;

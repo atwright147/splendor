@@ -6,8 +6,8 @@ import {
   type Card,
   type Noble,
   type PlayerState,
-  Token,
   type Tokens,
+  type TokensWithGold,
   initialBoardState,
   useGameStore,
 } from './game.store';
@@ -173,8 +173,75 @@ describe('Game Store', () => {
     });
   });
 
-  describe('reserveToken()', () => {
-    let defaultTokens: Tokens;
+  describe('getCurrentPlayer()', () => {
+    beforeEach(() => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.setCurrentPlayerIndex(0));
+    });
+
+    it('should get the current player', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      const player2 = result.current.players[1];
+
+      result.current.setCurrentPlayerIndex(1);
+
+      expect(result.current.getCurrentPlayer()).toEqual(player2);
+    });
+  });
+
+  describe('getPlayerById()', () => {
+    beforeEach(() => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.createPlayers(2));
+    });
+
+    it('should get a player by their ID', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      const player2 = result.current.players[1];
+
+      expect(result.current.getPlayerById(player2.uuid)).toEqual(player2);
+    });
+  });
+
+  describe('getPlayerByIndex()', () => {
+    beforeEach(() => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.createPlayers(2));
+    });
+
+    it('should get a player by their index', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      const player2 = result.current.players[1];
+
+      expect(result.current.getPlayerByIndex(1)).toEqual(player2);
+    });
+  });
+
+  describe('resetGame()', () => {
+    it('should reset the game state', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.init());
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.deal());
+
+      expect(result.current.board).not.toEqual(initialBoardState);
+      expect(result.current.players.length).toBeGreaterThan(0);
+      expect(result.current.currentPlayerIndex).toBe(0);
+      expect(result.current.pickedCard).toBeNull();
+    });
+  });
+
+  describe('pickToken()', () => {
+    let defaultTokens: TokensWithGold;
 
     beforeEach(() => {
       const { result } = renderHook(() => useGameStore());
@@ -188,7 +255,7 @@ describe('Game Store', () => {
         gold: 0,
       };
 
-      result.current.reservedTokens = defaultTokens;
+      result.current.pickedTokens = defaultTokens;
     });
 
     it('reserves a token when no tokens are reserved and available tokens are not less than 4', () => {
@@ -200,7 +267,7 @@ describe('Game Store', () => {
 
       act(() => result.current.pickToken(tokenColor));
 
-      expect(result.current.reservedTokens[tokenColor]).toBe(1);
+      expect(result.current.pickedTokens[tokenColor]).toBe(1);
     });
 
     it('given 4 tokens of the same color are on the board and no other tokens are reserved, should reserve 2 tokens of the same color', () => {
@@ -214,7 +281,7 @@ describe('Game Store', () => {
       act(() => result.current.pickToken(token1));
       act(() => result.current.pickToken(token2));
 
-      expect(result.current.reservedTokens[tokenColor]).toBe(2);
+      expect(result.current.pickedTokens[tokenColor]).toBe(2);
     });
 
     it('given 4 tokens of the same color are on the board and tokens of other colors are reserved, should not reserve a second token', () => {
@@ -231,7 +298,7 @@ describe('Game Store', () => {
       result.current.boardSnapshot = {
         ...initialBoardState,
       };
-      result.current.reservedTokens = {
+      result.current.pickedTokens = {
         ...defaultTokens,
       };
       result.current.boardSnapshot.tokens[tokenColor] = 4;
@@ -242,7 +309,7 @@ describe('Game Store', () => {
       act(() => result.current.pickToken(token2));
       act(() => result.current.pickToken(token3));
 
-      expect(result.current.reservedTokens[tokenColor]).toBe(1);
+      expect(result.current.pickedTokens[tokenColor]).toBe(1);
     });
 
     it('reserves a token when a token of a different color is already reserved', () => {
@@ -256,7 +323,7 @@ describe('Game Store', () => {
       result.current.boardSnapshot = {
         ...initialBoardState,
       };
-      result.current.reservedTokens = {
+      result.current.pickedTokens = {
         ...defaultTokens,
       };
 
@@ -266,8 +333,8 @@ describe('Game Store', () => {
       act(() => result.current.pickToken(token1));
       act(() => result.current.pickToken(token2));
 
-      expect(result.current.reservedTokens[token1]).toBe(1);
-      expect(result.current.reservedTokens[token2]).toBe(1);
+      expect(result.current.pickedTokens[token1]).toBe(1);
+      expect(result.current.pickedTokens[token2]).toBe(1);
     });
 
     it('does not reserve a token when a token of the same color is already reserved and other tokens are reserved', () => {
@@ -282,7 +349,7 @@ describe('Game Store', () => {
       result.current.boardSnapshot = {
         ...initialBoardState,
       };
-      result.current.reservedTokens = {
+      result.current.pickedTokens = {
         ...defaultTokens,
       };
 
@@ -293,9 +360,9 @@ describe('Game Store', () => {
       act(() => result.current.pickToken(token2));
       act(() => result.current.pickToken(token3));
 
-      expect(result.current.reservedTokens[token1]).toBe(1);
-      expect(result.current.reservedTokens[token2]).toBe(1);
-      expect(result.current.reservedTokens[token3]).toBe(1); // should not be 2
+      expect(result.current.pickedTokens[token1]).toBe(1);
+      expect(result.current.pickedTokens[token2]).toBe(1);
+      expect(result.current.pickedTokens[token3]).toBe(1); // should not be 2
     });
 
     it('does not reserve a token when the available tokens are less than 4', () => {
@@ -307,7 +374,7 @@ describe('Game Store', () => {
 
       act(() => result.current.pickToken(token));
 
-      expect(result.current.reservedTokens).not.toContain(token);
+      expect(result.current.pickedTokens).not.toContain(token);
     });
   });
 
@@ -316,7 +383,7 @@ describe('Game Store', () => {
       const { result } = renderHook(() => useGameStore());
       const card: Card = {
         id: 'mockUuid-1',
-        cost: { red: 1, green: 2 },
+        cost: { red: 1, green: 2, blue: 0, black: 0, white: 0, gold: 0 },
         prestige: 1,
         token: 'red',
         level: 1,
@@ -340,7 +407,7 @@ describe('Game Store', () => {
       const { result } = renderHook(() => useGameStore());
       const card: Card = {
         id: 'mockUuid-1',
-        cost: { red: 1, green: 2 },
+        cost: { red: 1, green: 2, blue: 0, black: 0, white: 0, gold: 0 },
         prestige: 1,
         token: 'red',
         level: 1,
@@ -365,7 +432,7 @@ describe('Game Store', () => {
       const { result } = renderHook(() => useGameStore());
       const card: Card = {
         id: 'mockUuid-1',
-        cost: { red: 1, green: 2 },
+        cost: { red: 1, green: 2, blue: 0, black: 0, white: 0 },
         prestige: 1,
         token: 'red',
         level: 1,
@@ -399,7 +466,7 @@ describe('Game Store', () => {
       const { result } = renderHook(() => useGameStore());
       const card: Card = {
         id: 'mockUuid-1',
-        cost: { red: 1, green: 2 },
+        cost: { red: 1, green: 2, blue: 0, black: 0, white: 0, gold: 0 },
         prestige: 1,
         token: 'red',
         level: 1,
@@ -418,12 +485,12 @@ describe('Game Store', () => {
       };
 
       act(() => result.current.pickCard(card));
-      act(() => result.current.commitCard(card));
+      act(() => result.current.commitCard());
 
       expect(result.current.players[0].cards).toContain(card);
     });
 
-    describe('reserveCard()', () => {
+    describe('pickCard()', () => {
       let player: PlayerState;
 
       beforeEach(() => {
@@ -441,7 +508,7 @@ describe('Game Store', () => {
         const { result } = renderHook(() => useGameStore());
         const card: Card = {
           id: 'mockUuid-1',
-          cost: { red: 1, green: 2 },
+          cost: { red: 1, green: 2, blue: 0, black: 0, white: 0, gold: 0 },
           prestige: 1,
           token: 'red',
           level: 1,
@@ -458,14 +525,14 @@ describe('Game Store', () => {
 
         act(() => result.current.pickCard(card));
 
-        expect(result.current.players[0].pickedCard).toBe(card);
+        expect(result.current.pickedCard).toBe(card);
       });
 
       it('reserves a card when there are multiple players', () => {
         const { result } = renderHook(() => useGameStore());
         const card: Card = {
           id: 'mockUuid-1',
-          cost: { red: 1, green: 2 },
+          cost: { red: 1, green: 2, blue: 0, black: 0, white: 0, gold: 0 },
           prestige: 1,
           token: 'red',
           level: 1,
@@ -483,7 +550,7 @@ describe('Game Store', () => {
         act(() => result.current.setCurrentPlayerIndex(1));
         act(() => result.current.pickCard(card));
 
-        expect(result.current.players[1].pickedCard).toBe(card);
+        expect(result.current.pickedCard).toBe(card);
       });
 
       it('removes card from the board', () => {
@@ -495,7 +562,7 @@ describe('Game Store', () => {
         result.current.boardSnapshot = {
           ...initialBoardState,
         };
-        result.current.reservedTokens = {
+        result.current.pickedTokens = {
           ...defaultTokens,
         };
 
@@ -522,7 +589,7 @@ describe('Game Store', () => {
       const noble: Noble = {
         id: '1',
         prestige: 10,
-        cost: { red: 1, green: 1, blue: 1 },
+        cost: { red: 1, green: 1, blue: 1, black: 0, white: 0, gold: 0 },
       };
 
       result.current.board = {
@@ -531,7 +598,7 @@ describe('Game Store', () => {
       result.current.boardSnapshot = {
         ...initialBoardState,
       };
-      result.current.reservedTokens = {
+      result.current.pickedTokens = {
         ...defaultTokens,
       };
 
@@ -566,7 +633,7 @@ describe('Game Store', () => {
 
       const noble = result.current.board.nobles[0];
 
-      result.current.reservedTokens = {
+      result.current.pickedTokens = {
         ...noble.cost,
       };
 
@@ -590,7 +657,7 @@ describe('Game Store', () => {
 
       const noble = result.current.board.nobles[0];
 
-      result.current.reservedTokens = {
+      result.current.pickedTokens = {
         ...noble.cost,
       };
 
