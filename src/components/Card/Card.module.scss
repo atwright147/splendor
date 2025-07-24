@@ -1,7 +1,9 @@
 .container {
+  appearance: none;
   aspect-ratio: 3 / 4.5;
   background-color: bisque;
   border-radius: .5rem;
+  border: 0;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -9,6 +11,12 @@
   box-sizing: border-box;
   cursor: pointer;
   user-select: none;
+}
+
+.container:disabled {
+  background-color: light-dark(rgba(bisque, 1), rgba(bisque, 1));
+  color: light-dark(rgba(16, 16, 16, 1), rgba(255, 255, 255, 1));
+  cursor: default;
 }
 
 .top {

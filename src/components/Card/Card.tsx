@@ -15,7 +15,7 @@ import styles from './Card.module.scss';
 type Props = {
   card: CardType;
   width?: number;
-} & ComponentPropsWithoutRef<'div'>;
+} & ComponentPropsWithoutRef<'button'>;
 
 export const Card: FC<Props> = (props): JSX.Element => {
   if (!props || !props.card) {
@@ -31,7 +31,7 @@ export const Card: FC<Props> = (props): JSX.Element => {
   );
 
   return (
-    <div
+    <button
       style={{ width: `${width}px` }}
       className={classnames(
         styles.container,
@@ -41,6 +41,7 @@ export const Card: FC<Props> = (props): JSX.Element => {
       {...restProps}
       data-level={card.level}
       data-id={card.id}
+      disabled={!restProps.onClick || !canAffordCard(card)}
     >
       <div className={styles.top}>
         <Gem color={card.token} showQuantity={false} width={width / 4} />
@@ -57,6 +58,6 @@ export const Card: FC<Props> = (props): JSX.Element => {
           />
         ))}
       </div>
-    </div>
+    </button>
   );
 };
