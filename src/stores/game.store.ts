@@ -61,10 +61,15 @@ export interface BoardState {
   nobles: Noble[];
 }
 
+interface PickedCard {
+  card: Card;
+  boardIndex: number;
+}
+
 interface GameState {
   board: BoardState;
   boardSnapshot: BoardState;
-  pickedCard: Card | null;
+  pickedCard: PickedCard | null;
   pickedTokens: Tokens;
   deck: Card[];
   players: PlayerState[];
@@ -447,23 +452,46 @@ export const useGameStore = create<GameState>()(
           return;
         }
 
+        // Get a new card from the deck for the same level
+        const pickedCardLevel = get().pickedCard.card.level;
+        const availableCards = get().deck.filter(
+          (card) => card.level === pickedCardLevel,
+        );
+        const newCard = availableCards.length > 0 ? availableCards[0] : null;
+
         set((state) => ({
           board: {
             ...state.board,
             tokens: mergeTokens(
               state.board.tokens,
-              get().pickedCard.cost,
+              get().pickedCard.card.cost,
             ) as Required<TokensWithGold>,
+            cards: {
+              ...state.board.cards,
+              [`level${get().pickedCard.card.level}`]: (() => {
+                const currentCards = [
+                  ...state.board.cards[`level${get().pickedCard.card.level}`],
+                ];
+                if (newCard) {
+                  currentCards.splice(get().pickedCard.boardIndex, 0, newCard);
+                }
+                return currentCards;
+              })(),
+            },
           },
+          // Remove the new card from the deck
+          deck: newCard
+            ? state.deck.filter((card) => card.id !== newCard.id)
+            : state.deck,
           players: state.players.map((player, i) =>
             i === get().currentPlayerIndex
               ? {
                   ...player,
-                  cards: [...player.cards, get().pickedCard],
-                  prestige: player.prestige + get().pickedCard.prestige,
-                  gems: addGem(player.gems, get().pickedCard.token),
+                  cards: [...player.cards, get().pickedCard.card],
+                  prestige: player.prestige + get().pickedCard.card.prestige,
+                  gems: addGem(player.gems, get().pickedCard.card.token),
                   tokens: get().removePlayerTokensByCardCost(
-                    get().pickedCard.cost,
+                    get().pickedCard.card.cost,
                   ),
                 }
               : player,
@@ -487,7 +515,12 @@ export const useGameStore = create<GameState>()(
               ].filter((c) => c.id !== card.id),
             },
           },
-          pickedCard: card,
+          pickedCard: {
+            card,
+            boardIndex: state.board.cards[`level${card.level}`].findIndex(
+              (c) => c.id === card.id,
+            ),
+          },
         }));
       },
       claimNoble: (noble) => {

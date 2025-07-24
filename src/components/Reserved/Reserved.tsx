@@ -27,7 +27,7 @@ export const Reserved: FC = (): JSX.Element => {
   return (
     <div className={styles.container}>
       <div className="card">
-        {pickedCard && <Card card={pickedCard} width={100} />}
+        {pickedCard && <Card card={pickedCard.card} width={100} />}
       </div>
 
       <div className="tokens">
