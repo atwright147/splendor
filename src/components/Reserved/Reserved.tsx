@@ -9,14 +9,16 @@ import { Gem } from '../Gem/Gem';
 import styles from './Reserved.module.scss';
 
 export const Reserved: FC = (): JSX.Element => {
-  const { endTurn, pickedCard, pickedTokens, returnToken } = useGameStore(
-    useShallow((state) => ({
-      endTurn: state.endTurn,
-      pickedCard: state.pickedCard,
-      pickedTokens: state.pickedTokens,
-      returnToken: state.returnToken,
-    })),
-  );
+  const { canEndTurn, endTurn, pickedCard, pickedTokens, returnToken } =
+    useGameStore(
+      useShallow((state) => ({
+        canEndTurn: state.canEndTurn,
+        endTurn: state.endTurn,
+        pickedCard: state.pickedCard,
+        pickedTokens: state.pickedTokens,
+        returnToken: state.returnToken,
+      })),
+    );
 
   if (!pickedCard && Object.values(pickedTokens).every((qty) => qty === 0)) {
     return <></>;
@@ -51,8 +53,13 @@ export const Reserved: FC = (): JSX.Element => {
         })}
       </div>
 
-      <button type="button" onClick={endTurn}>
-        End Turn
+      <button
+        type="button"
+        onClick={endTurn}
+        disabled={!canEndTurn()}
+        className={styles.endTurnButton}
+      >
+        End Turn?
       </button>
     </div>
   );

@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { before } from 'node:test';
 import deckAll from '../../ref/cards.json';
 import {
   type Card,
@@ -757,6 +758,103 @@ describe('Game Store', () => {
       act(() => result.current.nextPlayer());
 
       expect(result.current.boardSnapshot).toEqual(result.current.board);
+    });
+  });
+
+  describe('canEndTurn()', () => {
+    beforeEach(() => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setBoardSnapshot());
+
+      result.current.pickedCard = null;
+      result.current.pickedTokens = {
+        red: 0,
+        green: 0,
+        blue: 0,
+        black: 0,
+        white: 0,
+        gold: 0,
+      } as TokensWithGold;
+    });
+
+    it('should return true if a card is picked and no tokens are picked', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      const player = result.current.getCurrentPlayer();
+      player.tokens = {
+        red: 1,
+        green: 2,
+        blue: 0,
+        black: 0,
+        white: 0,
+        gold: 0,
+      };
+
+      const card: Card = {
+        id: 'mockUuid-1',
+        cost: { red: 1, green: 2, blue: 0, black: 0, white: 0, gold: 0 },
+        prestige: 1,
+        token: 'red',
+        level: 1,
+      };
+
+      act(() => result.current.pickCard(card));
+
+      expect(result.current.canEndTurn()).toBe(true);
+    });
+
+    it('should return true if no card is picked but three different tokens are picked', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.pickToken('red'));
+      act(() => result.current.pickToken('green'));
+      act(() => result.current.pickToken('blue'));
+
+      expect(result.current.canEndTurn()).toBe(true);
+    });
+
+    it('should return true if no card is picked but two tokens of the same color are picked', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.pickToken('red'));
+      act(() => result.current.pickToken('red'));
+
+      expect(result.current.canEndTurn()).toBe(true);
+    });
+
+    it('should return false if no card is picked and only one token is picked', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.pickToken('red'));
+
+      expect(result.current.canEndTurn()).toBe(false);
+    });
+
+    it('should return false if no card or tokens are picked', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      expect(result.current.canEndTurn()).toBe(false);
+    });
+
+    it('should return false if a card is picked but tokens are also picked', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      const card: Card = {
+        id: 'mockUuid-1',
+        cost: { red: 1, green: 2, blue: 0, black: 0, white: 0, gold: 0 },
+        prestige: 1,
+        token: 'red',
+        level: 1,
+      };
+
+      act(() => result.current.pickCard(card));
+      act(() => result.current.pickToken('red'));
+
+      expect(result.current.canEndTurn()).toBe(false);
     });
   });
 });

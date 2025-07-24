@@ -87,6 +87,7 @@ interface GameState {
   pickCard: (card: Card) => void;
   claimNoble: (noble: Noble) => void;
   nextPlayer: () => void;
+  canEndTurn: () => boolean;
   endTurn: () => void;
 }
 
@@ -513,6 +514,32 @@ export const useGameStore = create<GameState>()(
           currentPlayerIndex:
             (state.currentPlayerIndex + 1) % state.players.length,
         }));
+      },
+      canEndTurn: () => {
+        const { pickedCard, pickedTokens } = get();
+
+        if (
+          pickedCard !== null &&
+          Object.values(pickedTokens).every((qty) => qty === 0)
+        ) {
+          return true;
+        }
+
+        if (
+          !pickedCard &&
+          Object.values(pickedTokens).some((qty) => qty === 2)
+        ) {
+          return true;
+        }
+
+        if (
+          !pickedCard &&
+          Object.values(pickedTokens).filter((qty) => qty === 1).length === 3
+        ) {
+          return true;
+        }
+
+        return false;
       },
       endTurn: () => {
         get().commitCard();
