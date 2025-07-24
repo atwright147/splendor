@@ -4,10 +4,10 @@ export const mergeTokens = (
   tokens1: TokensWithGold,
   tokens2: TokensWithGold,
 ): TokensWithGold => ({
-  red: (tokens1.red ?? 0) + (tokens2.red ?? 0),
-  green: (tokens1.green ?? 0) + (tokens2.green ?? 0),
-  blue: (tokens1.blue ?? 0) + (tokens2.blue ?? 0),
-  white: (tokens1.white ?? 0) + (tokens2.white ?? 0),
-  black: (tokens1.black ?? 0) + (tokens2.black ?? 0),
-  gold: (tokens1.gold ?? 0) + (tokens2.gold ?? 0),
+  red: tokens1.red + tokens2.red,
+  green: tokens1.green + tokens2.green,
+  blue: tokens1.blue + tokens2.blue,
+  white: tokens1.white + tokens2.white,
+  black: tokens1.black + tokens2.black,
+  gold: tokens1.gold + tokens2.gold,
 });

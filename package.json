@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "test": "vitest --",
+    "coverage": "vitest run --coverage",
     "gen:cards": "tsx ./scripts/gen-cards.ts",
     "build": "tsc && vite build",
     "lint": "biome lint .",
@@ -35,6 +36,7 @@
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.3",
     "@vitest/coverage-v8": "^2.1.5",
+    "@vitest/ui": "^2.1.9",
     "jsdom": "^25.0.1",
     "tsx": "^4.19.2",
     "type-fest": "^4.27.0",
