@@ -440,8 +440,24 @@ export const useGameStore = create<GameState>()(
         const player = get().players[get().currentPlayerIndex];
         const newTokens = { ...player.tokens };
 
-        for (const [color, qty] of Object.entries(cardCost)) {
-          newTokens[color] -= qty;
+        for (const [color, requiredQty] of Object.entries(cardCost)) {
+          if (color === 'gold') continue; // Skip gold in card costs
+
+          const playerGems = player.gems[color] || 0;
+          const playerTokens = player.tokens[color] || 0;
+
+          // First use gems (they're free)
+          const remainingAfterGems = Math.max(0, requiredQty - playerGems);
+
+          // Then use matching color tokens
+          const tokensToUse = Math.min(remainingAfterGems, playerTokens);
+          newTokens[color] = (newTokens[color] || 0) - tokensToUse;
+
+          // Finally use gold tokens for any remaining cost
+          const remainingAfterTokens = remainingAfterGems - tokensToUse;
+          if (remainingAfterTokens > 0) {
+            newTokens.gold = (newTokens.gold || 0) - remainingAfterTokens;
+          }
         }
 
         return newTokens;
@@ -450,6 +466,34 @@ export const useGameStore = create<GameState>()(
         if (!get().pickedCard) {
           console.info('No card picked to commit');
           return;
+        }
+
+        // Calculate the actual tokens spent by the player
+        const player = get().players[get().currentPlayerIndex];
+        const tokensSpent: TokensWithGold = {};
+
+        for (const [color, requiredQty] of Object.entries(
+          get().pickedCard.card.cost,
+        )) {
+          if (color === 'gold') continue; // Skip gold in card costs
+
+          const playerGems = player.gems[color] || 0;
+          const playerTokens = player.tokens[color] || 0;
+
+          // First use gems (they're free)
+          const remainingAfterGems = Math.max(0, requiredQty - playerGems);
+
+          // Then use matching color tokens
+          const tokensToUse = Math.min(remainingAfterGems, playerTokens);
+          if (tokensToUse > 0) {
+            tokensSpent[color] = tokensToUse;
+          }
+
+          // Finally use gold tokens for any remaining cost
+          const remainingAfterTokens = remainingAfterGems - tokensToUse;
+          if (remainingAfterTokens > 0) {
+            tokensSpent.gold = (tokensSpent.gold || 0) + remainingAfterTokens;
+          }
         }
 
         // Get a new card from the deck for the same level
@@ -462,10 +506,16 @@ export const useGameStore = create<GameState>()(
         set((state) => ({
           board: {
             ...state.board,
-            tokens: mergeTokens(
-              state.board.tokens,
-              get().pickedCard.card.cost,
-            ) as Required<TokensWithGold>,
+            // Return tokens spent back to the board
+            tokens: {
+              ...state.board.tokens,
+              red: state.board.tokens.red + (tokensSpent.red || 0),
+              green: state.board.tokens.green + (tokensSpent.green || 0),
+              blue: state.board.tokens.blue + (tokensSpent.blue || 0),
+              white: state.board.tokens.white + (tokensSpent.white || 0),
+              black: state.board.tokens.black + (tokensSpent.black || 0),
+              gold: state.board.tokens.gold + (tokensSpent.gold || 0),
+            },
             cards: {
               ...state.board.cards,
               [`level${get().pickedCard.card.level}`]: (() => {
