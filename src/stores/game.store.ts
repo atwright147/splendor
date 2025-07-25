@@ -10,7 +10,7 @@ import { addGem } from '../utils/addGem';
 import { mergeTokens } from '../utils/mergeTokens';
 import { notify } from './notifications.store';
 
-export interface Tokens {
+export interface Gems {
   red: number;
   green: number;
   blue: number;
@@ -18,33 +18,44 @@ export interface Tokens {
   black: number;
 }
 
-export interface TokensWithGold extends Tokens {
+type Cost = Gems;
+
+export type GemColors = keyof Gems;
+
+export type Gem = RequireExactlyOne<Gems>;
+
+export interface Tokens {
+  red: number;
+  green: number;
+  blue: number;
+  white: number;
+  black: number;
   gold: number;
 }
 
-export type TokenColor = keyof TokensWithGold;
+export type TokenColors = keyof Tokens;
 
 export type Token = RequireExactlyOne<Tokens>;
 
 export interface Card {
   id: string;
-  cost: Tokens;
+  cost: Cost;
   prestige: number;
-  token: TokenColor;
+  gem: GemColors;
   level: number;
 }
 
 export interface Noble {
   id: string;
-  cost: Tokens;
+  cost: Cost;
   prestige: number;
 }
 
 export interface PlayerState {
   uuid: string;
-  tokens: TokensWithGold;
+  tokens: Tokens;
   cards: Card[];
-  gems: Tokens;
+  gems: Gems;
   nobles: Noble[];
   prestige: number;
 }
@@ -56,7 +67,7 @@ export interface BoardState {
     level3: Card[];
   };
   tokens: {
-    [color in TokenColor]: number;
+    [color in TokenColors]: number;
   };
   nobles: Noble[];
 }
@@ -70,7 +81,7 @@ interface GameState {
   board: BoardState;
   boardSnapshot: BoardState;
   pickedCard: PickedCard | null;
-  pickedTokens: Tokens;
+  pickedTokens: Gems; // Remove gold from picked tokens since it can't be picked directly
   deck: Card[];
   players: PlayerState[];
   currentPlayerIndex: number;
@@ -84,10 +95,10 @@ interface GameState {
   getPlayerById: (uuid: string) => PlayerState | undefined;
   getPlayerByIndex: (index: number) => PlayerState | undefined;
   createPlayers: (quantity: number) => void;
-  pickToken: (tokenColor: string) => void;
-  returnToken: (tokenColor: string) => void;
+  pickToken: (tokenColor: TokenColors) => void; // Fix parameter type
+  returnToken: (tokenColor: TokenColors) => void; // Fix parameter type
   canAffordCard: (card: Card) => boolean;
-  removePlayerTokensByCardCost: (cardCost: TokensWithGold) => TokensWithGold;
+  removePlayerTokensByCardCost: (cardCost: Gems) => Tokens; // Fix parameter type
   commitCard: () => void;
   pickCard: (card: Card) => void;
   claimNoble: (noble: Noble) => void;
@@ -98,7 +109,7 @@ interface GameState {
 
 const MAX_PLAYERS = 4;
 
-const defaultGemsAndTokens: TokensWithGold = {
+const defaultTokens: Tokens = {
   red: 0,
   green: 0,
   blue: 0,
@@ -107,11 +118,19 @@ const defaultGemsAndTokens: TokensWithGold = {
   gold: 0,
 };
 
+const defaultGems: Gems = {
+  red: 0,
+  green: 0,
+  blue: 0,
+  white: 0,
+  black: 0,
+};
+
 const defaultPlayerState: PlayerState = {
   uuid: '',
-  tokens: { ...defaultGemsAndTokens },
+  tokens: { ...defaultTokens },
   cards: [],
-  gems: { ...defaultGemsAndTokens },
+  gems: { ...defaultGems },
   nobles: [],
   prestige: 0,
 };
@@ -122,7 +141,7 @@ export const initialBoardState: BoardState = {
     level2: [],
     level3: [],
   },
-  tokens: { ...(defaultGemsAndTokens as Required<TokensWithGold>) },
+  tokens: { ...(defaultTokens as Required<Tokens>) },
   nobles: [],
 };
 
@@ -137,7 +156,7 @@ export const useGameStore = create<GameState>()(
       board: { ...initialBoardState },
       boardSnapshot: { ...initialBoardState },
       pickedCard: null,
-      pickedTokens: { red: 0, green: 0, blue: 0, white: 0, black: 0, gold: 0 },
+      pickedTokens: { red: 0, green: 0, blue: 0, white: 0, black: 0 }, // Remove gold
       deck: [],
       players: [],
       currentPlayerIndex: 0,
@@ -151,11 +170,14 @@ export const useGameStore = create<GameState>()(
             index === get().currentPlayerIndex
               ? {
                   ...player,
-                  tokens: mergeTokens(player.tokens, state.pickedTokens),
+                  tokens: mergeTokens(player.tokens, {
+                    ...state.pickedTokens,
+                    gold: 0,
+                  }), // Ensure gold is 0
                 }
               : player,
           ),
-          pickedTokens: initialBoardState.tokens,
+          pickedTokens: { red: 0, green: 0, blue: 0, white: 0, black: 0 }, // Remove gold
         }));
       },
       init: () => {
@@ -284,7 +306,7 @@ export const useGameStore = create<GameState>()(
         );
         set({ players });
       },
-      pickToken: (tokenColor: TokenColor) => {
+      pickToken: (tokenColor: TokenColors) => {
         const { board, boardSnapshot } = get();
 
         // Don't allow taking gold tokens directly
@@ -293,6 +315,9 @@ export const useGameStore = create<GameState>()(
           return;
         }
 
+        // Cast tokenColor to ensure it's a valid Tokens key
+        const colorKey = tokenColor as keyof Gems;
+
         // Get total number of tokens currently picked
         const totalPickedTokens = Object.values(get().pickedTokens).reduce(
           (sum, count) => sum + count,
@@ -300,14 +325,14 @@ export const useGameStore = create<GameState>()(
         );
 
         // Get number of tokens of this color already picked
-        const currentColorCount = get().pickedTokens[tokenColor] || 0;
+        const currentColorCount = get().pickedTokens[colorKey] || 0;
 
         // Get number of tokens available at the start of the turn
         const availableTokens = boardSnapshot.tokens[tokenColor];
 
         // Rule 1: Cannot reserve two of the same color if a different color is already reserved
         const differentColorTokens = Object.entries(get().pickedTokens).filter(
-          ([color, count]) => color !== tokenColor && count > 0,
+          ([color, count]) => color !== colorKey && count > 0,
         );
         if (differentColorTokens.length > 0 && currentColorCount >= 1) {
           notify(
@@ -378,13 +403,21 @@ export const useGameStore = create<GameState>()(
             },
             pickedTokens: {
               ...state.pickedTokens,
-              [tokenColor]: state.pickedTokens[tokenColor] + 1,
+              [colorKey]: state.pickedTokens[colorKey] + 1,
             },
           };
         });
       },
-      returnToken: (tokenColor: TokenColor) => {
-        if (get().pickedTokens[tokenColor] <= 0) {
+      returnToken: (tokenColor: TokenColors) => {
+        // Don't allow returning gold tokens
+        if (tokenColor === 'gold') {
+          notify('Gold tokens cannot be returned', 'info');
+          return;
+        }
+
+        const colorKey = tokenColor as keyof Gems;
+
+        if (get().pickedTokens[colorKey] <= 0) {
           notify('No tokens of this color to return', 'info');
           return;
         }
@@ -399,7 +432,7 @@ export const useGameStore = create<GameState>()(
           },
           pickedTokens: {
             ...state.pickedTokens,
-            [tokenColor]: state.pickedTokens[tokenColor] - 1,
+            [colorKey]: state.pickedTokens[colorKey] - 1,
           },
         }));
       },
@@ -407,32 +440,33 @@ export const useGameStore = create<GameState>()(
         const player = get().getCurrentPlayer();
 
         // Calculate effective tokens (tokens + gems) for each color
-        const effectiveTokens = Object.keys(card.cost).reduce(
+        const effectiveTokens = (
+          Object.keys(card.cost) as Array<keyof Gems>
+        ).reduce(
           (acc, color) => {
             acc[color] =
               (player.tokens[color] || 0) + (player.gems[color] || 0);
             return acc;
           },
-          {} as Record<string, number>,
+          {} as Record<keyof Gems, number>,
         );
 
         // Check if player can afford with regular tokens and gems
-        const canAffordWithTokensAndGems = Object.entries(card.cost).every(
-          ([color, qty]) => effectiveTokens[color] >= qty,
-        );
+        const canAffordWithTokensAndGems = (
+          Object.entries(card.cost) as Array<[keyof Gems, number]>
+        ).every(([color, qty]) => effectiveTokens[color] >= qty);
 
         if (canAffordWithTokensAndGems) {
           return true;
         }
 
         // If not, check if gold tokens can make up the difference
-        const shortfall = Object.entries(card.cost).reduce(
-          (total, [color, qty]) => {
-            const shortage = Math.max(0, qty - effectiveTokens[color]);
-            return total + shortage;
-          },
-          0,
-        );
+        const shortfall = (
+          Object.entries(card.cost) as Array<[keyof Gems, number]>
+        ).reduce((total, [color, qty]) => {
+          const shortage = Math.max(0, qty - effectiveTokens[color]);
+          return total + shortage;
+        }, 0);
 
         return (player.tokens.gold || 0) >= shortfall;
       },
@@ -440,9 +474,9 @@ export const useGameStore = create<GameState>()(
         const player = get().players[get().currentPlayerIndex];
         const newTokens = { ...player.tokens };
 
-        for (const [color, requiredQty] of Object.entries(cardCost)) {
-          if (color === 'gold') continue; // Skip gold in card costs
-
+        for (const [color, requiredQty] of Object.entries(cardCost) as Array<
+          [keyof Gems, number]
+        >) {
           const playerGems = player.gems[color] || 0;
           const playerTokens = player.tokens[color] || 0;
 
@@ -463,20 +497,20 @@ export const useGameStore = create<GameState>()(
         return newTokens;
       },
       commitCard: () => {
-        if (!get().pickedCard) {
+        const { pickedCard } = get();
+
+        if (!pickedCard) {
           console.info('No card picked to commit');
           return;
         }
 
         // Calculate the actual tokens spent by the player
         const player = get().players[get().currentPlayerIndex];
-        const tokensSpent: TokensWithGold = {};
+        const tokensSpent: Partial<Tokens> = {};
 
         for (const [color, requiredQty] of Object.entries(
-          get().pickedCard.card.cost,
-        )) {
-          if (color === 'gold') continue; // Skip gold in card costs
-
+          pickedCard.card.cost,
+        ) as Array<[keyof Gems, number]>) {
           const playerGems = player.gems[color] || 0;
           const playerTokens = player.tokens[color] || 0;
 
@@ -497,7 +531,7 @@ export const useGameStore = create<GameState>()(
         }
 
         // Get a new card from the deck for the same level
-        const pickedCardLevel = get().pickedCard.card.level;
+        const pickedCardLevel = pickedCard.card.level;
         const availableCards = get().deck.filter(
           (card) => card.level === pickedCardLevel,
         );
@@ -518,15 +552,16 @@ export const useGameStore = create<GameState>()(
             },
             cards: {
               ...state.board.cards,
-              [`level${get().pickedCard.card.level}`]: (() => {
-                const currentCards = [
-                  ...state.board.cards[`level${get().pickedCard.card.level}`],
-                ];
-                if (newCard) {
-                  currentCards.splice(get().pickedCard.boardIndex, 0, newCard);
-                }
-                return currentCards;
-              })(),
+              [`level${pickedCard.card.level}` as keyof typeof state.board.cards]:
+                (() => {
+                  const levelKey =
+                    `level${pickedCard.card.level}` as keyof typeof state.board.cards;
+                  const currentCards = [...state.board.cards[levelKey]];
+                  if (newCard) {
+                    currentCards.splice(pickedCard.boardIndex, 0, newCard);
+                  }
+                  return currentCards;
+                })(),
             },
           },
           // Remove the new card from the deck
@@ -537,11 +572,11 @@ export const useGameStore = create<GameState>()(
             i === get().currentPlayerIndex
               ? {
                   ...player,
-                  cards: [...player.cards, get().pickedCard.card],
-                  prestige: player.prestige + get().pickedCard.card.prestige,
-                  gems: addGem(player.gems, get().pickedCard.card.token),
+                  cards: [...player.cards, pickedCard.card],
+                  prestige: player.prestige + pickedCard.card.prestige,
+                  gems: addGem(player.gems, pickedCard.card.gem),
                   tokens: get().removePlayerTokensByCardCost(
-                    get().pickedCard.card.cost,
+                    pickedCard.card.cost,
                   ),
                 }
               : player,
@@ -560,16 +595,17 @@ export const useGameStore = create<GameState>()(
             ...state.board,
             cards: {
               ...state.board.cards,
-              [`level${card.level}`]: state.board.cards[
-                `level${card.level}`
-              ].filter((c) => c.id !== card.id),
+              [`level${card.level}` as keyof typeof state.board.cards]:
+                state.board.cards[
+                  `level${card.level}` as keyof typeof state.board.cards
+                ].filter((c) => c.id !== card.id),
             },
           },
           pickedCard: {
             card,
-            boardIndex: state.board.cards[`level${card.level}`].findIndex(
-              (c) => c.id === card.id,
-            ),
+            boardIndex: state.board.cards[
+              `level${card.level}` as keyof typeof state.board.cards
+            ].findIndex((c) => c.id === card.id),
           },
         }));
       },

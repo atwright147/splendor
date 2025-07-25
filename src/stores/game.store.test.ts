@@ -1,14 +1,12 @@
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { before } from 'node:test';
 import deckAll from '../../ref/cards.json';
 import {
   type Card,
   type Noble,
   type PlayerState,
   type Tokens,
-  type TokensWithGold,
   initialBoardState,
   useGameStore,
 } from './game.store';
@@ -242,7 +240,7 @@ describe('Game Store', () => {
   });
 
   describe('pickToken()', () => {
-    let defaultTokens: TokensWithGold;
+    let defaultTokens: Tokens;
 
     beforeEach(() => {
       const { result } = renderHook(() => useGameStore());
@@ -384,9 +382,9 @@ describe('Game Store', () => {
       const { result } = renderHook(() => useGameStore());
       const card: Card = {
         id: 'mockUuid-1',
-        cost: { red: 1, green: 2, blue: 0, black: 0, white: 0, gold: 0 },
+        cost: { red: 1, green: 2, blue: 0, black: 0, white: 0 },
         prestige: 1,
-        token: 'red',
+        gem: 'red',
         level: 1,
       };
 
@@ -408,9 +406,9 @@ describe('Game Store', () => {
       const { result } = renderHook(() => useGameStore());
       const card: Card = {
         id: 'mockUuid-1',
-        cost: { red: 1, green: 2, blue: 0, black: 0, white: 0, gold: 0 },
+        cost: { red: 1, green: 2, blue: 0, black: 0, white: 0 },
         prestige: 1,
-        token: 'red',
+        gem: 'red',
         level: 1,
       };
 
@@ -435,7 +433,7 @@ describe('Game Store', () => {
         id: 'mockUuid-1',
         cost: { red: 1, green: 2, blue: 0, black: 0, white: 0 },
         prestige: 1,
-        token: 'red',
+        gem: 'red',
         level: 1,
       };
 
@@ -467,9 +465,9 @@ describe('Game Store', () => {
       const { result } = renderHook(() => useGameStore());
       const card: Card = {
         id: 'mockUuid-1',
-        cost: { red: 1, green: 2, blue: 0, black: 0, white: 0, gold: 0 },
+        cost: { red: 1, green: 2, blue: 0, black: 0, white: 0 },
         prestige: 1,
-        token: 'red',
+        gem: 'red',
         level: 1,
       };
 
@@ -509,9 +507,9 @@ describe('Game Store', () => {
         const { result } = renderHook(() => useGameStore());
         const card: Card = {
           id: 'mockUuid-1',
-          cost: { red: 1, green: 2, blue: 0, black: 0, white: 0, gold: 0 },
+          cost: { red: 1, green: 2, blue: 0, black: 0, white: 0 },
           prestige: 1,
-          token: 'red',
+          gem: 'red',
           level: 1,
         };
 
@@ -526,16 +524,16 @@ describe('Game Store', () => {
 
         act(() => result.current.pickCard(card));
 
-        expect(result.current.pickedCard).toBe(card);
+        expect(result.current.pickedCard).toEqual({ boardIndex: -1, card });
       });
 
       it('reserves a card when there are multiple players', () => {
         const { result } = renderHook(() => useGameStore());
         const card: Card = {
           id: 'mockUuid-1',
-          cost: { red: 1, green: 2, blue: 0, black: 0, white: 0, gold: 0 },
+          cost: { red: 1, green: 2, blue: 0, black: 0, white: 0 },
           prestige: 1,
-          token: 'red',
+          gem: 'red',
           level: 1,
         };
 
@@ -551,7 +549,7 @@ describe('Game Store', () => {
         act(() => result.current.setCurrentPlayerIndex(1));
         act(() => result.current.pickCard(card));
 
-        expect(result.current.pickedCard).toBe(card);
+        expect(result.current.pickedCard).toEqual({ boardIndex: -1, card });
       });
 
       it('removes card from the board', () => {
@@ -575,7 +573,7 @@ describe('Game Store', () => {
 
         act(() => result.current.setCurrentPlayerIndex(0));
         const player = result.current.getCurrentPlayer();
-        player.tokens = card.cost;
+        player.tokens = { ...card.cost, gold: 0 };
 
         act(() => result.current.pickCard(card));
 
@@ -590,7 +588,7 @@ describe('Game Store', () => {
       const noble: Noble = {
         id: '1',
         prestige: 10,
-        cost: { red: 1, green: 1, blue: 1, black: 0, white: 0, gold: 0 },
+        cost: { red: 1, green: 1, blue: 1, black: 0, white: 0 },
       };
 
       result.current.board = {
@@ -778,7 +776,7 @@ describe('Game Store', () => {
         black: 0,
         white: 0,
         gold: 0,
-      } as TokensWithGold;
+      } as Tokens;
     });
 
     it('should return true if a card is picked and no tokens are picked', () => {
@@ -796,9 +794,9 @@ describe('Game Store', () => {
 
       const card: Card = {
         id: 'mockUuid-1',
-        cost: { red: 1, green: 2, blue: 0, black: 0, white: 0, gold: 0 },
+        cost: { red: 1, green: 2, blue: 0, black: 0, white: 0 },
         prestige: 1,
-        token: 'red',
+        gem: 'red',
         level: 1,
       };
 
@@ -845,9 +843,9 @@ describe('Game Store', () => {
 
       const card: Card = {
         id: 'mockUuid-1',
-        cost: { red: 1, green: 2, blue: 0, black: 0, white: 0, gold: 0 },
+        cost: { red: 1, green: 2, blue: 0, black: 0, white: 0 },
         prestige: 1,
-        token: 'red',
+        gem: 'red',
         level: 1,
       };
 

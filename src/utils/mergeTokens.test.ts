@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import type { TokensWithGold } from '../stores/game.store';
+import type { Tokens } from '../stores/game.store';
 import { mergeTokens } from './mergeTokens';
 
 describe('mergeTokens()', () => {
   it('should merge two token objects correctly', () => {
-    const tokens1: TokensWithGold = {
+    const tokens1: Tokens = {
       red: 1,
       green: 2,
       blue: 3,
@@ -13,7 +13,7 @@ describe('mergeTokens()', () => {
       black: 5,
       gold: 6,
     };
-    const tokens2: TokensWithGold = {
+    const tokens2: Tokens = {
       red: 2,
       green: 3,
       blue: 4,

@@ -1,12 +1,12 @@
 import classNames from 'classnames';
 import type { FC } from 'react';
 
-import type { TokenColor } from '../../stores/game.store';
+import type { TokenColors } from '../../stores/game.store';
 
 import styles from './Gem.module.scss';
 
 interface Props {
-  color: TokenColor;
+  color: TokenColors;
   quantity?: number;
   width?: number;
   showQuantity?: boolean;

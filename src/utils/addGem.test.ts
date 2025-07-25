@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import type { TokensWithGold } from '../stores/game.store';
+import type { Tokens } from '../stores/game.store';
 import { addGem } from './addGem';
 
 describe('addGem()', () => {
   it('should add a gem to the specified color', () => {
-    const gems: TokensWithGold = {
+    const gems: Tokens = {
       red: 0,
       green: 0,
       blue: 0,

@@ -1,7 +1,7 @@
 import type { FC } from 'react';
 import { useShallow } from 'zustand/shallow';
 
-import { type TokenColor, useGameStore } from '../../stores/game.store';
+import { type TokenColors, useGameStore } from '../../stores/game.store';
 import { Card } from '../Card/Card';
 import { Gem } from '../Gem/Gem';
 
@@ -38,11 +38,11 @@ export const Reserved: FC = (): JSX.Element => {
               // biome-ignore lint/suspicious/noArrayIndexKey: makes sense here
               key={`token-${color}-${index}`}
               onClick={() => {
-                returnToken(color as TokenColor);
+                returnToken(color as TokenColors);
               }}
             >
               <Gem
-                color={color as TokenColor}
+                color={color as TokenColors}
                 quantity={quantity}
                 width={30}
                 showQuantity={false}

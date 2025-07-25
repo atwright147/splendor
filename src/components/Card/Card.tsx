@@ -4,7 +4,7 @@ import { useShallow } from 'zustand/shallow';
 
 import {
   type Card as CardType,
-  type TokenColor,
+  type GemColors,
   useGameStore,
 } from '../../stores/game.store';
 import { Gem } from '../Gem/Gem';
@@ -44,7 +44,7 @@ export const Card: FC<Props> = (props): JSX.Element => {
       disabled={!restProps.onClick || !canAffordCard(card)}
     >
       <div className={styles.top}>
-        <Gem color={card.token} showQuantity={false} width={width / 4} />
+        <Gem color={card.gem} showQuantity={false} width={width / 4} />
         <span className={styles.prestige}>{card.prestige}</span>
       </div>
 
@@ -52,7 +52,7 @@ export const Card: FC<Props> = (props): JSX.Element => {
         {Object.entries(card.cost).map(([color, quantity]) => (
           <Gem
             key={color}
-            color={color as TokenColor}
+            color={color as GemColors}
             quantity={quantity}
             width={width / 5}
           />

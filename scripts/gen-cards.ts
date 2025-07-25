@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { v4 as uuidv4 } from 'uuid';
 
-import { Card, TokenColor } from '../src/stores/game.store';
+import type { Card, GemColors } from '../src/stores/game.store';
 
 const numberOrZero = (num: string): number => {
   return +num || 0;
@@ -12,7 +12,7 @@ const cardsCsv = fs.readFileSync(path.resolve('ref', 'cards.csv'));
 const cardLines = cardsCsv.toString().split('\n').slice(2);
 const cards: Card[] = [];
 let currentLevel: string;
-let currentGemColor: TokenColor;
+let currentGemColor: GemColors;
 let currentGemQuantity: string;
 
 for (const cardLine of cardLines) {
@@ -32,7 +32,7 @@ for (const cardLine of cardLines) {
   // biome-ignore lint/style/noNonNullAssertion: necessary
   currentLevel = level?.length ? level : currentLevel!;
   currentGemColor = gemColor?.length
-    ? (gemColor as TokenColor)
+    ? (gemColor as GemColors)
     : // biome-ignore lint/style/noNonNullAssertion: necessary
       currentGemColor!;
   // biome-ignore lint/style/noNonNullAssertion: necessary
@@ -41,7 +41,7 @@ for (const cardLine of cardLines) {
   const card: Card = {
     id: uuidv4(),
     level: numberOrZero(currentLevel),
-    token: currentGemColor,
+    gem: currentGemColor,
     cost: {
       black: numberOrZero(priceBlack || '0'),
       blue: numberOrZero(priceBlue || '0'),
