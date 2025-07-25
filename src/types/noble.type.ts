@@ -1,5 +1,4 @@
-import { Price } from './cards.type';
-import { Uuid } from './utils.types';
+import type { Price } from './cards.type';
 
 export interface Noble {
   id: number;

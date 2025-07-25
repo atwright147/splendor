@@ -31,7 +31,7 @@ export const notify = (
 
 export const useNotificationStore = create<State>()(
   devtools(
-    (set, get) => ({
+    (set) => ({
       notifications: [],
       add: (newNotification) => {
         const notification = {

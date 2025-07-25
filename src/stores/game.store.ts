@@ -19,7 +19,7 @@ export interface Tokens {
 }
 
 export interface TokensWithGold extends Tokens {
-  gold?: number;
+  gold: number;
 }
 
 export type TokenColor = keyof TokensWithGold;

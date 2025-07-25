@@ -1,6 +1,5 @@
 import classNames from 'classnames';
 import type { FC } from 'react';
-import type { RequireExactlyOne } from 'type-fest';
 
 import type { TokenColor } from '../../stores/game.store';
 

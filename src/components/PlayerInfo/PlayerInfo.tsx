@@ -19,7 +19,10 @@ export const PlayerInfo: FC<Props> = ({ id }): JSX.Element => {
     })),
   );
 
-  const { tokens, gems, prestige } = getPlayerById(id);
+  const player = getPlayerById(id);
+  if (!player) {
+    return <div className={styles.container}>Player not found</div>;
+  }
 
   let isCurrentPlayer = false;
   if (getCurrentPlayer().uuid === id) {
@@ -33,32 +36,32 @@ export const PlayerInfo: FC<Props> = ({ id }): JSX.Element => {
       })}
     >
       <div className={classNames(styles.item, styles.red)}>
-        <div className={styles.card}>{gems.red}</div>
-        <div className={styles.gem}>{tokens.red}</div>
+        <div className={styles.card}>{player.gems.red}</div>
+        <div className={styles.gem}>{player.tokens.red}</div>
       </div>
       <div className={classNames(styles.item, styles.green)}>
-        <div className={styles.card}>{gems.green}</div>
-        <div className={styles.gem}>{tokens.green}</div>
+        <div className={styles.card}>{player.gems.green}</div>
+        <div className={styles.gem}>{player.tokens.green}</div>
       </div>
       <div className={classNames(styles.item, styles.blue)}>
-        <div className={styles.card}>{gems.blue}</div>
-        <div className={styles.gem}>{tokens.blue}</div>
+        <div className={styles.card}>{player.gems.blue}</div>
+        <div className={styles.gem}>{player.tokens.blue}</div>
       </div>
       <div className={classNames(styles.item, styles.black)}>
-        <div className={styles.card}>{gems.black}</div>
-        <div className={styles.gem}>{tokens.black}</div>
+        <div className={styles.card}>{player.gems.black}</div>
+        <div className={styles.gem}>{player.tokens.black}</div>
       </div>
       <div className={classNames(styles.item, styles.white)}>
-        <div className={styles.card}>{gems.white}</div>
-        <div className={styles.gem}>{tokens.white}</div>
+        <div className={styles.card}>{player.gems.white}</div>
+        <div className={styles.gem}>{player.tokens.white}</div>
       </div>
       <div className={classNames(styles.item, styles.gold)}>
-        {/* <div className={styles.card}>{gems.gold}</div>
-        <div className={styles.gem}>{tokens.gold}</div> */}
+        {/* <div className={styles.card}>{player.gems.gold}</div>
+        <div className={styles.gem}>{player.tokens.gold}</div> */}
         Gold
       </div>
       <div className={classNames(styles.item, styles.prestige)}>
-        <div>Prestige: {prestige}</div>
+        <div>Prestige: {player.prestige}</div>
       </div>
     </div>
   );

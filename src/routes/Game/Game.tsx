@@ -20,11 +20,9 @@ export const Game: FC = (): JSX.Element => {
     deal,
     init,
     setBoardSnapshot,
-    nextPlayer,
     players,
     reserveCard,
     reserveToken,
-    commitCard,
   } = useGameStore(
     useShallow((state) => ({
       board: state.board,
@@ -32,11 +30,9 @@ export const Game: FC = (): JSX.Element => {
       deal: state.deal,
       init: state.init,
       setBoardSnapshot: state.setBoardSnapshot,
-      nextPlayer: state.nextPlayer,
       players: state.players,
       reserveCard: state.pickCard,
       reserveToken: state.pickToken,
-      commitCard: state.commitCard,
     })),
   );
 
@@ -131,7 +127,6 @@ export const Game: FC = (): JSX.Element => {
       </div>
 
       <div className={styles.mainPlayerInfo}>
-        {/* <MainPlayerInfo /> */}
         <Reserved />
       </div>
     </div>
