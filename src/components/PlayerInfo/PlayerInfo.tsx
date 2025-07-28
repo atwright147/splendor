@@ -5,6 +5,7 @@ import { useShallow } from 'zustand/shallow';
 import { useGameStore } from '../../stores/game.store';
 import type { Uuid } from '../../types/utils.types';
 
+import { Card } from '../Card/Card';
 import styles from './PlayerInfo.module.scss';
 
 interface Props {
@@ -56,12 +57,15 @@ export const PlayerInfo: FC<Props> = ({ id }): JSX.Element => {
         <div className={styles.gem}>{player.tokens.white}</div>
       </div>
       <div className={classNames(styles.item, styles.gold)}>
-        {/* <div className={styles.card}>{player.gems.gold}</div>
-        <div className={styles.gem}>{player.tokens.gold}</div> */}
-        Gold
+        <div className={styles.gem}>{player.tokens.gold}</div>
       </div>
       <div className={classNames(styles.item, styles.prestige)}>
         <div>Prestige: {player.prestige}</div>
+      </div>
+      <div className={styles['item reservedCards']}>
+        {player.reservedCards.map((card) => (
+          <Card key={card.id} card={card} width={100} />
+        ))}
       </div>
     </div>
   );

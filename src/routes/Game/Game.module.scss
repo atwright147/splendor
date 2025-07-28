@@ -17,7 +17,7 @@ body {
   gap: 1rem;
   grid-template-areas:
     "players decks cards tokens nobles"
-    "mainPlayerInfo mainPlayerInfo mainPlayerInfo mainPlayerInfo mainPlayerInfo";
+    "currentPlayerHud currentPlayerHud currentPlayerHud currentPlayerHud currentPlayerHud";
 }
 
 .players {
@@ -45,8 +45,8 @@ body {
   grid-area: nobles;
 }
 
-.mainPlayerInfo {
-  grid-area: mainPlayerInfo;
+.currentPlayerHud {
+  grid-area: currentPlayerHud;
   display: flex;
   justify-content: center;
 }

@@ -126,7 +126,7 @@ export const Game: FC = (): JSX.Element => {
         ))}
       </div>
 
-      <div className={styles.mainPlayerInfo}>
+      <div className={styles.currentPlayerHud}>
         <Reserved />
       </div>
     </div>

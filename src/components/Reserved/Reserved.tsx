@@ -8,16 +8,25 @@ import { Gem } from '../Gem/Gem';
 import styles from './Reserved.module.scss';
 
 export const Reserved: FC = (): JSX.Element => {
-  const { canEndTurn, endTurn, pickedCard, pickedTokens, returnToken } =
-    useGameStore(
-      useShallow((state) => ({
-        canEndTurn: state.canEndTurn,
-        endTurn: state.endTurn,
-        pickedCard: state.pickedCard,
-        pickedTokens: state.pickedTokens,
-        returnToken: state.returnToken,
-      })),
-    );
+  const {
+    canEndTurn,
+    endTurn,
+    getCurrentPlayer,
+    pickedCard,
+    pickedTokens,
+    returnToken,
+  } = useGameStore(
+    useShallow((state) => ({
+      canEndTurn: state.canEndTurn,
+      endTurn: state.endTurn,
+      getCurrentPlayer: state.getCurrentPlayer,
+      pickedCard: state.pickedCard,
+      pickedTokens: state.pickedTokens,
+      returnToken: state.returnToken,
+    })),
+  );
+
+  const currentPlayer = getCurrentPlayer();
 
   if (!pickedCard && Object.values(pickedTokens).every((qty) => qty === 0)) {
     return <></>;
@@ -25,11 +34,11 @@ export const Reserved: FC = (): JSX.Element => {
 
   return (
     <div className={styles.container}>
-      <div className="card">
+      <div className={styles.card}>
         {pickedCard && <Card card={pickedCard.card} width={100} />}
       </div>
 
-      <div className="tokens">
+      <div className={styles.tokens}>
         {Object.entries(pickedTokens).flatMap(([color, quantity]) => {
           return Array.from({ length: quantity }, (_, index) => (
             <button
@@ -52,11 +61,17 @@ export const Reserved: FC = (): JSX.Element => {
         })}
       </div>
 
+      <div className={styles.reservedCards}>
+        {currentPlayer.reservedCards.map((card) => (
+          <Card key={card.id} card={card} width={100} />
+        ))}
+      </div>
+
       <button
+        className={styles.endTurnButton}
         type="button"
         onClick={endTurn}
         disabled={!canEndTurn()}
-        className={styles.endTurnButton}
       >
         End Turn?
       </button>
