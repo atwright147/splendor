@@ -58,6 +58,7 @@ export interface PlayerState {
   gems: Gems;
   nobles: Noble[];
   prestige: number;
+  reservedCards: Card[];
 }
 
 export interface BoardState {
@@ -133,6 +134,7 @@ const defaultPlayerState: PlayerState = {
   gems: { ...defaultGems },
   nobles: [],
   prestige: 0,
+  reservedCards: [],
 };
 
 export const initialBoardState: BoardState = {
@@ -504,6 +506,38 @@ export const useGameStore = create<GameState>()(
           return;
         }
 
+        // Check if the player can afford the card
+        if (!get().canAffordCard(pickedCard.card)) {
+          // Add the card to reservedCards
+          set((state) => ({
+            players: state.players.map((player, i) =>
+              i === get().currentPlayerIndex
+                ? {
+                    ...player,
+                    reservedCards: [...player.reservedCards, pickedCard.card],
+                    tokens: {
+                      ...player.tokens,
+                      gold: player.tokens.gold + 1, // Add a gold token
+                    },
+                  }
+                : player,
+            ),
+            board: {
+              ...state.board,
+              cards: {
+                ...state.board.cards,
+                [`level${pickedCard.card.level}` as keyof typeof state.board.cards]:
+                  state.board.cards[
+                    `level${pickedCard.card.level}` as keyof typeof state.board.cards
+                  ].filter((c) => c.id !== pickedCard.card.id), // Remove the card from the board
+              },
+            },
+            pickedCard: null, // Clear the picked card
+          }));
+          notify('Card reserved and a Gold token added.', 'success');
+          return;
+        }
+
         // Calculate the actual tokens spent by the player
         const player = get().players[get().currentPlayerIndex];
         const tokensSpent: Partial<Tokens> = {};
@@ -585,11 +619,6 @@ export const useGameStore = create<GameState>()(
         }));
       },
       pickCard: (card) => {
-        if (!get().canAffordCard(card)) {
-          notify('Cannot afford card', 'info');
-          return;
-        }
-
         set((state) => ({
           board: {
             ...state.board,
