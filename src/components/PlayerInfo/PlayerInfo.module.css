@@ -4,10 +4,10 @@
   grid-template-rows: repeat(2, 1fr);
   width: min-content;
   height: min-content;
+}
 
-  & + & {
-    margin-top: 1rem;
-  }
+.container + .container {
+  margin-top: 1rem;
 }
 
 .item {
@@ -56,10 +56,11 @@
 .gold,
 .white {
   color: black;
+}
 
-  & .card {
-    border-color: black;
-  }
+.gold .card,
+.white .card {
+  border-color: black;
 }
 
 .black,
@@ -81,3 +82,4 @@
 .current {
   outline: 5px solid powderblue;
 }
+

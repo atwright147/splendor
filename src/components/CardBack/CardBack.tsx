@@ -3,7 +3,7 @@ import type { FC } from 'react';
 
 import type { CardBackColors } from '../../types/card-back.type';
 
-import styles from './CardBack.module.scss';
+import styles from './CardBack.module.css';
 
 interface Props {
   color: CardBackColors;

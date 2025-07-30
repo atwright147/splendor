@@ -6,7 +6,7 @@ import { useGameStore } from '../../stores/game.store';
 import type { Uuid } from '../../types/utils.types';
 
 import { Card } from '../Card/Card';
-import styles from './PlayerInfo.module.scss';
+import styles from './PlayerInfo.module.css';
 
 interface Props {
   id: Uuid;

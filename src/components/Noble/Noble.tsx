@@ -3,7 +3,7 @@ import type { FC } from 'react';
 import type { Noble as NobleType } from '../../stores/game.store';
 import { Gem } from '../Gem/Gem';
 
-import styles from './Noble.module.scss';
+import styles from './Noble.module.css';
 
 type Props = Omit<NobleType, 'id'>;
 

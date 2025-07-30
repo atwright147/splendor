@@ -40,23 +40,15 @@
   display: flex;
   flex-direction: column;
   gap: .5em;
-
-  @container (width <= 100px) {
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
 }
 
 .prestige {
   font-size: 1.8em;
   font-weight: bold;
   margin-right: 1em;
-
-  @container (width <= 100px) {
-    margin-right: 0;
-  }
 }
 
 .affordable {
   outline: 5px solid powderblue;
 }
+

@@ -3,7 +3,7 @@ import type { ComponentPropsWithoutRef, FC } from 'react';
 
 import type { TokenColorValues } from '../../types/colors.type';
 
-import styles from './Token.module.scss';
+import styles from './Token.module.css';
 
 interface Props extends ComponentPropsWithoutRef<'div'> {
   color: TokenColorValues;

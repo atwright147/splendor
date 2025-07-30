@@ -3,13 +3,13 @@ import ReactDOM from 'react-dom/client';
 import '@fontsource/noticia-text';
 import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 
-import { Root } from './routes/Root/Root.tsx';
 import { ErrorPage } from './routes/Error/Error.tsx';
-import { Home } from './routes/Home/Home.tsx';
 import { Game } from './routes/Game/Game.tsx';
+import { Home } from './routes/Home/Home.tsx';
+import { Root } from './routes/Root/Root.tsx';
 
 import 'normalize.css';
-import './index.scss';
+import './index.css';
 
 const router = createBrowserRouter([
   {

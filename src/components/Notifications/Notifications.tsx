@@ -4,7 +4,7 @@ import { useShallow } from 'zustand/shallow';
 
 import { useNotificationStore } from '../../stores/notifications.store';
 
-import styles from './Notifications.module.scss';
+import styles from './Notifications.module.css';
 
 export const Notifications: FC = () => {
   const { notifications, remove } = useNotificationStore(

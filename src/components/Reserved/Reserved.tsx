@@ -5,7 +5,7 @@ import { type TokenColors, useGameStore } from '../../stores/game.store';
 import { Card } from '../Card/Card';
 import { Gem } from '../Gem/Gem';
 
-import styles from './Reserved.module.scss';
+import styles from './Reserved.module.css';
 
 export const Reserved: FC = (): JSX.Element => {
   const {

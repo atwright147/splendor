@@ -11,7 +11,7 @@ import type { TokenColorValues } from '../../types/colors.type';
 
 import { Notifications } from '../../components/Notifications/Notifications';
 import { Reserved } from '../../components/Reserved/Reserved';
-import styles from './Game.module.scss';
+import styles from './Game.module.css';
 
 export const Game: FC = (): JSX.Element => {
   const {

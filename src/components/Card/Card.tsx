@@ -9,7 +9,7 @@ import {
 } from '../../stores/game.store';
 import { Gem } from '../Gem/Gem';
 
-import styles from './Card.module.scss';
+import styles from './Card.module.css';
 
 // https://stackoverflow.com/a/66810748/633056
 type Props = {

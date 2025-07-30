@@ -3,7 +3,7 @@ import type { FC } from 'react';
 
 import type { TokenColors } from '../../stores/game.store';
 
-import styles from './Gem.module.scss';
+import styles from './Gem.module.css';
 
 interface Props {
   color: TokenColors;

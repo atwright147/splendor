@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.4.1/schema.json",
+  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
   "organizeImports": {
     "enabled": true
   },
@@ -10,10 +10,12 @@
       "recommended": true,
       "correctness": {
         "useExhaustiveDependencies": {
-          "level": "warn"
+          "level": "warn",
+          "options": {}
         },
         "useHookAtTopLevel": {
-          "level": "error"
+          "level": "error",
+          "options": {}
         }
       }
     }
@@ -28,6 +30,19 @@
     "formatter": {
       "quoteStyle": "single",
       "jsxQuoteStyle": "double"
+    }
+  },
+  "css": {
+    "formatter": {
+      "enabled": true,
+      "indentStyle": "space",
+      "indentWidth": 2,
+      "lineEnding": "lf",
+      "lineWidth": 80,
+      "quoteStyle": "double"
+    },
+    "linter": {
+      "enabled": true
     }
   }
 }

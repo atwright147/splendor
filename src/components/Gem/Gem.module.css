@@ -7,10 +7,6 @@
   text-align: center;
 }
 
-// .container + .container {
-//   margin-top: .5rem;
-// }
-
 .black {
   background-color: black;
 }
@@ -38,3 +34,4 @@
 .blue {
   color: white;
 }
+
