@@ -12,6 +12,8 @@ interface Props {
 
 export const CardBack: FC<Props> = ({ color, level }): JSX.Element => {
   return (
-    <div className={classNames(styles.container, styles[color])}>{level}</div>
+    <div className={classNames(styles.container, styles[color])}>
+      <div className={styles.content}>{level}</div>
+    </div>
   );
 };
