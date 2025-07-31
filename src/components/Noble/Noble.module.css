@@ -2,7 +2,7 @@
   aspect-ratio: 1;
   width: 200px;
   background-color: bisque;
-  border-radius: .5rem;
+  border-radius: 0.5rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -10,12 +10,14 @@
   box-sizing: border-box;
 }
 
-.container + .container {
-  margin-top: 1rem;
-}
-
 .prestige {
   margin: 0;
   padding: 0;
   font-size: 2rem;
+}
+
+.bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }

@@ -8,15 +8,11 @@
   justify-content: center;
 }
 
-.container + .container {
-  margin-top: 1rem;
-}
-
 .item {
   aspect-ratio: 4 / 3;
   display: flex;
   align-items: center;
-  gap: .5rem;
+  gap: 0.5rem;
   justify-content: center;
   width: 75px;
 }
@@ -34,4 +30,3 @@
 .endTurnButton {
   white-space: nowrap;
 }
-

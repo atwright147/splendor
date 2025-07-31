@@ -10,16 +10,12 @@
   border-style: solid;
   box-sizing: border-box;
   user-select: none;
-}
 
-.token.empty {
-  background-color: transparent;
-  border-style: dashed;
-  color: black;
-}
-
-.container + .container {
-  margin-top: .5rem;
+  &.empty {
+    background-color: transparent;
+    border-style: dashed;
+    color: black;
+  }
 }
 
 .black {
@@ -63,4 +59,3 @@
 .blue {
   color: white;
 }
-

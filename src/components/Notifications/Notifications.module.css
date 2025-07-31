@@ -21,22 +21,22 @@
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
-}
 
-.notification.success {
-  border-left-color: green;
-}
+  &.success {
+    border-left-color: green;
+  }
 
-.notification.error {
-  border-left-color: red;
-}
+  &.error {
+    border-left-color: red;
+  }
 
-.notification.info {
-  border-left-color: blue;
-}
+  &.info {
+    border-left-color: blue;
+  }
 
-.notification.warn {
-  border-left-color: orange;
+  &.warn {
+    border-left-color: orange;
+  }
 }
 
 .message {

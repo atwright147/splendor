@@ -20,6 +20,9 @@ body {
 
 .players {
   grid-area: players;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .cards {
@@ -38,8 +41,18 @@ body {
   gap: 1rem;
 }
 
+.tokens {
+  grid-area: tokens;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 .nobles {
   grid-area: nobles;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .currentPlayerHud {

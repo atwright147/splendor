@@ -6,15 +6,11 @@
   height: min-content;
 }
 
-.container + .container {
-  margin-top: 1rem;
-}
-
 .item {
   aspect-ratio: 4 / 3;
   display: flex;
   align-items: center;
-  gap: .5rem;
+  gap: 0.5rem;
   justify-content: center;
   width: 75px;
 }
@@ -82,4 +78,3 @@
 .current {
   outline: 5px solid powderblue;
 }
-
