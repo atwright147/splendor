@@ -4,10 +4,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import deckAll from '../../ref/cards.json';
 import {
   type Card,
+  initialBoardState,
   type Noble,
   type PlayerState,
   type Tokens,
-  initialBoardState,
   useGameStore,
 } from './game.store';
 
@@ -34,9 +34,11 @@ describe('Game Store', () => {
 
   describe('deal()', () => {
     it('returns early when no players are created', () => {
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
+
       const { result } = renderHook(() => useGameStore());
 
-      result.current.deal();
+      act(() => result.current.deal());
 
       expect(result.current.board).toEqual({ ...initialBoardState });
     });
@@ -186,7 +188,7 @@ describe('Game Store', () => {
 
       const player2 = result.current.players[1];
 
-      result.current.setCurrentPlayerIndex(1);
+      act(() => result.current.setCurrentPlayerIndex(1));
 
       expect(result.current.getCurrentPlayer()).toEqual(player2);
     });

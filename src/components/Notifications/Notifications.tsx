@@ -1,12 +1,12 @@
 import classnames from 'classnames';
-import type { FC } from 'react';
+import type { FC, JSX } from 'react';
 import { useShallow } from 'zustand/shallow';
 
 import { useNotificationStore } from '../../stores/notifications.store';
 
 import styles from './Notifications.module.css';
 
-export const Notifications: FC = () => {
+export const Notifications: FC = (): JSX.Element => {
   const { notifications, remove } = useNotificationStore(
     useShallow((store) => ({
       notifications: store.notifications,

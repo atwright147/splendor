@@ -1,5 +1,5 @@
 import classnames from 'classnames';
-import type { ComponentPropsWithoutRef, FC } from 'react';
+import type { ComponentPropsWithoutRef, FC, JSX } from 'react';
 import { useShallow } from 'zustand/shallow';
 
 import {
@@ -17,7 +17,7 @@ type Props = {
   width?: number;
 } & ComponentPropsWithoutRef<'button'>;
 
-export const Card: FC<Props> = (props): JSX.Element => {
+export const Card: FC<Props> = (props): JSX.Element | null => {
   const { canAffordCard } = useGameStore(
     useShallow((state) => ({
       canAffordCard: state.canAffordCard,
@@ -25,7 +25,7 @@ export const Card: FC<Props> = (props): JSX.Element => {
   );
 
   if (!props || !props.card) {
-    return <></>;
+    return null;
   }
 
   const { card, width = 200, className, ...restProps } = props;

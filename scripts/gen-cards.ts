@@ -20,8 +20,6 @@ for (const cardLine of cardLines) {
     level,
     gemColor,
     gemQuantity, // pv
-    priceVerbose,
-    illustration,
     priceWhite,
     priceBlue,
     priceGreen,

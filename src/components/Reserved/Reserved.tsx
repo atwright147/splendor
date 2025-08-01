@@ -1,4 +1,4 @@
-import type { FC } from 'react';
+import type { FC, JSX } from 'react';
 import { useShallow } from 'zustand/shallow';
 
 import { type TokenColors, useGameStore } from '../../stores/game.store';
@@ -7,7 +7,7 @@ import { Gem } from '../Gem/Gem';
 
 import styles from './Reserved.module.css';
 
-export const Reserved: FC = (): JSX.Element => {
+export const Reserved: FC = (): JSX.Element | null => {
   const {
     canEndTurn,
     endTurn,
@@ -29,7 +29,7 @@ export const Reserved: FC = (): JSX.Element => {
   const currentPlayer = getCurrentPlayer();
 
   if (!pickedCard && Object.values(pickedTokens).every((qty) => qty === 0)) {
-    return <></>;
+    return null;
   }
 
   return (

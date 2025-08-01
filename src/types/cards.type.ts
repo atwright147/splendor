@@ -1,5 +1,5 @@
 import type { GemColorValues } from './colors.type';
-import { Uuid } from './utils.types';
+import type { Uuid } from './utils.types';
 
 export interface Price {
   color: GemColorValues;

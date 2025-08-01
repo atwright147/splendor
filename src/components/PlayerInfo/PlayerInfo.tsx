@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import type { FC } from 'react';
+import type { FC, JSX } from 'react';
 import { useShallow } from 'zustand/shallow';
 
 import { useGameStore } from '../../stores/game.store';

@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import '@fontsource/noticia-text';
-import { RouterProvider, createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 import { ErrorPage } from './routes/Error/Error.tsx';
 import { Game } from './routes/Game/Game.tsx';

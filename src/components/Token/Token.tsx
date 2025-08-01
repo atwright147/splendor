@@ -1,5 +1,5 @@
 import classnames from 'classnames';
-import type { ComponentPropsWithoutRef, FC } from 'react';
+import type { ComponentPropsWithoutRef, FC, JSX } from 'react';
 
 import type { TokenColorValues } from '../../types/colors.type';
 

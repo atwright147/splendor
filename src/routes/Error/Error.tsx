@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import { useRouteError } from 'react-router-dom';
 
 interface RouterError {
@@ -12,7 +13,7 @@ interface RouterError {
   };
 }
 
-export const ErrorPage = () => {
+export const ErrorPage = (): JSX.Element => {
   const error = useRouteError();
 
   return (
