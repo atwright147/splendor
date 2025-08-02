@@ -1,4 +1,5 @@
 import classnames from 'classnames';
+import pluralize from 'pluralize';
 import type { ComponentPropsWithoutRef, FC, JSX } from 'react';
 import { useShallow } from 'zustand/shallow';
 
@@ -8,8 +9,15 @@ import {
   useGameStore,
 } from '../../stores/game.store';
 import { Gem } from '../Gem/Gem';
+import { UnstyledButton } from '../UnstyledButton/UnstyledButton';
 
 import styles from './Card.module.css';
+
+const makeCostString = (cost: Record<GemColors, number>): string => {
+  return Object.entries(cost)
+    .map(([color, quantity]) => `${quantity} ${pluralize(color, quantity)}`)
+    .join(', ');
+};
 
 // https://stackoverflow.com/a/66810748/633056
 type Props = {
@@ -30,17 +38,18 @@ export const Card: FC<Props> = (props): JSX.Element | null => {
 
   const { card, width = 200, className, ...restProps } = props;
 
+  const title = `Level ${card.level} card, costs: ${makeCostString(card.cost)}, offering prestige: ${card.prestige} and a ${card.gem} gem.`;
+
   return (
-    <button
+    <UnstyledButton
       style={{ width: `${width}px` }}
-      className={classnames(
-        styles.card,
-        { [styles.affordable]: canAffordCard(card) },
-        className,
-      )}
+      className={classnames(className, styles.card, {
+        [styles.affordable]: canAffordCard(card),
+      })}
       {...restProps}
       data-level={card.level}
-      data-id={card.id}
+      data-card-id={card.id}
+      title={title}
     >
       <div className={styles.content}>
         <div className={styles.top}>
@@ -59,6 +68,6 @@ export const Card: FC<Props> = (props): JSX.Element | null => {
           ))}
         </div>
       </div>
-    </button>
+    </UnstyledButton>
   );
 };

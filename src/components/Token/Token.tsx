@@ -2,12 +2,13 @@ import classnames from 'classnames';
 import type { ComponentPropsWithoutRef, FC, JSX } from 'react';
 
 import type { TokenColorValues } from '../../types/colors.type';
+import { UnstyledButton } from '../UnstyledButton/UnstyledButton';
 
 import styles from './Token.module.css';
 
-interface Props extends ComponentPropsWithoutRef<'div'> {
+interface Props extends ComponentPropsWithoutRef<'button'> {
   color: TokenColorValues;
-  label?: string | number;
+  label: string | number;
   quantity?: number;
   size?: number;
 }
@@ -19,19 +20,27 @@ export const Token: FC<Props> = ({
   size = 50,
   className,
   ...props
-}): JSX.Element => (
-  <div
-    className={classnames(styles.container, className)}
-    {...props}
-    data-level={color}
-  >
-    <div
-      className={classnames(styles.token, styles[color], {
-        [styles.empty]: !quantity,
-      })}
-      style={{ width: `${size}px` }}
+}): JSX.Element => {
+  const isDisabled = !quantity || !props.onClick;
+
+  return (
+    <UnstyledButton
+      className={classnames(styles.container, className)}
+      {...props}
+      data-color={color}
+      disabled={isDisabled}
+      type="button"
+      aria-label={label ? `${label} token` : 'Token'}
+      title={label ? `${label} token` : 'Token'}
     >
-      <div className={styles.label}>{quantity ?? label}</div>
-    </div>
-  </div>
-);
+      <div
+        className={classnames(styles.token, styles[color], {
+          [styles.empty]: !quantity,
+        })}
+        style={{ width: `${size}px` }}
+      >
+        <div className={styles.label}>{quantity ?? label}</div>
+      </div>
+    </UnstyledButton>
+  );
+};

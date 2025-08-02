@@ -92,28 +92,33 @@ export const Game: FC = (): JSX.Element => {
       </div>
 
       <div className={styles.tokens}>
-        <Token color="gold" quantity={board.tokens.gold} />
+        <Token label="Gold token" color="gold" quantity={board.tokens.gold} />
         <Token
+          label="Black"
           onClick={() => handleTokenClick('black')}
           color="black"
           quantity={board.tokens.black}
         />
         <Token
+          label="Blue"
           onClick={() => handleTokenClick('blue')}
           color="blue"
           quantity={board.tokens.blue}
         />
         <Token
+          label="Green"
           onClick={() => handleTokenClick('green')}
           color="green"
           quantity={board.tokens.green}
         />
         <Token
+          label="Red"
           onClick={() => handleTokenClick('red')}
           color="red"
           quantity={board.tokens.red}
         />
         <Token
+          label="White"
           onClick={() => handleTokenClick('white')}
           color="white"
           quantity={board.tokens.white}

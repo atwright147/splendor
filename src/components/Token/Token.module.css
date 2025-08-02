@@ -1,6 +1,10 @@
+.container,
 .token {
   aspect-ratio: 1;
   border-radius: 50%;
+}
+
+.token {
   justify-content: center;
   align-items: center;
   display: flex;
