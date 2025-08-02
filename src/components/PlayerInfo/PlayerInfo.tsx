@@ -32,36 +32,39 @@ export const PlayerInfo: FC<Props> = ({ id }): JSX.Element => {
 
   return (
     <div
-      className={classNames(styles.container, {
+      className={classNames({
         [styles.current]: isCurrentPlayer,
       })}
     >
-      <div className={classNames(styles.item, styles.red)}>
-        <div className={styles.card}>{player.gems.red}</div>
-        <div className={styles.gem}>{player.tokens.red}</div>
+      <div className={styles.container}>
+        <div className={classNames(styles.item, styles.red)}>
+          <div className={styles.card}>{player.gems.red}</div>
+          <div className={styles.gem}>{player.tokens.red}</div>
+        </div>
+        <div className={classNames(styles.item, styles.green)}>
+          <div className={styles.card}>{player.gems.green}</div>
+          <div className={styles.gem}>{player.tokens.green}</div>
+        </div>
+        <div className={classNames(styles.item, styles.blue)}>
+          <div className={styles.card}>{player.gems.blue}</div>
+          <div className={styles.gem}>{player.tokens.blue}</div>
+        </div>
+        <div className={classNames(styles.item, styles.black)}>
+          <div className={styles.card}>{player.gems.black}</div>
+          <div className={styles.gem}>{player.tokens.black}</div>
+        </div>
+        <div className={classNames(styles.item, styles.white)}>
+          <div className={styles.card}>{player.gems.white}</div>
+          <div className={styles.gem}>{player.tokens.white}</div>
+        </div>
+        <div className={classNames(styles.item, styles.gold)}>
+          <div className={styles.gem}>{player.tokens.gold}</div>
+        </div>
+        <div className={classNames(styles.item, styles.prestige)}>
+          <div>Prestige: {player.prestige}</div>
+        </div>
       </div>
-      <div className={classNames(styles.item, styles.green)}>
-        <div className={styles.card}>{player.gems.green}</div>
-        <div className={styles.gem}>{player.tokens.green}</div>
-      </div>
-      <div className={classNames(styles.item, styles.blue)}>
-        <div className={styles.card}>{player.gems.blue}</div>
-        <div className={styles.gem}>{player.tokens.blue}</div>
-      </div>
-      <div className={classNames(styles.item, styles.black)}>
-        <div className={styles.card}>{player.gems.black}</div>
-        <div className={styles.gem}>{player.tokens.black}</div>
-      </div>
-      <div className={classNames(styles.item, styles.white)}>
-        <div className={styles.card}>{player.gems.white}</div>
-        <div className={styles.gem}>{player.tokens.white}</div>
-      </div>
-      <div className={classNames(styles.item, styles.gold)}>
-        <div className={styles.gem}>{player.tokens.gold}</div>
-      </div>
-      <div className={classNames(styles.item, styles.prestige)}>
-        <div>Prestige: {player.prestige}</div>
-      </div>
+
       <div className={styles['item reservedCards']}>
         {player.reservedCards.map((card) => (
           <Card key={card.id} card={card} width={100} />
