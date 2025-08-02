@@ -411,12 +411,6 @@ export const useGameStore = create<GameState>()(
         });
       },
       returnToken: (tokenColor: TokenColors) => {
-        // Don't allow returning gold tokens
-        if (tokenColor === 'gold') {
-          notify('Gold tokens cannot be returned', 'info');
-          return;
-        }
-
         const colorKey = tokenColor as keyof Gems;
 
         if (get().pickedTokens[colorKey] <= 0) {
@@ -530,6 +524,10 @@ export const useGameStore = create<GameState>()(
                   state.board.cards[
                     `level${pickedCard.card.level}` as keyof typeof state.board.cards
                   ].filter((c) => c.id !== pickedCard.card.id), // Remove the card from the board
+              },
+              tokens: {
+                ...state.board.tokens,
+                gold: state.board.tokens.gold - 1, // Remove a gold token from the board
               },
             },
             pickedCard: null, // Clear the picked card
