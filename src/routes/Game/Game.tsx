@@ -1,15 +1,15 @@
 import { type FC, type JSX, useEffect } from 'react';
 import { useShallow } from 'zustand/shallow';
 
-import { Card } from '../../components/Card/Card';
-import { CardBack } from '../../components/CardBack/CardBack';
-import { Noble } from '../../components/Noble/Noble';
-import { Notifications } from '../../components/Notifications/Notifications';
-import { PlayerInfo } from '../../components/PlayerInfo/PlayerInfo';
-import { Reserved } from '../../components/Reserved/Reserved';
-import { Token } from '../../components/Token/Token';
-import { type Card as CardType, useGameStore } from '../../stores/game.store';
-import type { TokenColorValues } from '../../types/colors.type';
+import { Card } from '#components/Card/Card';
+import { CardBack } from '#components/CardBack/CardBack';
+import { Noble } from '#components/Noble/Noble';
+import { Notifications } from '#components/Notifications/Notifications';
+import { PlayerInfo } from '#components/PlayerInfo/PlayerInfo';
+import { Reserved } from '#components/Reserved/Reserved';
+import { Token } from '#components/Token/Token';
+import { type Card as CardType, useGameStore } from '#stores/game.store';
+import type { TokenColorValues } from '#types/colors.type';
 
 import styles from './Game.module.css';
 
@@ -127,7 +127,7 @@ export const Game: FC = (): JSX.Element => {
 
       <div className={styles.nobles}>
         {board.nobles.map((noble) => (
-          <Noble key={noble.id} cost={noble.cost} prestige={noble.prestige} />
+          <Noble key={noble.id} noble={noble} />
         ))}
       </div>
 

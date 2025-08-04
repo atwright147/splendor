@@ -1,24 +1,39 @@
+import classnames from 'classnames';
 import type { FC, JSX } from 'react';
+import { useShallow } from 'zustand/shallow';
 
-import type { Noble as NobleType } from '../../stores/game.store';
-import { Gem } from '../Gem/Gem';
-import { UnstyledButton } from '../UnstyledButton/UnstyledButton';
+import { Gem } from '#components/Gem/Gem';
+import { UnstyledButton } from '#components/UnstyledButton/UnstyledButton';
+import { type Noble as NobleType, useGameStore } from '#stores/game.store';
 
 import styles from './Noble.module.css';
 
-type Props = Omit<NobleType, 'id'>;
+interface Props {
+  noble: NobleType;
+}
 
-export const Noble: FC<Props> = ({ cost, prestige }): JSX.Element => {
-  const isDisabled = true; // TODO: Implement logic to determine if the Noble is affordable
+export const Noble: FC<Props> = ({ noble }): JSX.Element => {
+  const { canAffordNoble } = useGameStore(
+    useShallow((state) => ({
+      canAffordNoble: state.canAffordNoble,
+    })),
+  );
+
+  const isAffordable = canAffordNoble(noble);
 
   return (
-    <UnstyledButton className={styles.container} disabled={isDisabled}>
+    <UnstyledButton
+      className={classnames(styles.container, {
+        [styles.affordable]: isAffordable,
+      })}
+      disabled={!isAffordable}
+    >
       <div className={styles.top}>
-        <p className={styles.prestige}>{prestige}</p>
+        <p className={styles.prestige}>{noble.prestige}</p>
       </div>
 
       <div className={styles.bottom}>
-        {Object.entries(cost).map(([color, price]) => (
+        {Object.entries(noble.cost).map(([color, price]) => (
           // biome-ignore lint/suspicious/noExplicitAny: fix later :/
           <Gem key={color} color={color as any} quantity={price} width={30} />
         ))}

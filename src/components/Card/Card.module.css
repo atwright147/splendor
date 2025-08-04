@@ -44,6 +44,7 @@
   margin-right: 1em;
 }
 
+/* biome-ignore parse: Biome's CSS Module support is lack luster */
 .affordable {
-  outline: 5px solid powderblue;
+  composes: affordable from "/src/styles/utils.module.css";
 }

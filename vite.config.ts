@@ -1,12 +1,12 @@
 /// <reference types="vitest" />
 
-import path from 'node:path';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
+import tsconfigPaths from 'vite-tsconfig-paths';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [tsconfigPaths(), react()],
   test: {
     globals: true,
     environment: 'jsdom',
@@ -30,17 +30,9 @@ export default defineConfig({
       },
     },
   },
-  css: {
-    preprocessorOptions: {
-      scss: {
-        api: 'modern-compiler', // or "modern", "legacy"
-        importers: [],
-      },
-    },
-  },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
-  },
+  // resolve: {
+  //   alias: {
+  //     '@': path.resolve(__dirname, './src'),
+  //   },
+  // },
 });

@@ -4,11 +4,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import deckAll from '../../ref/cards.json';
-import noblesAll from '../../ref/nobles.json';
-import { addGem } from '../utils/addGem';
-import { mergeTokens } from '../utils/mergeTokens';
-import { notify } from './notifications.store';
+import deckAll from '#ref/cards.json';
+import noblesAll from '#ref/nobles.json';
+import { notify } from '#stores/notifications.store';
+import { addGem } from '#utils/addGem';
+import { mergeTokens } from '#utils/mergeTokens';
 
 export interface Gems {
   red: number;
@@ -99,6 +99,7 @@ interface GameState {
   pickToken: (tokenColor: TokenColors) => void; // Fix parameter type
   returnToken: (tokenColor: TokenColors) => void; // Fix parameter type
   canAffordCard: (card: Card) => boolean;
+  canAffordNoble: (noble: Noble) => boolean;
   removePlayerTokensByCardCost: (cardCost: Gems) => Tokens; // Fix parameter type
   commitCard: () => void;
   pickCard: (card: Card) => void;
@@ -120,11 +121,11 @@ const defaultTokens: Tokens = {
 };
 
 const defaultGems: Gems = {
-  red: 0,
-  green: 0,
-  blue: 0,
-  white: 0,
-  black: 0,
+  red: 4,
+  green: 4,
+  blue: 4,
+  white: 4,
+  black: 4,
 };
 
 const defaultPlayerState: PlayerState = {
@@ -465,6 +466,15 @@ export const useGameStore = create<GameState>()(
         }, 0);
 
         return (player.tokens.gold || 0) >= shortfall;
+      },
+      canAffordNoble: (noble) => {
+        const player = get().getCurrentPlayer();
+
+        // Nobles can only be purchased with a player's gems (not tokens or gold)
+        return Object.entries(noble.cost).every(([color, qty]) => {
+          const gemColor = color as keyof Gems;
+          return player.gems[gemColor] >= qty;
+        });
       },
       removePlayerTokensByCardCost: (cardCost) => {
         const player = get().players[get().currentPlayerIndex];

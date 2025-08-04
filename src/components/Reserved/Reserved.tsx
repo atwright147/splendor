@@ -1,9 +1,9 @@
 import type { FC, JSX } from 'react';
 import { useShallow } from 'zustand/shallow';
 
-import { type TokenColors, useGameStore } from '../../stores/game.store';
-import { Card } from '../Card/Card';
-import { Gem } from '../Gem/Gem';
+import { Card } from '#components/Card/Card';
+import { Gem } from '#components/Gem/Gem';
+import { type TokenColors, useGameStore } from '#stores/game.store';
 
 import styles from './Reserved.module.css';
 

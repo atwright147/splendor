@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import type { FC, JSX } from 'react';
 
-import type { TokenColors } from '../../stores/game.store';
+import type { TokenColors } from '#stores/game.store';
 
 import styles from './Gem.module.css';
 

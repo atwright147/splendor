@@ -1,8 +1,8 @@
 import classnames from 'classnames';
 import type { ComponentPropsWithoutRef, FC, JSX } from 'react';
 
-import type { TokenColorValues } from '../../types/colors.type';
-import { UnstyledButton } from '../UnstyledButton/UnstyledButton';
+import { UnstyledButton } from '#components/UnstyledButton/UnstyledButton';
+import type { TokenColorValues } from '#types/colors.type';
 
 import styles from './Token.module.css';
 

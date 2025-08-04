@@ -3,13 +3,13 @@ import pluralize from 'pluralize';
 import type { ComponentPropsWithoutRef, FC, JSX } from 'react';
 import { useShallow } from 'zustand/shallow';
 
+import { Gem } from '#components/Gem/Gem';
+import { UnstyledButton } from '#components/UnstyledButton/UnstyledButton';
 import {
   type Card as CardType,
   type GemColors,
   useGameStore,
-} from '../../stores/game.store';
-import { Gem } from '../Gem/Gem';
-import { UnstyledButton } from '../UnstyledButton/UnstyledButton';
+} from '#stores/game.store';
 
 import styles from './Card.module.css';
 

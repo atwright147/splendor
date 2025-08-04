@@ -2,7 +2,7 @@ import classnames from 'classnames';
 import type { FC, JSX } from 'react';
 import { useShallow } from 'zustand/shallow';
 
-import { useNotificationStore } from '../../stores/notifications.store';
+import { useNotificationStore } from '#stores/notifications.store';
 
 import styles from './Notifications.module.css';
 

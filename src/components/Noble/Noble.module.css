@@ -21,3 +21,8 @@
   flex-direction: column;
   gap: 0.25rem;
 }
+
+/* biome-ignore parse: Biome's CSS Module support is lack luster */
+.affordable {
+  composes: affordable from "/src/styles/utils.module.css";
+}

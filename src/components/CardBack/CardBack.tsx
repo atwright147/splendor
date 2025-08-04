@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import type { FC, JSX } from 'react';
 
-import type { CardBackColors } from '../../types/card-back.type';
+import type { CardBackColors } from '#types/card-back.type';
 
 import styles from './CardBack.module.css';
 

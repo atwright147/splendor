@@ -1,4 +1,4 @@
-import type { Tokens } from '../stores/game.store';
+import type { Tokens } from '#stores/game.store';
 
 export const mergeTokens = (tokens1: Tokens, tokens2: Tokens): Tokens => ({
   red: tokens1.red + tokens2.red,
