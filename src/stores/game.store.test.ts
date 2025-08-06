@@ -449,9 +449,195 @@ describe('Game Store', () => {
       result.current.players[0].tokens.blue = 0;
       result.current.players[0].tokens.black = 0;
       result.current.players[0].tokens.white = 0;
-      result.current.players[0].tokens.gold = 1;
+      result.current.players[0].tokens.gold = 1; // gold can be used as a wildcard
 
       expect(result.current.canAffordCard(card)).toBe(true);
+    });
+  });
+
+  describe('canAffordNoble()', () => {
+    it('returns true if the player can afford the noble', () => {
+      const { result } = renderHook(() => useGameStore());
+      const noble: Noble = {
+        id: '1',
+        prestige: 1,
+        cost: { red: 3, green: 3, blue: 3, black: 0, white: 0 },
+      };
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      result.current.players[0].gems.red = 3;
+      result.current.players[0].gems.green = 3;
+      result.current.players[0].gems.blue = 3;
+      result.current.players[0].gems.black = 0;
+      result.current.players[0].gems.white = 0;
+
+      expect(result.current.canAffordNoble(noble)).toBe(true);
+    });
+
+    it('returns false if the player cannot afford the noble', () => {
+      const { result } = renderHook(() => useGameStore());
+      const noble: Noble = {
+        id: '1',
+        prestige: 1,
+        cost: { red: 3, green: 3, blue: 3, black: 0, white: 0 },
+      };
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      result.current.players[0].gems.red = 2;
+      result.current.players[0].gems.green = 2;
+      result.current.players[0].gems.blue = 2;
+      result.current.players[0].gems.black = 0;
+      result.current.players[0].gems.white = 0;
+
+      expect(result.current.canAffordNoble(noble)).toBe(false);
+    });
+  });
+
+  describe('getAffordableNobles()', () => {
+    it('returns an array of Nobles that the player can afford', () => {
+      const { result } = renderHook(() => useGameStore());
+      const noble1: Noble = {
+        id: '1',
+        prestige: 1,
+        cost: { red: 3, green: 3, blue: 3, black: 0, white: 0 },
+      };
+      const noble2: Noble = {
+        id: '2',
+        prestige: 2,
+        cost: { red: 4, green: 4, blue: 0, black: 0, white: 0 },
+      };
+      const noble3: Noble = {
+        id: '3',
+        prestige: 3,
+        cost: { red: 2, green: 2, blue: 2, black: 0, white: 0 },
+      };
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      result.current.board.nobles = [noble1, noble2, noble3];
+
+      result.current.players[0].gems.red = 3;
+      result.current.players[0].gems.green = 3;
+      result.current.players[0].gems.blue = 3;
+      result.current.players[0].gems.black = 0;
+      result.current.players[0].gems.white = 0;
+
+      expect(result.current.getAffordableNobles()).toEqual([noble1, noble3]);
+    });
+
+    it('returns an empty array if the player cannot afford any nobles', () => {
+      const { result } = renderHook(() => useGameStore());
+      const noble1: Noble = {
+        id: '1',
+        prestige: 1,
+        cost: { red: 3, green: 3, blue: 3, black: 0, white: 0 },
+      };
+      const noble2: Noble = {
+        id: '2',
+        prestige: 2,
+        cost: { red: 4, green: 4, blue: 0, black: 0, white: 0 },
+      };
+      const noble3: Noble = {
+        id: '3',
+        prestige: 3,
+        cost: { red: 3, green: 3, blue: 3, black: 0, white: 0 },
+      };
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      result.current.board.nobles = [noble1, noble2, noble3];
+
+      result.current.players[0].gems.red = 2;
+      result.current.players[0].gems.green = 2;
+      result.current.players[0].gems.blue = 2;
+      result.current.players[0].gems.black = 2;
+      result.current.players[0].gems.white = 2;
+
+      expect(result.current.getAffordableNobles()).toEqual([]);
+    });
+  });
+
+  describe('hasAffordableNobles()', () => {
+    it('returns true if the player can afford any Nobles', () => {
+      const { result } = renderHook(() => useGameStore());
+      const noble1: Noble = {
+        id: '1',
+        prestige: 1,
+        cost: { red: 3, green: 3, blue: 3, black: 0, white: 0 },
+      };
+      const noble2: Noble = {
+        id: '2',
+        prestige: 2,
+        cost: { red: 4, green: 4, blue: 0, black: 0, white: 0 },
+      };
+      const noble3: Noble = {
+        id: '3',
+        prestige: 3,
+        cost: { red: 2, green: 2, blue: 2, black: 0, white: 0 },
+      };
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      result.current.board.nobles = [noble1, noble2, noble3];
+
+      result.current.players[0].gems.red = 3;
+      result.current.players[0].gems.green = 3;
+      result.current.players[0].gems.blue = 3;
+      result.current.players[0].gems.black = 0;
+      result.current.players[0].gems.white = 0;
+
+      expect(result.current.hasAffordableNobles()).toBe(true);
+    });
+
+    it('returns false if the player cannot afford any Nobles', () => {
+      const { result } = renderHook(() => useGameStore());
+      const noble1: Noble = {
+        id: '1',
+        prestige: 1,
+        cost: { red: 3, green: 3, blue: 3, black: 0, white: 0 },
+      };
+      const noble2: Noble = {
+        id: '2',
+        prestige: 2,
+        cost: { red: 4, green: 4, blue: 0, black: 0, white: 0 },
+      };
+      const noble3: Noble = {
+        id: '3',
+        prestige: 3,
+        cost: { red: 3, green: 3, blue: 3, black: 0, white: 0 },
+      };
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      result.current.board.nobles = [noble1, noble2, noble3];
+
+      result.current.players[0].gems.red = 2;
+      result.current.players[0].gems.green = 2;
+      result.current.players[0].gems.blue = 2;
+      result.current.players[0].gems.black = 2;
+      result.current.players[0].gems.white = 2;
+
+      expect(result.current.hasAffordableNobles()).toBe(false);
     });
   });
 

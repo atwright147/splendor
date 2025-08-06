@@ -100,6 +100,8 @@ interface GameState {
   returnToken: (tokenColor: TokenColors) => void; // Fix parameter type
   canAffordCard: (card: Card) => boolean;
   canAffordNoble: (noble: Noble) => boolean;
+  getAffordableNobles: () => Noble[];
+  hasAffordableNobles: () => boolean;
   removePlayerTokensByCardCost: (cardCost: Gems) => Tokens; // Fix parameter type
   commitCard: () => void;
   pickCard: (card: Card) => void;
@@ -121,11 +123,11 @@ const defaultTokens: Tokens = {
 };
 
 const defaultGems: Gems = {
-  red: 4,
-  green: 4,
-  blue: 4,
-  white: 4,
-  black: 4,
+  red: 0,
+  green: 0,
+  blue: 0,
+  white: 0,
+  black: 0,
 };
 
 const defaultPlayerState: PlayerState = {
@@ -475,6 +477,14 @@ export const useGameStore = create<GameState>()(
           const gemColor = color as keyof Gems;
           return player.gems[gemColor] >= qty;
         });
+      },
+      getAffordableNobles: () => {
+        const { canAffordNoble, board } = get();
+
+        return board.nobles.filter((noble) => canAffordNoble(noble));
+      },
+      hasAffordableNobles: () => {
+        return get().getAffordableNobles().length > 0;
       },
       removePlayerTokensByCardCost: (cardCost) => {
         const player = get().players[get().currentPlayerIndex];
