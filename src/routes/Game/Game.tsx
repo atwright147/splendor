@@ -16,6 +16,8 @@ import styles from './Game.module.css';
 export const Game: FC = (): JSX.Element => {
   const {
     board,
+    canEndTurn,
+    endTurn,
     createPlayers,
     deal,
     init,
@@ -23,6 +25,7 @@ export const Game: FC = (): JSX.Element => {
     players,
     reserveCard,
     reserveToken,
+    hasAffordableNobles,
   } = useGameStore(
     useShallow((state) => ({
       board: state.board,
@@ -33,6 +36,9 @@ export const Game: FC = (): JSX.Element => {
       players: state.players,
       reserveCard: state.pickCard,
       reserveToken: state.pickToken,
+      canEndTurn: state.canEndTurn,
+      endTurn: state.endTurn,
+      hasAffordableNobles: state.hasAffordableNobles,
     })),
   );
 
@@ -49,6 +55,16 @@ export const Game: FC = (): JSX.Element => {
 
   const handleTokenClick = (color: TokenColorValues): void => {
     reserveToken(color);
+  };
+
+  const handleEndTurn = (): void => {
+    if (hasAffordableNobles()) {
+      console.info('hasAffordableNobles()');
+    }
+
+    if (canEndTurn()) {
+      endTurn();
+    }
   };
 
   return (
@@ -133,6 +149,15 @@ export const Game: FC = (): JSX.Element => {
 
       <div className={styles.currentPlayerHud}>
         <Reserved />
+
+        <button
+          className={styles.endTurnButton}
+          type="button"
+          onClick={handleEndTurn}
+          disabled={!canEndTurn()}
+        >
+          End Turn?
+        </button>
       </div>
     </div>
   );

@@ -123,11 +123,11 @@ const defaultTokens: Tokens = {
 };
 
 const defaultGems: Gems = {
-  red: 0,
-  green: 0,
-  blue: 0,
-  white: 0,
-  black: 0,
+  red: 5,
+  green: 5,
+  blue: 5,
+  white: 5,
+  black: 5,
 };
 
 const defaultPlayerState: PlayerState = {

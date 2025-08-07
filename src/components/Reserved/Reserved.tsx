@@ -8,23 +8,15 @@ import { type TokenColors, useGameStore } from '#stores/game.store';
 import styles from './Reserved.module.css';
 
 export const Reserved: FC = (): JSX.Element | null => {
-  const {
-    canEndTurn,
-    endTurn,
-    getCurrentPlayer,
-    pickedCard,
-    pickedTokens,
-    returnToken,
-  } = useGameStore(
-    useShallow((state) => ({
-      canEndTurn: state.canEndTurn,
-      endTurn: state.endTurn,
-      getCurrentPlayer: state.getCurrentPlayer,
-      pickedCard: state.pickedCard,
-      pickedTokens: state.pickedTokens,
-      returnToken: state.returnToken,
-    })),
-  );
+  const { getCurrentPlayer, pickedCard, pickedTokens, returnToken } =
+    useGameStore(
+      useShallow((state) => ({
+        getCurrentPlayer: state.getCurrentPlayer,
+        pickedCard: state.pickedCard,
+        pickedTokens: state.pickedTokens,
+        returnToken: state.returnToken,
+      })),
+    );
 
   const currentPlayer = getCurrentPlayer();
 
@@ -66,15 +58,6 @@ export const Reserved: FC = (): JSX.Element | null => {
           <Card key={card.id} card={card} width={100} />
         ))}
       </div>
-
-      <button
-        className={styles.endTurnButton}
-        type="button"
-        onClick={endTurn}
-        disabled={!canEndTurn()}
-      >
-        End Turn?
-      </button>
     </div>
   );
 };
