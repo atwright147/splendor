@@ -123,11 +123,11 @@ const defaultTokens: Tokens = {
 };
 
 const defaultGems: Gems = {
-  red: 5,
-  green: 5,
-  blue: 5,
-  white: 5,
-  black: 5,
+  red: 0,
+  green: 0,
+  blue: 0,
+  white: 0,
+  black: 0,
 };
 
 const defaultPlayerState: PlayerState = {
@@ -470,12 +470,15 @@ export const useGameStore = create<GameState>()(
         return (player.tokens.gold || 0) >= shortfall;
       },
       canAffordNoble: (noble) => {
-        const player = get().getCurrentPlayer();
+        const { getCurrentPlayer, pickedCard } = get();
+        const player = getCurrentPlayer();
+
+        const gems = addGem(player.gems, pickedCard?.card.gem);
 
         // Nobles can only be purchased with a player's gems (not tokens or gold)
         return Object.entries(noble.cost).every(([color, qty]) => {
           const gemColor = color as keyof Gems;
-          return player.gems[gemColor] >= qty;
+          return gems[gemColor] >= qty;
         });
       },
       getAffordableNobles: () => {

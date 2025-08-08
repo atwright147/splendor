@@ -10,9 +10,17 @@ import styles from './Noble.module.css';
 
 interface Props {
   noble: NobleType;
+  className?: string;
+  showHighlight?: boolean;
+  onClick?: (noble: NobleType) => void;
 }
 
-export const Noble: FC<Props> = ({ noble }): JSX.Element => {
+export const Noble: FC<Props> = ({
+  noble,
+  className,
+  showHighlight,
+  onClick,
+}): JSX.Element => {
   const { canAffordNoble } = useGameStore(
     useShallow((state) => ({
       canAffordNoble: state.canAffordNoble,
@@ -23,10 +31,15 @@ export const Noble: FC<Props> = ({ noble }): JSX.Element => {
 
   return (
     <UnstyledButton
-      className={classnames(styles.container, {
-        [styles.affordable]: isAffordable,
+      className={classnames(styles.container, className, {
+        [styles.affordable]: showHighlight && isAffordable,
       })}
       disabled={!isAffordable}
+      onClick={() => {
+        if (onClick) {
+          onClick(noble);
+        }
+      }}
     >
       <div className={styles.top}>
         <p className={styles.prestige}>{noble.prestige}</p>

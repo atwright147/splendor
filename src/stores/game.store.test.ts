@@ -456,22 +456,30 @@ describe('Game Store', () => {
   });
 
   describe('canAffordNoble()', () => {
-    it('returns true if the player can afford the noble', () => {
+    it('returns true if the player can afford the noble via held Gems and picked card', () => {
       const { result } = renderHook(() => useGameStore());
       const noble: Noble = {
         id: '1',
         prestige: 1,
         cost: { red: 3, green: 3, blue: 3, black: 0, white: 0 },
       };
+      const card: Card = {
+        id: 'mockUuid-1',
+        cost: { red: 1, green: 2, blue: 0, black: 0, white: 0 },
+        prestige: 1,
+        gem: 'blue', // add blue so that the player can afford the card
+        level: 1,
+      };
 
       act(() => result.current.createPlayers(2));
       act(() => result.current.init());
       act(() => result.current.deal());
       act(() => result.current.setCurrentPlayerIndex(0));
+      act(() => result.current.pickCard(card));
 
       result.current.players[0].gems.red = 3;
       result.current.players[0].gems.green = 3;
-      result.current.players[0].gems.blue = 3;
+      result.current.players[0].gems.blue = 2; // not enough gems without picked card
       result.current.players[0].gems.black = 0;
       result.current.players[0].gems.white = 0;
 
