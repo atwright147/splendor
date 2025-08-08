@@ -43,12 +43,12 @@ export const Game: FC = (): JSX.Element => {
     })),
   );
 
-  useEffect(() => {
-    createPlayers(2);
-    init();
-    deal();
-    setBoardSnapshot();
-  }, [createPlayers, deal, init, setBoardSnapshot]);
+  // useEffect(() => {
+  //   createPlayers(2);
+  //   init();
+  //   deal();
+  //   setBoardSnapshot();
+  // }, [createPlayers, deal, init, setBoardSnapshot]);
 
   const [openNobleSelectDialog, setOpenNobleSelectDialog] = useState(false);
 

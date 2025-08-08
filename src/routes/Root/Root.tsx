@@ -1,11 +1,10 @@
 import type { JSX } from 'react';
-import { Outlet } from 'react-router-dom';
 
 import { Header } from '#components/Header/Header';
 
 import './Root.css';
 
-export const Root = (): JSX.Element => (
+export const Root = ({ children }): JSX.Element => (
   <>
     <div className="app grid">
       <div className="header">
@@ -17,9 +16,7 @@ export const Root = (): JSX.Element => (
       {/* <div className="aside">
         <Nav />
       </div> */}
-      <div className="main">
-        <Outlet />
-      </div>
+      <div className="main">{children}</div>
       <div className="footer">Footer</div>
     </div>
   </>
