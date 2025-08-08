@@ -4,13 +4,6 @@
 @import "@radix-ui/colors/violet.css";
 @import "@radix-ui/colors/gray.css";
 
-/* reset */
-button,
-fieldset,
-input {
-  all: unset;
-}
-
 .noblesList {
   display: flex;
   gap: 1rem;
