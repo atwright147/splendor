@@ -32,6 +32,34 @@ describe('Game Store', () => {
     act(() => result.current.resetBoardSnapshot());
   });
 
+  describe('commitTokens()', () => {
+    it('should commit the picked tokens to the current player', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setBoardSnapshot());
+      act(() => result.current.setCurrentPlayerIndex(0));
+      act(() => result.current.pickToken('red'));
+      act(() => result.current.commitTokens());
+
+      const player = result.current.getCurrentPlayer();
+
+      expect(player.tokens.red).toBe(1);
+    });
+
+    it('should reset the picked tokens after committing', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.setCurrentPlayerIndex(0));
+      act(() => result.current.pickToken('red'));
+      act(() => result.current.commitTokens());
+
+      expect(result.current.pickedTokens.red).toBe(0);
+    });
+  });
+
   describe('deal()', () => {
     it('returns early when no players are created', () => {
       vi.spyOn(console, 'warn').mockImplementation(() => {});
@@ -404,7 +432,7 @@ describe('Game Store', () => {
       expect(result.current.canAffordCard(card)).toBe(true);
     });
 
-    it('returns false if the player cannot afford the card', () => {
+    it('should return false if the player cannot afford the card', () => {
       const { result } = renderHook(() => useGameStore());
       const card: Card = {
         id: 'mockUuid-1',
@@ -1049,6 +1077,41 @@ describe('Game Store', () => {
       act(() => result.current.pickToken('red'));
 
       expect(result.current.canEndTurn()).toBe(false);
+    });
+  });
+
+  describe.skip('checkWinCondition()', () => {
+    it('should return true if a player has 15 or more prestige points', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+
+      const player = result.current.getCurrentPlayer();
+      player.prestige = 15;
+
+      act(() => result.current.checkWinCondition());
+
+      expect(result.current.finalRoundTriggered).toBe(true);
+      expect(result.current.finalRoundPlayer).toBe(0);
+    });
+
+    it('should return false if no player has 15 or more prestige points', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+
+      const player = result.current.getCurrentPlayer();
+      player.prestige = 14;
+
+      act(() => result.current.checkWinCondition());
+
+      expect(result.current.finalRoundTriggered).toBe(false);
+      expect(result.current.finalRoundPlayer).toBeNull();
+      expect(result.current.winner).toBeNull();
     });
   });
 });

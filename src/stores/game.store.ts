@@ -86,6 +86,11 @@ interface GameState {
   deck: Card[];
   players: PlayerState[];
   currentPlayerIndex: number;
+  isGameOver: boolean;
+  winner: PlayerState | null;
+  finalRoundTriggered: boolean;
+  finalRoundPlayer: number | null;
+
   setBoardSnapshot: () => void;
   resetBoardSnapshot: () => void;
   commitTokens: () => void;
@@ -93,6 +98,7 @@ interface GameState {
   deal: () => void;
   setCurrentPlayerIndex: (index: number) => void;
   getCurrentPlayer: () => PlayerState;
+  getNextPlayerIndex: () => number | undefined;
   getPlayerById: (uuid: string) => PlayerState | undefined;
   getPlayerByIndex: (index: number) => PlayerState | undefined;
   createPlayers: (quantity: number) => void;
@@ -108,6 +114,7 @@ interface GameState {
   claimNoble: (noble: Noble) => void;
   nextPlayer: () => void;
   canEndTurn: () => boolean;
+  checkWinCondition: () => void;
   endTurn: () => void;
 }
 
@@ -165,6 +172,10 @@ export const useGameStore = create<GameState>()(
       deck: [],
       players: [],
       currentPlayerIndex: 0,
+      isGameOver: false,
+      winner: null,
+      finalRoundTriggered: false,
+      finalRoundPlayer: null,
 
       setBoardSnapshot: () => set({ boardSnapshot: { ...get().board } }),
       resetBoardSnapshot: () =>
@@ -287,6 +298,13 @@ export const useGameStore = create<GameState>()(
       getCurrentPlayer: () => {
         const { players, currentPlayerIndex } = get();
         return players[currentPlayerIndex];
+      },
+      getNextPlayerIndex: () => {
+        const { players, currentPlayerIndex } = get();
+        if (players.length === 0) {
+          return undefined;
+        }
+        return (currentPlayerIndex + 1) % players.length;
       },
       getPlayerById: (uuid: string) => {
         const { players } = get();
@@ -710,11 +728,79 @@ export const useGameStore = create<GameState>()(
 
         return false;
       },
+      checkWinCondition: () => {
+        const currentPlayer = get().getCurrentPlayer();
+        const getNextPlayerIndex = get().getNextPlayerIndex();
+        const currentPlayerIndex = get().currentPlayerIndex;
+
+        // Check if this player has reached 15 points
+        if (currentPlayer.prestige >= 15 && !get().finalRoundTriggered) {
+          set({
+            finalRoundTriggered: true,
+            finalRoundPlayer: currentPlayerIndex,
+          });
+
+          notify(
+            `${`Player ${currentPlayerIndex + 1}`} has reached 15 points! Final round started.`,
+            'info',
+          );
+
+          return;
+        }
+
+        // Check if the round has come back to the player who triggered final round
+        if (
+          get().finalRoundTriggered &&
+          get().finalRoundPlayer !== null &&
+          getNextPlayerIndex === get().finalRoundPlayer
+        ) {
+          // Find the player with the highest prestige
+          let maxPrestige = 0;
+          let winnerIndex = 0;
+          let tie = false;
+
+          get().players.forEach((player, index) => {
+            if (player.prestige > maxPrestige) {
+              maxPrestige = player.prestige;
+              winnerIndex = index;
+              tie = false;
+            } else if (player.prestige === maxPrestige && maxPrestige > 0) {
+              // In case of a tie, the player with fewer cards wins
+              const currentWinner = get().players[winnerIndex];
+              if (player.cards.length < currentWinner.cards.length) {
+                winnerIndex = index;
+                tie = false;
+              } else if (player.cards.length === currentWinner.cards.length) {
+                tie = true;
+              }
+            }
+          });
+
+          set({
+            isGameOver: true,
+            winner: tie ? null : get().players[winnerIndex],
+          });
+
+          if (tie) {
+            notify("Game Over! It's a tie!", 'success');
+          } else {
+            const winner = get().players[winnerIndex];
+            notify(
+              `Game Over! ${`Player ${winnerIndex + 1}`} wins with ${winner.prestige} prestige points!`,
+              'success',
+            );
+          }
+        }
+      },
       endTurn: () => {
         get().commitCard();
         get().commitTokens();
         get().setBoardSnapshot();
-        get().nextPlayer();
+        get().checkWinCondition();
+
+        if (!get().isGameOver) {
+          get().nextPlayer();
+        }
       },
     }),
   ),
