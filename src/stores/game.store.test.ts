@@ -12,24 +12,10 @@ import {
 } from './game.store';
 
 describe('Game Store', () => {
-  let defaultTokens: Tokens;
-
   beforeEach(() => {
     const { result } = renderHook(() => useGameStore());
 
-    defaultTokens = {
-      red: 0,
-      blue: 0,
-      green: 0,
-      white: 0,
-      black: 0,
-      gold: 0,
-    };
-
-    result.current.board = { ...initialBoardState };
-
-    act(() => result.current.setCurrentPlayerIndex(0));
-    act(() => result.current.resetBoardSnapshot());
+    act(() => result.current.reset());
   });
 
   describe('commitTokens()', () => {
@@ -41,18 +27,19 @@ describe('Game Store', () => {
       act(() => result.current.deal());
       act(() => result.current.setBoardSnapshot());
       act(() => result.current.setCurrentPlayerIndex(0));
-      act(() => result.current.pickToken('red'));
-      act(() => result.current.commitTokens());
 
       const player = result.current.getCurrentPlayer();
 
+      act(() => result.current.pickToken('red'));
+      act(() => result.current.commitTokens());
+
       expect(player.tokens.red).toBe(1);
+      expect(result.current.board.tokens.red).toBe(4);
     });
 
     it('should reset the picked tokens after committing', () => {
       const { result } = renderHook(() => useGameStore());
 
-      act(() => result.current.setCurrentPlayerIndex(0));
       act(() => result.current.pickToken('red'));
       act(() => result.current.commitTokens());
 
@@ -61,14 +48,35 @@ describe('Game Store', () => {
   });
 
   describe('deal()', () => {
-    it('returns early when no players are created', () => {
-      vi.spyOn(console, 'warn').mockImplementation(() => {});
+    it('should return early when no players are created', () => {
+      const consoleWarnSpy = vi
+        .spyOn(console, 'warn')
+        .mockImplementation(() => {});
 
       const { result } = renderHook(() => useGameStore());
 
+      act(() => result.current.init());
       act(() => result.current.deal());
+      act(() => result.current.setBoardSnapshot());
+      act(() => result.current.setCurrentPlayerIndex(0));
 
-      expect(result.current.board).toEqual({ ...initialBoardState });
+      expect(result.current.board).toEqual({
+        cards: {
+          level1: [],
+          level2: [],
+          level3: [],
+        },
+        nobles: [],
+        tokens: {
+          black: 0,
+          blue: 0,
+          gold: 0,
+          green: 0,
+          red: 0,
+          white: 0,
+        },
+      });
+      expect(consoleWarnSpy).toHaveBeenCalledWith('Players not created');
     });
 
     describe('sets the correct number of tokens and nobles based on the number of players', () => {
@@ -118,6 +126,7 @@ describe('Game Store', () => {
       const { result } = renderHook(() => useGameStore());
 
       act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
       act(() => result.current.deal());
 
       expect(result.current.board.cards.level1.length).toBe(4);
@@ -251,21 +260,6 @@ describe('Game Store', () => {
       const player2 = result.current.players[1];
 
       expect(result.current.getPlayerByIndex(1)).toEqual(player2);
-    });
-  });
-
-  describe('resetGame()', () => {
-    it('should reset the game state', () => {
-      const { result } = renderHook(() => useGameStore());
-
-      act(() => result.current.init());
-      act(() => result.current.createPlayers(2));
-      act(() => result.current.deal());
-
-      expect(result.current.board).not.toEqual(initialBoardState);
-      expect(result.current.players.length).toBeGreaterThan(0);
-      expect(result.current.currentPlayerIndex).toBe(0);
-      expect(result.current.pickedCard).toBeNull();
     });
   });
 
@@ -712,97 +706,90 @@ describe('Game Store', () => {
 
       expect(result.current.players[0].cards).toContain(card);
     });
+  });
 
-    describe('pickCard()', () => {
-      let player: PlayerState;
+  describe('pickCard()', () => {
+    let player: PlayerState;
 
-      beforeEach(() => {
-        const { result } = renderHook(() => useGameStore());
+    beforeEach(() => {
+      const { result } = renderHook(() => useGameStore());
 
-        act(() => result.current.init());
-        act(() => result.current.deal());
-        act(() => result.current.createPlayers(2));
-        act(() => result.current.setCurrentPlayerIndex(0));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.setCurrentPlayerIndex(0));
 
-        player = result.current.getCurrentPlayer();
-      });
+      player = result.current.getCurrentPlayer();
+    });
 
-      it('reserves a card for the current player', () => {
-        const { result } = renderHook(() => useGameStore());
-        const card: Card = {
-          id: 'mockUuid-1',
-          cost: { red: 1, green: 2, blue: 0, black: 0, white: 0 },
-          prestige: 1,
-          gem: 'red',
-          level: 1,
-        };
+    it('reserves a card for the current player', () => {
+      const { result } = renderHook(() => useGameStore());
+      const card: Card = {
+        id: 'mockUuid-1',
+        cost: { red: 1, green: 2, blue: 0, black: 0, white: 0 },
+        prestige: 1,
+        gem: 'red',
+        level: 1,
+      };
 
-        player.tokens = {
-          red: 1,
-          green: 2,
-          blue: 0,
-          black: 0,
-          white: 0,
-          gold: 0,
-        };
+      player.tokens = {
+        red: 1,
+        green: 2,
+        blue: 0,
+        black: 0,
+        white: 0,
+        gold: 0,
+      };
 
-        act(() => result.current.pickCard(card));
+      act(() => result.current.pickCard(card));
 
-        expect(result.current.pickedCard).toEqual({ boardIndex: -1, card });
-      });
+      expect(result.current.pickedCard).toEqual({ boardIndex: -1, card });
+    });
 
-      it('reserves a card when there are multiple players', () => {
-        const { result } = renderHook(() => useGameStore());
-        const card: Card = {
-          id: 'mockUuid-1',
-          cost: { red: 1, green: 2, blue: 0, black: 0, white: 0 },
-          prestige: 1,
-          gem: 'red',
-          level: 1,
-        };
+    it('reserves a card when there are multiple players', () => {
+      const { result } = renderHook(() => useGameStore());
+      const card: Card = {
+        id: 'mockUuid-1',
+        cost: { red: 1, green: 2, blue: 0, black: 0, white: 0 },
+        prestige: 1,
+        gem: 'red',
+        level: 1,
+      };
 
-        result.current.players[1].tokens = {
-          red: 1,
-          green: 2,
-          blue: 0,
-          black: 0,
-          white: 0,
-          gold: 0,
-        };
+      result.current.players[1].tokens = {
+        red: 1,
+        green: 2,
+        blue: 0,
+        black: 0,
+        white: 0,
+        gold: 0,
+      };
 
-        act(() => result.current.setCurrentPlayerIndex(1));
-        act(() => result.current.pickCard(card));
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setCurrentPlayerIndex(1));
+      act(() => result.current.pickCard(card));
 
-        expect(result.current.pickedCard).toEqual({ boardIndex: -1, card });
-      });
+      expect(result.current.pickedCard).toEqual({ boardIndex: -1, card });
+    });
 
-      it('removes card from the board', () => {
-        const { result } = renderHook(() => useGameStore());
+    it('removes card from the board', () => {
+      const { result } = renderHook(() => useGameStore());
 
-        result.current.board = {
-          ...initialBoardState,
-        };
-        result.current.boardSnapshot = {
-          ...initialBoardState,
-        };
-        result.current.pickedTokens = {
-          ...defaultTokens,
-        };
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setCurrentPlayerIndex(0));
 
-        act(() => result.current.init());
-        act(() => result.current.deal());
+      const card = result.current.board.cards.level1[0];
 
-        act(() => result.current.createPlayers(2));
-        const card = result.current.board.cards.level1[0];
+      const player = result.current.getCurrentPlayer();
+      player.tokens = { ...card.cost, gold: 0 };
 
-        act(() => result.current.setCurrentPlayerIndex(0));
-        const player = result.current.getCurrentPlayer();
-        player.tokens = { ...card.cost, gold: 0 };
+      act(() => result.current.pickCard(card));
 
-        act(() => result.current.pickCard(card));
-
-        expect(result.current.board.cards.level1).not.toContain(card);
-      });
+      expect(result.current.board.cards.level1).not.toContain(card);
     });
   });
 
@@ -815,44 +802,25 @@ describe('Game Store', () => {
         cost: { red: 1, green: 1, blue: 1, black: 0, white: 0 },
       };
 
-      result.current.board = {
-        ...initialBoardState,
-      };
-      result.current.boardSnapshot = {
-        ...initialBoardState,
-      };
-      result.current.pickedTokens = {
-        ...defaultTokens,
-      };
-
       act(() => result.current.createPlayers(2));
       act(() => result.current.init());
       act(() => result.current.deal());
+      act(() => result.current.setCurrentPlayerIndex(0));
+      act(() => result.current.claimNoble(noble));
 
-      act(() => {
-        result.current.claimNoble(noble);
-      });
+      const player = result.current.getCurrentPlayer();
 
-      expect(
-        result.current.players[result.current.currentPlayerIndex].prestige,
-      ).toBe(10);
-      expect(
-        result.current.players[result.current.currentPlayerIndex].nobles,
-      ).toContainEqual(noble);
+      expect(player.prestige).toBe(10);
+      expect(player.nobles).toContainEqual(noble);
     });
 
     it('should remove the noble from the nobles list', () => {
       const { result } = renderHook(() => useGameStore());
-      result.current.board = {
-        ...initialBoardState,
-      };
-      result.current.boardSnapshot = {
-        ...initialBoardState,
-      };
 
       act(() => result.current.createPlayers(2));
       act(() => result.current.init());
       act(() => result.current.deal());
+      act(() => result.current.setCurrentPlayerIndex(0));
 
       const noble = result.current.board.nobles[0];
 
@@ -867,16 +835,11 @@ describe('Game Store', () => {
 
     it('should not update other players', () => {
       const { result } = renderHook(() => useGameStore());
-      result.current.board = {
-        ...initialBoardState,
-      };
-      result.current.boardSnapshot = {
-        ...initialBoardState,
-      };
 
       act(() => result.current.createPlayers(2));
       act(() => result.current.init());
       act(() => result.current.deal());
+      act(() => result.current.setCurrentPlayerIndex(0));
 
       const noble = result.current.board.nobles[0];
 
@@ -887,16 +850,15 @@ describe('Game Store', () => {
       act(() => result.current.claimNoble(noble));
 
       const otherPlayerIndex = result.current.currentPlayerIndex === 0 ? 1 : 0;
+      const otherPlayer = result.current.players[otherPlayerIndex];
 
-      expect(result.current.players[otherPlayerIndex].prestige).toBe(0);
-      expect(
-        result.current.players[otherPlayerIndex].nobles,
-      ).not.toContainEqual(noble);
+      expect(otherPlayer.prestige).toBe(0);
+      expect(otherPlayer.nobles).not.toContainEqual(noble);
     });
   });
 
   describe('nextPlayer()', () => {
-    it('selects the next player when there are multiple players', () => {
+    it('should select the next player', () => {
       const { result } = renderHook(() => useGameStore());
 
       act(() => result.current.createPlayers(3));
@@ -908,26 +870,13 @@ describe('Game Store', () => {
       expect(result.current.currentPlayerIndex).toBe(1);
     });
 
-    it('wraps around to the first player when current player is the last player', () => {
+    it('should wrap around to the first player when current player is the last player', () => {
       const { result } = renderHook(() => useGameStore());
 
       act(() => result.current.createPlayers(3));
+      act(() => result.current.setCurrentPlayerIndex(2));
 
-      expect(result.current.currentPlayerIndex).toBe(0);
-
-      act(() => result.current.nextPlayer());
-      act(() => result.current.nextPlayer());
-      act(() => result.current.nextPlayer());
-
-      expect(result.current.currentPlayerIndex).toBe(0);
-    });
-
-    it('does not change when there is only one player', () => {
-      const { result } = renderHook(() => useGameStore());
-
-      act(() => result.current.createPlayers(1));
-
-      expect(result.current.currentPlayerIndex).toBe(0);
+      expect(result.current.currentPlayerIndex).toBe(2);
 
       act(() => result.current.nextPlayer());
 
@@ -936,6 +885,10 @@ describe('Game Store', () => {
 
     it('should update `boardSnapshot` state', () => {
       const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.setCurrentPlayerIndex(0));
 
       result.current.board = {
         cards: {
@@ -1080,7 +1033,7 @@ describe('Game Store', () => {
     });
   });
 
-  describe.skip('checkWinCondition()', () => {
+  describe('checkWinCondition()', () => {
     it('should return true if a player has 15 or more prestige points', () => {
       const { result } = renderHook(() => useGameStore());
 

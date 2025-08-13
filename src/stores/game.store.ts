@@ -94,6 +94,7 @@ interface GameState {
   setBoardSnapshot: () => void;
   resetBoardSnapshot: () => void;
   commitTokens: () => void;
+  reset: () => void;
   init: () => void;
   deal: () => void;
   setCurrentPlayerIndex: (index: number) => void;
@@ -189,19 +190,33 @@ export const useGameStore = create<GameState>()(
                   tokens: mergeTokens(player.tokens, {
                     ...state.pickedTokens,
                     gold: 0,
-                  }), // Ensure gold is 0
+                  }),
                 }
               : player,
           ),
-          pickedTokens: { red: 0, green: 0, blue: 0, white: 0, black: 0 }, // Remove gold
+          pickedTokens: { red: 0, green: 0, blue: 0, white: 0, black: 0 },
         }));
+      },
+      reset: () => {
+        set({
+          board: { ...initialBoardState },
+          pickedCard: null,
+          pickedTokens: { red: 0, green: 0, blue: 0, white: 0, black: 0 },
+          deck: [],
+          players: [],
+          currentPlayerIndex: 0,
+          isGameOver: false,
+          winner: null,
+          finalRoundTriggered: false,
+          finalRoundPlayer: null,
+        });
       },
       init: () => {
         const deckAllCopy = [...deckAll] as Card[];
         get().deck = deckAllCopy;
       },
       deal: () => {
-        if (get().players.length === 0) {
+        if (get().players.length <= 1) {
           console.warn('Players not created');
           return;
         }
