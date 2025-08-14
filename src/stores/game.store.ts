@@ -673,6 +673,8 @@ export const useGameStore = create<GameState>()(
         }));
       },
       pickCard: (card) => {
+        if (get().pickedCard) return;
+
         set((state) => ({
           board: {
             ...state.board,

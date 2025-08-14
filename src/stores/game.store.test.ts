@@ -773,6 +773,44 @@ describe('Game Store', () => {
 
       expect(result.current.board.cards.level1).not.toContain(card);
     });
+
+    it('should not allow picking a card if one is already picked', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      const card1: Card = {
+        id: 'mockUuid-1',
+        cost: { red: 1, green: 2, blue: 0, black: 0, white: 0 },
+        prestige: 1,
+        gem: 'red',
+        level: 1,
+      };
+      const card2: Card = {
+        id: 'mockUuid-2',
+        cost: { red: 1, green: 1, blue: 1, black: 0, white: 0 },
+        prestige: 1,
+        gem: 'green',
+        level: 1,
+      };
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      act(() => result.current.pickCard(card1));
+
+      expect(result.current.pickedCard).toEqual({
+        boardIndex: -1,
+        card: card1,
+      });
+
+      act(() => result.current.pickCard(card2));
+
+      expect(result.current.pickedCard).toEqual({
+        boardIndex: -1,
+        card: card1,
+      });
+    });
   });
 
   describe('claimNoble()', () => {
