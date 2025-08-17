@@ -82,7 +82,7 @@ interface GameState {
   board: BoardState;
   boardSnapshot: BoardState;
   pickedCard: PickedCard | null;
-  pickedTokens: Gems; // Remove gold from picked tokens since it can't be picked directly
+  pickedTokens: Gems;
   deck: Card[];
   players: PlayerState[];
   currentPlayerIndex: number;
@@ -103,14 +103,14 @@ interface GameState {
   getPlayerById: (uuid: string) => PlayerState | undefined;
   getPlayerByIndex: (index: number) => PlayerState | undefined;
   createPlayers: (quantity: number) => void;
-  pickToken: (tokenColor: TokenColors) => void; // Fix parameter type
-  returnToken: (tokenColor: TokenColors) => void; // Fix parameter type
+  pickToken: (tokenColor: TokenColors) => void;
+  returnToken: (tokenColor: TokenColors) => void;
   canAffordCard: (card: Card) => boolean;
   canAffordNoble: (noble: Noble) => boolean;
   getAffordableNobles: () => Noble[];
   hasAffordableNobles: () => boolean;
-  removePlayerTokensByCardCost: (cardCost: Gems) => Tokens; // Fix parameter type
-  commitCard: () => void;
+  removePlayerTokensByCardCost: (cardCost: Gems) => Tokens;
+  commitCard: (reservedCardIndex?: number) => void;
   pickCard: (card: Card) => void;
   claimNoble: (noble: Noble) => void;
   nextPlayer: () => void;
@@ -548,59 +548,116 @@ export const useGameStore = create<GameState>()(
 
         return newTokens;
       },
-      commitCard: () => {
+      commitCard: (reservedCardIndex?: number) => {
         const { pickedCard } = get();
+        const currentPlayer = get().getCurrentPlayer();
+        let cardToCommit: Card | null = null;
+        let fromReserved = false;
 
-        if (!pickedCard) {
-          console.info('No card picked to commit');
+        // Determine the source of the card (picked from board or from reserved cards)
+        if (
+          reservedCardIndex !== undefined &&
+          currentPlayer.reservedCards[reservedCardIndex]
+        ) {
+          // Commit a card from player's reserved cards
+          cardToCommit = currentPlayer.reservedCards[reservedCardIndex];
+          fromReserved = true;
+        } else if (pickedCard) {
+          // Commit a card picked from the board
+          cardToCommit = pickedCard.card;
+        } else {
+          console.info('No card selected to commit');
           return;
         }
 
         // Check if the player can afford the card
-        if (!get().canAffordCard(pickedCard.card)) {
-          // Add the card to reservedCards
-          set((state) => ({
-            players: state.players.map((player, i) =>
-              i === get().currentPlayerIndex
-                ? {
-                    ...player,
-                    reservedCards: [...player.reservedCards, pickedCard.card],
-                    tokens: {
-                      ...player.tokens,
-                      gold: player.tokens.gold + 1, // Add a gold token
-                    },
-                  }
-                : player,
-            ),
-            board: {
-              ...state.board,
-              cards: {
-                ...state.board.cards,
-                [`level${pickedCard.card.level}` as keyof typeof state.board.cards]:
-                  state.board.cards[
-                    `level${pickedCard.card.level}` as keyof typeof state.board.cards
-                  ].filter((c) => c.id !== pickedCard.card.id), // Remove the card from the board
+        if (!get().canAffordCard(cardToCommit)) {
+          // If card was picked from board and player can't afford it, reserve it
+          if (!fromReserved && pickedCard) {
+            // Check if player can reserve the card (has less than 3 reserved cards)
+            if (currentPlayer.reservedCards.length >= 3) {
+              notify('Cannot reserve more than 3 cards', 'error');
+
+              // Return the card to the board
+              set((state) => ({
+                board: {
+                  ...state.board,
+                  cards: {
+                    ...state.board.cards,
+                    [`level${pickedCard.card.level}` as keyof typeof state.board.cards]:
+                      [
+                        ...state.board.cards[
+                          `level${pickedCard.card.level}` as keyof typeof state.board.cards
+                        ],
+                        pickedCard.card,
+                      ],
+                  },
+                },
+                pickedCard: null,
+              }));
+              return;
+            }
+
+            // Reserve the card and give a gold token if available
+            set((state) => ({
+              players: state.players.map((player, i) =>
+                i === get().currentPlayerIndex
+                  ? {
+                      ...player,
+                      reservedCards: [...player.reservedCards, pickedCard.card],
+                      tokens: {
+                        ...player.tokens,
+                        gold:
+                          state.board.tokens.gold > 0
+                            ? player.tokens.gold + 1
+                            : player.tokens.gold,
+                      },
+                    }
+                  : player,
+              ),
+              board: {
+                ...state.board,
+                cards: {
+                  ...state.board.cards,
+                  [`level${pickedCard.card.level}` as keyof typeof state.board.cards]:
+                    state.board.cards[
+                      `level${pickedCard.card.level}` as keyof typeof state.board.cards
+                    ].filter((c) => c.id !== pickedCard.card.id), // Remove the card from the board
+                },
+                tokens: {
+                  ...state.board.tokens,
+                  gold:
+                    state.board.tokens.gold > 0
+                      ? state.board.tokens.gold - 1
+                      : 0,
+                },
               },
-              tokens: {
-                ...state.board.tokens,
-                gold: state.board.tokens.gold - 1, // Remove a gold token from the board
-              },
-            },
-            pickedCard: null, // Clear the picked card
-          }));
-          notify('Card reserved and a Gold token added.', 'success');
+              pickedCard: null, // Clear the picked card
+            }));
+
+            notify(
+              'Card reserved' +
+                (get().board.tokens.gold > 0
+                  ? ' and a Gold token added.'
+                  : '.'),
+              'success',
+            );
+            return;
+          }
+
+          // If trying to buy a reserved card but can't afford it, notify and do nothing
+          notify('Cannot afford this card', 'error');
           return;
         }
 
         // Calculate the actual tokens spent by the player
-        const player = get().players[get().currentPlayerIndex];
         const tokensSpent: Partial<Tokens> = {};
 
         for (const [color, requiredQty] of Object.entries(
-          pickedCard.card.cost,
+          cardToCommit.cost,
         ) as Array<[keyof Gems, number]>) {
-          const playerGems = player.gems[color] || 0;
-          const playerTokens = player.tokens[color] || 0;
+          const playerGems = currentPlayer.gems[color] || 0;
+          const playerTokens = currentPlayer.tokens[color] || 0;
 
           // First use gems (they're free)
           const remainingAfterGems = Math.max(0, requiredQty - playerGems);
@@ -618,17 +675,11 @@ export const useGameStore = create<GameState>()(
           }
         }
 
-        // Get a new card from the deck for the same level
-        const pickedCardLevel = pickedCard.card.level;
-        const availableCards = get().deck.filter(
-          (card) => card.level === pickedCardLevel,
-        );
-        const newCard = availableCards.length > 0 ? availableCards[0] : null;
-
-        set((state) => ({
-          board: {
+        // Handle different card sources (board vs reserved)
+        set((state) => {
+          // Return tokens spent back to the board
+          const updatedBoard = {
             ...state.board,
-            // Return tokens spent back to the board
             tokens: {
               ...state.board.tokens,
               red: state.board.tokens.red + (tokensSpent.red || 0),
@@ -638,39 +689,100 @@ export const useGameStore = create<GameState>()(
               black: state.board.tokens.black + (tokensSpent.black || 0),
               gold: state.board.tokens.gold + (tokensSpent.gold || 0),
             },
-            cards: {
-              ...state.board.cards,
-              [`level${pickedCard.card.level}` as keyof typeof state.board.cards]:
+          };
+
+          // If card was picked from the board, get a new card from the deck
+          if (!fromReserved && pickedCard) {
+            const pickedCardLevel = pickedCard.card.level;
+            const availableCards = state.deck.filter(
+              (card) => card.level === pickedCardLevel,
+            );
+            const newCard =
+              availableCards.length > 0 ? availableCards[0] : null;
+
+            // Update the cards on the board
+            updatedBoard.cards = {
+              ...updatedBoard.cards,
+              [`level${pickedCardLevel}` as keyof typeof state.board.cards]:
                 (() => {
                   const levelKey =
-                    `level${pickedCard.card.level}` as keyof typeof state.board.cards;
+                    `level${pickedCardLevel}` as keyof typeof state.board.cards;
                   const currentCards = [...state.board.cards[levelKey]];
                   if (newCard) {
                     currentCards.splice(pickedCard.boardIndex, 0, newCard);
                   }
                   return currentCards;
                 })(),
-            },
-          },
-          // Remove the new card from the deck
-          deck: newCard
-            ? state.deck.filter((card) => card.id !== newCard.id)
-            : state.deck,
-          players: state.players.map((player, i) =>
-            i === get().currentPlayerIndex
-              ? {
-                  ...player,
-                  cards: [...player.cards, pickedCard.card],
-                  prestige: player.prestige + pickedCard.card.prestige,
-                  gems: addGem(player.gems, pickedCard.card.gem),
-                  tokens: get().removePlayerTokensByCardCost(
-                    pickedCard.card.cost,
-                  ),
-                }
-              : player,
-          ),
-          pickedCard: null,
-        }));
+            };
+
+            // Return the updated state with new deck and board
+            return {
+              ...state,
+              board: updatedBoard,
+              // Remove the new card from the deck if one was drawn
+              deck: newCard
+                ? state.deck.filter((card) => card.id !== newCard.id)
+                : state.deck,
+              // Update player state
+              players: state.players.map((player, i) =>
+                i === get().currentPlayerIndex
+                  ? {
+                      ...player,
+                      cards: [...player.cards, cardToCommit],
+                      prestige: player.prestige + cardToCommit.prestige,
+                      gems: addGem(player.gems, cardToCommit.gem),
+                      tokens: get().removePlayerTokensByCardCost(
+                        cardToCommit.cost,
+                      ),
+                      // If the card was reserved, remove it from reserved cards
+                      reservedCards: fromReserved
+                        ? player.reservedCards.filter(
+                            (_, index) => index !== reservedCardIndex,
+                          )
+                        : player.reservedCards,
+                    }
+                  : player,
+              ),
+              // Clear picked card
+              pickedCard: null,
+            };
+          }
+
+          // If card was from reserved pile, don't need to update board cards or deck
+          return {
+            ...state,
+            board: updatedBoard,
+            players: state.players.map((player, i) =>
+              i === get().currentPlayerIndex
+                ? {
+                    ...player,
+                    cards: [...player.cards, cardToCommit],
+                    prestige: player.prestige + cardToCommit.prestige,
+                    gems: addGem(player.gems, cardToCommit.gem),
+                    tokens: get().removePlayerTokensByCardCost(
+                      cardToCommit.cost,
+                    ),
+                    // Remove the card from reserved cards
+                    reservedCards: fromReserved
+                      ? player.reservedCards.filter(
+                          (_, index) => index !== reservedCardIndex,
+                        )
+                      : player.reservedCards,
+                  }
+                : player,
+            ),
+            // Clear picked card if applicable
+            pickedCard: !fromReserved ? null : state.pickedCard,
+          };
+        });
+
+        notify(
+          `Card purchased for ${Object.entries(cardToCommit.cost)
+            .filter(([_, cost]) => cost > 0)
+            .map(([color, cost]) => `${cost} ${color}`)
+            .join(', ')}`,
+          'success',
+        );
       },
       pickCard: (card) => {
         if (get().pickedCard) return;

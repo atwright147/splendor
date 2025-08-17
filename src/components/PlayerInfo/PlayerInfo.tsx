@@ -11,8 +11,9 @@ interface Props {
 }
 
 export const PlayerInfo: FC<Props> = ({ id }): JSX.Element => {
-  const { getPlayerById, getCurrentPlayer } = useGameStore(
+  const { commitCard, getPlayerById, getCurrentPlayer } = useGameStore(
     useShallow((state) => ({
+      commitCard: state.commitCard,
       getPlayerById: state.getPlayerById,
       getCurrentPlayer: state.getCurrentPlayer,
     })),
@@ -64,8 +65,13 @@ export const PlayerInfo: FC<Props> = ({ id }): JSX.Element => {
       </div>
 
       <div className={styles['item reservedCards']}>
-        {player.reservedCards.map((card) => (
-          <Card key={card.id} card={card} width={100} />
+        {player.reservedCards.map((card, index) => (
+          <Card
+            key={card.id}
+            card={card}
+            width={100}
+            onClick={() => commitCard(index)}
+          />
         ))}
       </div>
     </div>
