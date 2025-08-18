@@ -776,11 +776,14 @@ export const useGameStore = create<GameState>()(
           };
         });
 
+        // Create a detailed purchase message showing what tokens were actually spent
+        const tokenDetails = Object.entries(tokensSpent)
+          .filter(([_, amount]) => amount && amount > 0)
+          .map(([color, amount]) => `${amount} ${color}`)
+          .join(', ');
+
         notify(
-          `Card purchased for ${Object.entries(cardToCommit.cost)
-            .filter(([_, cost]) => cost > 0)
-            .map(([color, cost]) => `${cost} ${color}`)
-            .join(', ')}`,
+          `Card purchased for ${tokenDetails || 'free (using gems)'}`,
           'success',
         );
       },
