@@ -66,13 +66,19 @@
   color: white;
 }
 
-.prestige {
+.info {
   box-sizing: border-box;
   grid-column: span 3;
   border: 1px solid hsl(0, 0%, 60%);
   width: 100%;
   aspect-ratio: unset;
-  padding: 1rem 0;
+  display: flex;
+}
+
+.totalTokens,
+.prestige {
+  padding: 0 1rem;
+  white-space: nowrap;
 }
 
 .current {

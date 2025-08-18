@@ -24,6 +24,13 @@ export const PlayerInfo: FC<Props> = ({ id }): JSX.Element => {
     return <div className={styles.container}>Player not found</div>;
   }
 
+  const tokenCount =
+    player.tokens.red +
+    player.tokens.green +
+    player.tokens.blue +
+    player.tokens.black +
+    player.tokens.white;
+
   let isCurrentPlayer = false;
   if (getCurrentPlayer().uuid === id) {
     isCurrentPlayer = true;
@@ -59,12 +66,18 @@ export const PlayerInfo: FC<Props> = ({ id }): JSX.Element => {
         <div className={classNames(styles.item, styles.gold)}>
           <div className={styles.gem}>{player.tokens.gold}</div>
         </div>
-        <div className={classNames(styles.item, styles.prestige)}>
-          <div>Prestige: {player.prestige}</div>
+        <div className={styles.info}>
+          <div className={classNames(styles.item, styles.totalTokens)}>
+            <div>Total Tokens: {tokenCount}</div>
+          </div>
+
+          <div className={classNames(styles.item, styles.prestige)}>
+            <div>Prestige: {player.prestige}</div>
+          </div>
         </div>
       </div>
 
-      <div className={styles['item reservedCards']}>
+      <div className={classNames(styles.reservedCards)}>
         {player.reservedCards.map((card, index) => (
           <Card
             key={card.id}
