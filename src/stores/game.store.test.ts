@@ -6,7 +6,6 @@ import {
   type Card,
   initialBoardState,
   type Noble,
-  type PlayerState,
   type Tokens,
   useGameStore,
 } from './game.store';
@@ -44,6 +43,95 @@ describe('Game Store', () => {
       act(() => result.current.commitTokens());
 
       expect(result.current.pickedTokens.red).toBe(0);
+    });
+
+    it('should commit tokens to the player even when the total exceeds 10', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setBoardSnapshot());
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      // Give the player 9 tokens already
+      result.current.players[0].tokens = {
+        red: 3,
+        green: 3,
+        blue: 3,
+        white: 0,
+        black: 0,
+        gold: 0,
+      };
+
+      act(() => result.current.pickToken('white'));
+      act(() => result.current.pickToken('black'));
+      act(() => result.current.commitTokens());
+
+      const player = result.current.getCurrentPlayer();
+      const totalTokens = Object.values(player.tokens).reduce(
+        (s, n) => s + n,
+        0,
+      );
+
+      // Tokens should be committed (total > 10 before returning)
+      expect(totalTokens).toBe(11);
+      expect(player.tokens.white).toBe(1);
+      expect(player.tokens.black).toBe(1);
+    });
+
+    it('should set needToReturnTokens and tokensToReturn when total exceeds 10', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setBoardSnapshot());
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      result.current.players[0].tokens = {
+        red: 3,
+        green: 3,
+        blue: 3,
+        white: 0,
+        black: 0,
+        gold: 0,
+      };
+
+      act(() => result.current.pickToken('white'));
+      act(() => result.current.pickToken('black'));
+      act(() => result.current.commitTokens());
+
+      expect(result.current.needToReturnTokens).toBe(true);
+      expect(result.current.tokensToReturn).toBe(1);
+    });
+
+    it('should clear pickedTokens when total exceeds 10', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setBoardSnapshot());
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      result.current.players[0].tokens = {
+        red: 3,
+        green: 3,
+        blue: 3,
+        white: 0,
+        black: 0,
+        gold: 0,
+      };
+
+      act(() => result.current.pickToken('white'));
+      act(() => result.current.pickToken('black'));
+      act(() => result.current.commitTokens());
+
+      const allZero = Object.values(result.current.pickedTokens).every(
+        (n) => n === 0,
+      );
+      expect(allZero).toBe(true);
     });
   });
 
@@ -1085,6 +1173,178 @@ describe('Game Store', () => {
       expect(result.current.finalRoundTriggered).toBe(false);
       expect(result.current.finalRoundPlayer).toBeNull();
       expect(result.current.winner).toBeNull();
+    });
+  });
+
+  describe('endTurn()', () => {
+    it('should advance to the next player when tokens are within limit', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setBoardSnapshot());
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      act(() => result.current.pickToken('red'));
+      act(() => result.current.pickToken('green'));
+      act(() => result.current.pickToken('blue'));
+      act(() => result.current.endTurn());
+
+      expect(result.current.currentPlayerIndex).toBe(1);
+    });
+
+    it('should NOT advance to the next player when tokens exceed 10', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setBoardSnapshot());
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      // Give player 9 tokens so picking 2 more triggers over-limit
+      result.current.players[0].tokens = {
+        red: 3,
+        green: 3,
+        blue: 3,
+        white: 0,
+        black: 0,
+        gold: 0,
+      };
+
+      act(() => result.current.pickToken('white'));
+      act(() => result.current.pickToken('black'));
+      act(() => result.current.endTurn());
+
+      // Turn must not have advanced
+      expect(result.current.currentPlayerIndex).toBe(0);
+      expect(result.current.needToReturnTokens).toBe(true);
+    });
+
+    it('should commit a picked card during endTurn', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setBoardSnapshot());
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      const card: Card = {
+        id: 'mockUuid-endturn',
+        cost: { red: 0, green: 0, blue: 0, black: 0, white: 0 },
+        prestige: 1,
+        gem: 'red',
+        level: 1,
+      };
+
+      act(() => result.current.pickCard(card));
+      act(() => result.current.endTurn());
+
+      expect(result.current.players[0].cards).toContainEqual(card);
+      expect(result.current.currentPlayerIndex).toBe(1);
+    });
+  });
+
+  describe('returnToken() — over-limit flow', () => {
+    it('should remove a token from the player and return it to the board', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setBoardSnapshot());
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      result.current.players[0].tokens = {
+        red: 3,
+        green: 3,
+        blue: 3,
+        white: 0,
+        black: 0,
+        gold: 0,
+      };
+
+      act(() => result.current.pickToken('white'));
+      act(() => result.current.pickToken('black'));
+      act(() => result.current.endTurn()); // triggers over-limit, stays on player 0
+
+      const boardRedBefore = result.current.board.tokens.red;
+
+      act(() => result.current.returnToken('red'));
+
+      expect(result.current.players[0].tokens.red).toBe(2);
+      expect(result.current.board.tokens.red).toBe(boardRedBefore + 1);
+    });
+
+    it('should advance the turn after the last excess token is returned', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setBoardSnapshot());
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      result.current.players[0].tokens = {
+        red: 3,
+        green: 3,
+        blue: 3,
+        white: 0,
+        black: 0,
+        gold: 0,
+      };
+
+      act(() => result.current.pickToken('white'));
+      act(() => result.current.pickToken('black'));
+      act(() => result.current.endTurn()); // over-limit, tokensToReturn = 1
+
+      expect(result.current.currentPlayerIndex).toBe(0);
+
+      act(() => result.current.returnToken('red')); // returns the 1 excess token
+
+      // Turn should now have advanced
+      expect(result.current.needToReturnTokens).toBe(false);
+      expect(result.current.currentPlayerIndex).toBe(1);
+    });
+
+    it('should keep needToReturnTokens true until all excess tokens are returned', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setBoardSnapshot());
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      // 10 tokens already; picking 2 more gives total 12 → must return 2
+      result.current.players[0].tokens = {
+        red: 4,
+        green: 3,
+        blue: 3,
+        white: 0,
+        black: 0,
+        gold: 0,
+      };
+
+      act(() => result.current.pickToken('white'));
+      act(() => result.current.pickToken('black'));
+      act(() => result.current.endTurn()); // tokensToReturn = 2
+
+      expect(result.current.needToReturnTokens).toBe(true);
+      expect(result.current.tokensToReturn).toBe(2);
+
+      act(() => result.current.returnToken('red'));
+
+      expect(result.current.needToReturnTokens).toBe(true);
+      expect(result.current.tokensToReturn).toBe(1);
+      expect(result.current.currentPlayerIndex).toBe(0); // still waiting
+
+      act(() => result.current.returnToken('red'));
+
+      expect(result.current.needToReturnTokens).toBe(false);
+      expect(result.current.currentPlayerIndex).toBe(1); // now advanced
     });
   });
 });

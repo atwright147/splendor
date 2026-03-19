@@ -25,7 +25,6 @@ export const Game: FC = (): JSX.Element => {
     init,
     setBoardSnapshot,
     players,
-    pickedTokens,
     reserveCard,
     reserveToken,
     hasAffordableNobles,
@@ -37,7 +36,6 @@ export const Game: FC = (): JSX.Element => {
       init: state.init,
       setBoardSnapshot: state.setBoardSnapshot,
       players: state.players,
-      pickedTokens: state.pickedTokens,
       reserveCard: state.pickCard,
       reserveToken: state.pickToken,
       canEndTurn: state.canEndTurn,
@@ -89,8 +87,6 @@ export const Game: FC = (): JSX.Element => {
           {players.map((player) => (
             <PlayerInfo key={player.uuid} id={player.uuid} />
           ))}
-
-          <pre>{JSON.stringify(pickedTokens, null, 2)}</pre>
         </div>
 
         <div className={styles.decks}>
