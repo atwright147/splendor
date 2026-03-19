@@ -24,7 +24,7 @@ describe('mergeTokens()', () => {
 
     const result = mergeTokens(tokens1, tokens2);
 
-    expect(result).toEqual({
+    expect(result).toEqual<Tokens>({
       red: 3,
       green: 5,
       blue: 7,

@@ -90,6 +90,8 @@ interface GameState {
   winner: PlayerState | null;
   finalRoundTriggered: boolean;
   finalRoundPlayer: number | null;
+  needToReturnTokens: boolean;
+  tokensToReturn: number;
 
   setBoardSnapshot: () => void;
   resetBoardSnapshot: () => void;
@@ -122,11 +124,11 @@ interface GameState {
 const MAX_PLAYERS = 4;
 
 const defaultTokens: Tokens = {
-  red: 0,
-  green: 0,
-  blue: 0,
-  white: 0,
-  black: 0,
+  red: 1,
+  green: 2,
+  blue: 2,
+  white: 2,
+  black: 2,
   gold: 0,
 };
 
@@ -177,25 +179,73 @@ export const useGameStore = create<GameState>()(
       winner: null,
       finalRoundTriggered: false,
       finalRoundPlayer: null,
+      needToReturnTokens: false,
+      tokensToReturn: 0,
 
       setBoardSnapshot: () => set({ boardSnapshot: { ...get().board } }),
       resetBoardSnapshot: () =>
         set({ boardSnapshot: { ...initialBoardState } }),
       commitTokens: () => {
-        set((state) => ({
-          players: state.players.map((player, index) =>
-            index === get().currentPlayerIndex
-              ? {
-                  ...player,
-                  tokens: mergeTokens(player.tokens, {
-                    ...state.pickedTokens,
-                    gold: 0,
-                  }),
-                }
-              : player,
-          ),
-          pickedTokens: { red: 0, green: 0, blue: 0, white: 0, black: 0 },
-        }));
+        const currentPlayer = get().getCurrentPlayer();
+        const currentTokenCount = Object.values(currentPlayer.tokens).reduce(
+          (sum, count) => sum + count,
+          0,
+        );
+        const pickedTokenCount = Object.values(get().pickedTokens).reduce(
+          (sum, count) => sum + count,
+          0,
+        );
+        const totalTokens = currentTokenCount + pickedTokenCount;
+
+        // Check if player will have more than 10 tokens after committing
+        if (totalTokens > 10) {
+          const tokensOverLimit = totalTokens - 10;
+
+          set((state) => ({
+            needToReturnTokens: true,
+            tokensToReturn: tokensOverLimit,
+          }));
+
+          // // First, commit the tokens
+          // set((state) => ({
+          //   players: state.players.map((player, index) =>
+          //     index === get().currentPlayerIndex
+          //       ? {
+          //           ...player,
+          //           tokens: mergeTokens(player.tokens, {
+          //             ...state.pickedTokens,
+          //             gold: 0,
+          //           }),
+          //         }
+          //       : player,
+          //   ),
+          //   pickedTokens: { red: 0, green: 0, blue: 0, white: 0, black: 0 },
+          //   // Set the flag that the player needs to return tokens
+          //   needToReturnTokens: true,
+          //   tokensToReturn: tokensOverLimit,
+          // }));
+
+          notify(
+            `You have ${totalTokens} tokens, which exceeds the limit of 10. You must return ${tokensOverLimit} tokens.`,
+            'warn',
+          );
+        } else {
+          // Normal commit without exceeding token limit
+          set((state) => ({
+            players: state.players.map((player, index) =>
+              index === get().currentPlayerIndex
+                ? {
+                    ...player,
+                    tokens: mergeTokens(player.tokens, {
+                      ...state.pickedTokens,
+                      gold: 0,
+                    }),
+                  }
+                : player,
+            ),
+            pickedTokens: { red: 0, green: 0, blue: 0, white: 0, black: 0 },
+          }));
+        }
       },
       reset: () => {
         set({
@@ -209,6 +259,8 @@ export const useGameStore = create<GameState>()(
           winner: null,
           finalRoundTriggered: false,
           finalRoundPlayer: null,
+          needToReturnTokens: false,
+          tokensToReturn: 0,
         });
       },
       init: () => {
@@ -424,10 +476,10 @@ export const useGameStore = create<GameState>()(
         const playerCurrentTokens = Object.values(
           get().players[get().currentPlayerIndex].tokens,
         ).reduce((sum, count) => sum + count, 0);
-        if (playerCurrentTokens + totalPickedTokens + 1 > 10) {
-          notify('Cannot hold more than 10 tokens total', 'info');
-          return;
-        }
+        // if (playerCurrentTokens + totalPickedTokens + 1 > 10) {
+        //   notify('Cannot hold more than 10 tokens total', 'info');
+        //   return;
+        // }
 
         // If all checks pass, reserve the token
         set((state) => {
@@ -448,7 +500,66 @@ export const useGameStore = create<GameState>()(
       },
       returnToken: (tokenColor: TokenColors) => {
         const colorKey = tokenColor as keyof Gems;
+        const { needToReturnTokens } = get();
 
+        // If player is returning tokens because they exceed the limit
+        if (needToReturnTokens) {
+          const currentPlayer = get().getCurrentPlayer();
+
+          // Check if player has tokens of this color to return
+          if (currentPlayer.tokens[tokenColor] <= 0) {
+            notify('No tokens of this color to return', 'info');
+            return;
+          }
+
+          set((state) => {
+            const updatedPlayers = [...state.players];
+            const playerIndex = state.currentPlayerIndex;
+
+            // Remove token from player
+            updatedPlayers[playerIndex] = {
+              ...updatedPlayers[playerIndex],
+              tokens: {
+                ...updatedPlayers[playerIndex].tokens,
+                [tokenColor]:
+                  updatedPlayers[playerIndex].tokens[tokenColor] - 1,
+              },
+            };
+
+            // Reduce the count of tokens to return
+            const newTokensToReturn = state.tokensToReturn - 1;
+
+            return {
+              players: updatedPlayers,
+              board: {
+                ...state.board,
+                tokens: {
+                  ...state.board.tokens,
+                  [tokenColor]: state.board.tokens[tokenColor] + 1,
+                },
+              },
+              tokensToReturn: newTokensToReturn,
+              // If no more tokens need to be returned, set needToReturnTokens to false
+              needToReturnTokens: newTokensToReturn > 0,
+            };
+          });
+
+          // if (get().tokensToReturn > 0) {
+          //   notify(
+          //     `You need to return ${get().tokensToReturn} more token${get().tokensToReturn > 1 ? 's' : ''}.`,
+          //     'info',
+          //   );
+          // } else {
+          //   notify(
+          //     'All required tokens returned. You can now end your turn.',
+          //     'success',
+          //   );
+          // }
+
+          return;
+        }
+
+        // Normal token return during the token selection phase
         if (get().pickedTokens[colorKey] <= 0) {
           notify('No tokens of this color to return', 'info');
           return;
@@ -835,7 +946,12 @@ export const useGameStore = create<GameState>()(
         }));
       },
       canEndTurn: () => {
-        const { pickedCard, pickedTokens } = get();
+        const { pickedCard, pickedTokens, needToReturnTokens } = get();
+
+        // If player needs to return tokens due to exceeding the limit, they can't end their turn
+        if (needToReturnTokens) {
+          return false;
+        }
 
         if (
           pickedCard !== null &&

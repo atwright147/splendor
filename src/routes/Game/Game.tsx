@@ -8,6 +8,7 @@ import { Noble } from '#components/Noble/Noble';
 import { Notifications } from '#components/Notifications/Notifications';
 import { PlayerInfo } from '#components/PlayerInfo/PlayerInfo';
 import { Reserved } from '#components/Reserved/Reserved';
+import { ReturnTokensDialog } from '#components/ReturnTokensDialog/ReturnTokensDialog';
 import { Token } from '#components/Token/Token';
 import { type Card as CardType, useGameStore } from '#stores/game.store';
 import type { TokenColorValues } from '#types/colors.type';
@@ -24,6 +25,7 @@ export const Game: FC = (): JSX.Element => {
     init,
     setBoardSnapshot,
     players,
+    pickedTokens,
     reserveCard,
     reserveToken,
     hasAffordableNobles,
@@ -35,6 +37,7 @@ export const Game: FC = (): JSX.Element => {
       init: state.init,
       setBoardSnapshot: state.setBoardSnapshot,
       players: state.players,
+      pickedTokens: state.pickedTokens,
       reserveCard: state.pickCard,
       reserveToken: state.pickToken,
       canEndTurn: state.canEndTurn,
@@ -86,6 +89,8 @@ export const Game: FC = (): JSX.Element => {
           {players.map((player) => (
             <PlayerInfo key={player.uuid} id={player.uuid} />
           ))}
+
+          <pre>{JSON.stringify(pickedTokens, null, 2)}</pre>
         </div>
 
         <div className={styles.decks}>
@@ -177,6 +182,8 @@ export const Game: FC = (): JSX.Element => {
         open={openNobleSelectDialog}
         onOpenChange={setOpenNobleSelectDialog}
       />
+
+      <ReturnTokensDialog />
     </>
   );
 };
