@@ -11,6 +11,21 @@
   border: 10px solid white;
 }
 
+.clickable {
+  cursor: pointer;
+  appearance: none;
+  font: inherit;
+}
+
+.clickable:hover:not(.disabled) {
+  border-color: gold;
+}
+
+.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .content {
   display: flex;
   flex-direction: column;

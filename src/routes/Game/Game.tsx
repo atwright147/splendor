@@ -27,6 +27,8 @@ export const Game: FC = (): JSX.Element => {
     players,
     reserveCard,
     reserveToken,
+    reserveFromDeck,
+    deck,
     hasAffordableNobles,
   } = useGameStore(
     useShallow((state) => ({
@@ -38,6 +40,8 @@ export const Game: FC = (): JSX.Element => {
       players: state.players,
       reserveCard: state.pickCard,
       reserveToken: state.pickToken,
+      reserveFromDeck: state.reserveFromDeck,
+      deck: state.deck,
       canEndTurn: state.canEndTurn,
       endTurn: state.endTurn,
       hasAffordableNobles: state.hasAffordableNobles,
@@ -67,6 +71,18 @@ export const Game: FC = (): JSX.Element => {
     reserveToken(color);
   };
 
+  const handleReserveFromDeck = (level: 1 | 2 | 3): void => {
+    reserveFromDeck(level);
+    const state = useGameStore.getState();
+    if (!state.needToReturnTokens) {
+      if (state.hasAffordableNobles()) {
+        setOpenNobleSelectDialog(true);
+        return;
+      }
+      endTurn();
+    }
+  };
+
   const handleEndTurn = (): void => {
     if (hasAffordableNobles()) {
       setOpenNobleSelectDialog(true);
@@ -90,9 +106,24 @@ export const Game: FC = (): JSX.Element => {
         </div>
 
         <div className={styles.decks}>
-          <CardBack color="green" level={3} />
-          <CardBack color="yellow" level={2} />
-          <CardBack color="blue" level={1} />
+          <CardBack
+            color="green"
+            level={3}
+            onClick={() => handleReserveFromDeck(3)}
+            disabled={deck.filter((c) => c.level === 3).length === 0}
+          />
+          <CardBack
+            color="yellow"
+            level={2}
+            onClick={() => handleReserveFromDeck(2)}
+            disabled={deck.filter((c) => c.level === 2).length === 0}
+          />
+          <CardBack
+            color="blue"
+            level={1}
+            onClick={() => handleReserveFromDeck(1)}
+            disabled={deck.filter((c) => c.level === 1).length === 0}
+          />
         </div>
 
         <div className={styles.cards}>

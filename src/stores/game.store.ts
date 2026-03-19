@@ -114,6 +114,7 @@ interface GameState {
   removePlayerTokensByCardCost: (cardCost: Gems) => Tokens;
   commitCard: (reservedCardIndex?: number) => void;
   pickCard: (card: Card) => void;
+  reserveFromDeck: (level: 1 | 2 | 3) => void;
   claimNoble: (noble: Noble) => void;
   nextPlayer: () => void;
   canEndTurn: () => boolean;
@@ -867,6 +868,69 @@ export const useGameStore = create<GameState>()(
 
         notify(
           `Card purchased for ${tokenDetails || 'free (using gems)'}`,
+          'success',
+        );
+      },
+      reserveFromDeck: (level: 1 | 2 | 3) => {
+        const currentPlayer = get().getCurrentPlayer();
+
+        if (currentPlayer.reservedCards.length >= 3) {
+          notify('Cannot reserve more than 3 cards', 'error');
+          return;
+        }
+
+        const availableCards = get().deck.filter(
+          (card) => card.level === level,
+        );
+
+        if (availableCards.length === 0) {
+          notify(`No cards remaining in level ${level} deck`, 'info');
+          return;
+        }
+
+        const card = availableCards[random(0, availableCards.length - 1)];
+        const willGetGold = get().board.tokens.gold > 0;
+
+        const currentTokenCount = Object.values(currentPlayer.tokens).reduce(
+          (sum, count) => sum + count,
+          0,
+        );
+        const newTokenCount = currentTokenCount + (willGetGold ? 1 : 0);
+        const tokensOverLimit = Math.max(0, newTokenCount - 10);
+
+        set((state) => ({
+          players: state.players.map((player, i) =>
+            i === state.currentPlayerIndex
+              ? {
+                  ...player,
+                  reservedCards: [...player.reservedCards, card],
+                  tokens: {
+                    ...player.tokens,
+                    gold: willGetGold
+                      ? player.tokens.gold + 1
+                      : player.tokens.gold,
+                  },
+                }
+              : player,
+          ),
+          board: {
+            ...state.board,
+            tokens: {
+              ...state.board.tokens,
+              gold: willGetGold
+                ? state.board.tokens.gold - 1
+                : state.board.tokens.gold,
+            },
+          },
+          deck: state.deck.filter((c) => c.id !== card.id),
+          needToReturnTokens: tokensOverLimit > 0,
+          tokensToReturn: tokensOverLimit,
+        }));
+
+        notify(
+          `Card reserved from level ${level} deck${
+            willGetGold ? ' and a Gold token added.' : '.'
+          }`,
           'success',
         );
       },

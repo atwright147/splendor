@@ -1347,4 +1347,145 @@ describe('Game Store', () => {
       expect(result.current.currentPlayerIndex).toBe(1); // now advanced
     });
   });
+
+  describe('reserveFromDeck()', () => {
+    const setup = () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setBoardSnapshot());
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      return result;
+    };
+
+    it('adds a card from the correct level to the player reserved cards', () => {
+      const result = setup();
+      const deckBefore = result.current.deck.filter((c) => c.level === 1);
+
+      act(() => result.current.reserveFromDeck(1));
+
+      const player = result.current.getCurrentPlayer();
+      expect(player.reservedCards.length).toBe(1);
+      expect(player.reservedCards[0].level).toBe(1);
+      expect(deckBefore.some((c) => c.id === player.reservedCards[0].id)).toBe(
+        true,
+      );
+    });
+
+    it('removes the reserved card from the deck', () => {
+      const result = setup();
+      const deckSizeBefore = result.current.deck.filter(
+        (c) => c.level === 2,
+      ).length;
+
+      act(() => result.current.reserveFromDeck(2));
+
+      const player = result.current.getCurrentPlayer();
+      const reservedId = player.reservedCards[0].id;
+      const deckSizeAfter = result.current.deck.filter(
+        (c) => c.level === 2,
+      ).length;
+
+      expect(deckSizeAfter).toBe(deckSizeBefore - 1);
+      expect(result.current.deck.some((c) => c.id === reservedId)).toBe(false);
+    });
+
+    it('awards a gold token to the player when one is available', () => {
+      const result = setup();
+      const goldBefore = result.current.getCurrentPlayer().tokens.gold;
+      const boardGoldBefore = result.current.board.tokens.gold;
+
+      act(() => result.current.reserveFromDeck(3));
+
+      const player = result.current.getCurrentPlayer();
+      expect(player.tokens.gold).toBe(goldBefore + 1);
+      expect(result.current.board.tokens.gold).toBe(boardGoldBefore - 1);
+    });
+
+    it('does not award a gold token when none are on the board', () => {
+      const result = setup();
+      result.current.board.tokens.gold = 0;
+
+      const goldBefore = result.current.getCurrentPlayer().tokens.gold;
+
+      act(() => result.current.reserveFromDeck(1));
+
+      expect(result.current.getCurrentPlayer().tokens.gold).toBe(goldBefore);
+      expect(result.current.board.tokens.gold).toBe(0);
+    });
+
+    it('does not allow reserving when player already has 3 reserved cards', () => {
+      const result = setup();
+
+      // Give the player 3 reserved cards
+      const cards = result.current.deck
+        .filter((c) => c.level === 1)
+        .slice(0, 3);
+      result.current.players[0].reservedCards = cards;
+
+      const deckSizeBefore = result.current.deck.length;
+
+      act(() => result.current.reserveFromDeck(1));
+
+      expect(result.current.players[0].reservedCards.length).toBe(3);
+      expect(result.current.deck.length).toBe(deckSizeBefore);
+    });
+
+    it('does not reserve when the deck for that level is empty', () => {
+      const result = setup();
+
+      // Remove all level 3 cards from the deck
+      result.current.deck = result.current.deck.filter((c) => c.level !== 3);
+
+      const reservedBefore =
+        result.current.getCurrentPlayer().reservedCards.length;
+
+      act(() => result.current.reserveFromDeck(3));
+
+      expect(result.current.getCurrentPlayer().reservedCards.length).toBe(
+        reservedBefore,
+      );
+    });
+
+    it('sets needToReturnTokens when the gold award pushes player over 10 tokens', () => {
+      const result = setup();
+
+      // Give player exactly 10 tokens; getting gold will push to 11
+      result.current.players[0].tokens = {
+        red: 2,
+        green: 2,
+        blue: 2,
+        white: 2,
+        black: 2,
+        gold: 0,
+      };
+
+      act(() => result.current.reserveFromDeck(1));
+
+      expect(result.current.needToReturnTokens).toBe(true);
+      expect(result.current.tokensToReturn).toBe(1);
+    });
+
+    it('does not set needToReturnTokens when player stays at or below 10 tokens', () => {
+      const result = setup();
+
+      // Player has 9 tokens; getting gold brings them to 10 (exactly at limit)
+      result.current.players[0].tokens = {
+        red: 2,
+        green: 2,
+        blue: 2,
+        white: 2,
+        black: 1,
+        gold: 0,
+      };
+
+      act(() => result.current.reserveFromDeck(1));
+
+      expect(result.current.needToReturnTokens).toBe(false);
+      expect(result.current.tokensToReturn).toBe(0);
+    });
+  });
 });
