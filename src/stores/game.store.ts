@@ -590,7 +590,9 @@ export const useGameStore = create<GameState>()(
         const { getCurrentPlayer, pickedCard } = get();
         const player = getCurrentPlayer();
 
-        const gems = addGem(player.gems, pickedCard?.card.gem);
+        const gems = pickedCard
+          ? addGem(player.gems, pickedCard.card.gem)
+          : player.gems;
 
         // Nobles can only be purchased with a player's gems (not tokens or gold)
         return Object.entries(noble.cost).every(([color, qty]) => {

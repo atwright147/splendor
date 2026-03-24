@@ -602,6 +602,44 @@ describe('Game Store', () => {
 
       expect(result.current.canAffordNoble(noble)).toBe(false);
     });
+
+    it('returns false when pickedCard is null and gems fall short (no undefined addGem call)', () => {
+      const { result } = renderHook(() => useGameStore());
+      const noble: Noble = {
+        id: '1',
+        prestige: 1,
+        cost: { red: 3, green: 0, blue: 0, black: 0, white: 0 },
+      };
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      result.current.players[0].gems.red = 2; // one short
+
+      // No pickCard call — pickedCard is null
+      expect(result.current.canAffordNoble(noble)).toBe(false);
+    });
+
+    it('returns true when pickedCard is null and player gems alone are sufficient', () => {
+      const { result } = renderHook(() => useGameStore());
+      const noble: Noble = {
+        id: '1',
+        prestige: 1,
+        cost: { red: 3, green: 0, blue: 0, black: 0, white: 0 },
+      };
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      result.current.players[0].gems.red = 3;
+
+      // No pickCard call — pickedCard is null
+      expect(result.current.canAffordNoble(noble)).toBe(true);
+    });
   });
 
   describe('getAffordableNobles()', () => {
