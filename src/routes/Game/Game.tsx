@@ -4,6 +4,7 @@ import { useShallow } from 'zustand/shallow';
 
 import { Card } from '#components/Card/Card';
 import { CardBack } from '#components/CardBack/CardBack';
+import { FinalRoundBanner } from '#components/FinalRoundBanner/FinalRoundBanner';
 import { GameOverDialog } from '#components/GameOverDialog/GameOverDialog';
 import { NobleSelectDialog } from '#components/NobelSelectDialog/NobelSelectDialog';
 import { Noble } from '#components/Noble/Noble';
@@ -109,6 +110,8 @@ export const Game: FC = (): JSX.Element => {
 
   return (
     <>
+      <FinalRoundBanner />
+
       <div className={styles.table}>
         <Notifications />
 
