@@ -1174,6 +1174,126 @@ describe('Game Store', () => {
       expect(result.current.finalRoundPlayer).toBeNull();
       expect(result.current.winner).toBeNull();
     });
+
+    describe('game over — final round resolution', () => {
+      // Helper: set up a 2-player game already in the final round
+      // where currentPlayerIndex is 1 (so nextPlayerIndex === 0 === finalRoundPlayer)
+      const setupFinalRound = () => {
+        const { result } = renderHook(() => useGameStore());
+
+        act(() => result.current.createPlayers(2));
+        act(() => result.current.init());
+        act(() => result.current.deal());
+        act(() => result.current.setCurrentPlayerIndex(1));
+
+        // Mark the final round as already triggered by player 0
+        result.current.finalRoundTriggered = true;
+        result.current.finalRoundPlayer = 0;
+
+        return result;
+      };
+
+      it('sets isGameOver to true when the final round completes', () => {
+        const result = setupFinalRound();
+
+        result.current.players[0].prestige = 16;
+        result.current.players[1].prestige = 10;
+
+        act(() => result.current.checkWinCondition());
+
+        expect(result.current.isGameOver).toBe(true);
+      });
+
+      it('sets winner to the player with the highest prestige', () => {
+        const result = setupFinalRound();
+
+        result.current.players[0].prestige = 18;
+        result.current.players[1].prestige = 12;
+
+        act(() => result.current.checkWinCondition());
+
+        expect(result.current.winner?.uuid).toBe(
+          result.current.players[0].uuid,
+        );
+      });
+
+      it('uses the tiebreaker (fewest cards) when prestige is equal', () => {
+        const result = setupFinalRound();
+
+        result.current.players[0].prestige = 15;
+        result.current.players[0].cards = Array(4).fill({
+          id: 'x',
+          cost: { red: 0, green: 0, blue: 0, white: 0, black: 0 },
+          prestige: 0,
+          gem: 'red',
+          level: 1,
+        });
+
+        result.current.players[1].prestige = 15;
+        result.current.players[1].cards = Array(3).fill({
+          id: 'y',
+          cost: { red: 0, green: 0, blue: 0, white: 0, black: 0 },
+          prestige: 0,
+          gem: 'blue',
+          level: 1,
+        });
+
+        act(() => result.current.checkWinCondition());
+
+        // Player 1 has fewer cards → wins the tiebreaker
+        expect(result.current.winner?.uuid).toBe(
+          result.current.players[1].uuid,
+        );
+        expect(result.current.isGameOver).toBe(true);
+      });
+
+      it('sets winner to null on a true tie (same prestige and same card count)', () => {
+        const result = setupFinalRound();
+
+        result.current.players[0].prestige = 15;
+        result.current.players[0].cards = Array(3).fill({
+          id: 'x',
+          cost: { red: 0, green: 0, blue: 0, white: 0, black: 0 },
+          prestige: 0,
+          gem: 'red',
+          level: 1,
+        });
+
+        result.current.players[1].prestige = 15;
+        result.current.players[1].cards = Array(3).fill({
+          id: 'y',
+          cost: { red: 0, green: 0, blue: 0, white: 0, black: 0 },
+          prestige: 0,
+          gem: 'blue',
+          level: 1,
+        });
+
+        act(() => result.current.checkWinCondition());
+
+        expect(result.current.isGameOver).toBe(true);
+        expect(result.current.winner).toBeNull();
+      });
+
+      it('does not end the game early — no isGameOver when not yet back to finalRoundPlayer', () => {
+        const { result } = renderHook(() => useGameStore());
+
+        act(() => result.current.createPlayers(2));
+        act(() => result.current.init());
+        act(() => result.current.deal());
+
+        // Player 0 triggers final round; next player is 1, not 0
+        result.current.finalRoundTriggered = true;
+        result.current.finalRoundPlayer = 0;
+        act(() => result.current.setCurrentPlayerIndex(0));
+
+        result.current.players[0].prestige = 16;
+        result.current.players[1].prestige = 10;
+
+        act(() => result.current.checkWinCondition());
+
+        expect(result.current.isGameOver).toBe(false);
+      });
+    });
   });
 
   describe('endTurn()', () => {

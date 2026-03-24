@@ -1,0 +1,106 @@
+@import "@radix-ui/colors/black-alpha.css";
+@import "@radix-ui/colors/green.css";
+@import "@radix-ui/colors/mauve.css";
+
+.overlay {
+  background-color: var(--black-a9);
+  position: fixed;
+  inset: 0;
+  animation: overlayShow 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.content {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90vw;
+  max-width: 420px;
+  padding: 2.5rem 3rem;
+  text-align: center;
+  animation: contentShow 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.content:focus {
+  outline: none;
+}
+
+.title {
+  margin: 0 0 0.25rem;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--mauve-12);
+}
+
+.result {
+  font-size: 1.25rem;
+  margin: 0 0 1.5rem;
+  color: var(--mauve-11);
+}
+
+.scores {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.score {
+  font-size: 1rem;
+  color: var(--mauve-11);
+}
+
+.scoreWinner {
+  font-weight: 700;
+  color: var(--mauve-12);
+}
+
+.playAgainButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  padding: 0 20px;
+  font-size: 15px;
+  font-weight: 500;
+  height: 40px;
+  border: none;
+  cursor: pointer;
+  background-color: var(--green-4);
+  color: var(--green-11);
+  user-select: none;
+}
+
+.playAgainButton:hover {
+  background-color: var(--green-5);
+}
+
+.playAgainButton:focus-visible {
+  outline: 2px solid var(--green-7);
+  outline-offset: 1px;
+}
+
+@keyframes overlayShow {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes contentShow {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}

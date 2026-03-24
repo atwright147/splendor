@@ -1,8 +1,10 @@
+import { navigate } from 'raviger';
 import { type FC, type JSX, useEffect, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
 
 import { Card } from '#components/Card/Card';
 import { CardBack } from '#components/CardBack/CardBack';
+import { GameOverDialog } from '#components/GameOverDialog/GameOverDialog';
 import { NobleSelectDialog } from '#components/NobelSelectDialog/NobelSelectDialog';
 import { Noble } from '#components/Noble/Noble';
 import { Notifications } from '#components/Notifications/Notifications';
@@ -30,6 +32,9 @@ export const Game: FC = (): JSX.Element => {
     reserveFromDeck,
     deck,
     hasAffordableNobles,
+    isGameOver,
+    winner,
+    reset,
   } = useGameStore(
     useShallow((state) => ({
       board: state.board,
@@ -45,6 +50,9 @@ export const Game: FC = (): JSX.Element => {
       canEndTurn: state.canEndTurn,
       endTurn: state.endTurn,
       hasAffordableNobles: state.hasAffordableNobles,
+      isGameOver: state.isGameOver,
+      winner: state.winner,
+      reset: state.reset,
     })),
   );
 
@@ -92,6 +100,11 @@ export const Game: FC = (): JSX.Element => {
     if (canEndTurn()) {
       endTurn();
     }
+  };
+
+  const handlePlayAgain = (): void => {
+    reset();
+    navigate('/');
   };
 
   return (
@@ -211,6 +224,13 @@ export const Game: FC = (): JSX.Element => {
       />
 
       <ReturnTokensDialog />
+
+      <GameOverDialog
+        open={isGameOver}
+        players={players}
+        winner={winner}
+        onPlayAgain={handlePlayAgain}
+      />
     </>
   );
 };
