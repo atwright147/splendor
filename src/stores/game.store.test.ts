@@ -1117,6 +1117,66 @@ describe('Game Store', () => {
       expect(result.current.canEndTurn()).toBe(false);
     });
 
+    it('should return true with 1 token picked when no other colours have tokens remaining', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      // Only red has a token; all others are exhausted
+      result.current.board.tokens = {
+        red: 1,
+        green: 0,
+        blue: 0,
+        white: 0,
+        black: 0,
+        gold: 5,
+      };
+      result.current.boardSnapshot.tokens = { ...result.current.board.tokens };
+
+      act(() => result.current.pickToken('red'));
+      // board.tokens.red is now 0 after the pick; all non-gold colours are 0
+
+      expect(result.current.canEndTurn()).toBe(true);
+    });
+
+    it('should return true with 2 different tokens picked when no other colours have tokens remaining', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      // Only red and green have tokens; blue/white/black are exhausted
+      result.current.board.tokens = {
+        red: 3,
+        green: 3,
+        blue: 0,
+        white: 0,
+        black: 0,
+        gold: 5,
+      };
+      result.current.boardSnapshot.tokens = { ...result.current.board.tokens };
+
+      act(() => result.current.pickToken('red'));
+      act(() => result.current.pickToken('green'));
+      // board still has red: 2, green: 2, but no unpicked colour has tokens
+
+      expect(result.current.canEndTurn()).toBe(true);
+    });
+
+    it('should return false with 1 token picked when other colours still have tokens', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.pickToken('red'));
+
+      // board still has green, blue, white, black tokens (normal deal)
+      expect(result.current.canEndTurn()).toBe(false);
+    });
+
+    it('should return false with 2 different tokens picked when a third colour is still available', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.pickToken('red'));
+      act(() => result.current.pickToken('green'));
+
+      // board still has blue/white/black tokens (normal deal)
+      expect(result.current.canEndTurn()).toBe(false);
+    });
+
     it('should return false if no card or tokens are picked', () => {
       const { result } = renderHook(() => useGameStore());
 

@@ -989,7 +989,7 @@ export const useGameStore = create<GameState>()(
         }
       },
       canEndTurn: () => {
-        const { pickedCard, pickedTokens, needToReturnTokens } = get();
+        const { pickedCard, pickedTokens, needToReturnTokens, board } = get();
 
         // If player needs to return tokens due to exceeding the limit, they can't end their turn
         if (needToReturnTokens) {
@@ -1015,6 +1015,22 @@ export const useGameStore = create<GameState>()(
           Object.values(pickedTokens).filter((qty) => qty === 1).length === 3
         ) {
           return true;
+        }
+
+        // Allow ending with 1 or 2 different tokens when no other colours are available
+        const differentPickedColors = (
+          Object.keys(defaultGems) as GemColors[]
+        ).filter((color) => pickedTokens[color] === 1);
+
+        if (!pickedCard && differentPickedColors.length >= 1) {
+          const unpickedColorsWithTokens = (
+            Object.keys(defaultGems) as GemColors[]
+          ).filter(
+            (color) => pickedTokens[color] === 0 && board.tokens[color] > 0,
+          );
+          if (unpickedColorsWithTokens.length === 0) {
+            return true;
+          }
         }
 
         return false;
