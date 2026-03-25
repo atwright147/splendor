@@ -255,6 +255,7 @@ export const useGameStore = create<GameState>()(
       reset: () => {
         set({
           board: { ...initialBoardState },
+          boardSnapshot: { ...initialBoardState },
           pickedCard: null,
           pickedTokens: { red: 0, green: 0, blue: 0, white: 0, black: 0 },
           deck: [],
@@ -262,6 +263,7 @@ export const useGameStore = create<GameState>()(
           currentPlayerIndex: 0,
           isGameOver: false,
           winner: null,
+          tiedPlayers: [],
           finalRoundTriggered: false,
           finalRoundPlayer: null,
           needToReturnTokens: false,

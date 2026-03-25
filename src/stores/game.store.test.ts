@@ -2391,5 +2391,43 @@ describe('Game Store', () => {
       expect(result.current.needToReturnTokens).toBe(false);
       expect(result.current.tokensToReturn).toBe(0);
     });
+
+  describe('reset()', () => {
+    it('clears tiedPlayers', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+
+      // Manually set tiedPlayers to simulate a tie game-over state
+      act(() => {
+        useGameStore.setState({ tiedPlayers: result.current.players });
+      });
+      expect(result.current.tiedPlayers.length).toBeGreaterThan(0);
+
+      act(() => result.current.reset());
+
+      expect(result.current.tiedPlayers).toEqual([]);
+    });
+
+    it('resets boardSnapshot to initial state', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setBoardSnapshot());
+
+      // boardSnapshot should reflect a dealt board
+      expect(result.current.boardSnapshot.nobles.length).toBeGreaterThan(0);
+
+      act(() => result.current.reset());
+
+      expect(result.current.boardSnapshot).toEqual(expect.objectContaining({
+        cards: { level1: [], level2: [], level3: [] },
+        nobles: [],
+      }));
+    });
   });
 });
