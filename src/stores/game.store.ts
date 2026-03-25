@@ -302,6 +302,7 @@ export const useGameStore = create<GameState>()(
         const level1: Card[] = [];
         const level2: Card[] = [];
         const level3: Card[] = [];
+        const dealtIds = new Set<string>();
 
         for (let cardIndex = 1; cardIndex <= 4; cardIndex++) {
           const level1Card = allLevel1.splice(
@@ -321,19 +322,12 @@ export const useGameStore = create<GameState>()(
           level2.push(level2Card);
           level3.push(level3Card);
 
-          get().deck.splice(
-            get().deck.findIndex((card) => card.id === level1Card.id),
-            1,
-          );
-          get().deck.splice(
-            get().deck.findIndex((card) => card.id === level2Card.id),
-            1,
-          );
-          get().deck.splice(
-            get().deck.findIndex((card) => card.id === level3Card.id),
-            1,
-          );
+          if (level1Card) dealtIds.add(level1Card.id);
+          if (level2Card) dealtIds.add(level2Card.id);
+          if (level3Card) dealtIds.add(level3Card.id);
         }
+
+        const newDeck = get().deck.filter((card) => !dealtIds.has(card.id));
 
         const noblesAllCopy = [...noblesAll];
         const nobles: Noble[] = [];
@@ -359,7 +353,7 @@ export const useGameStore = create<GameState>()(
           },
           nobles,
         };
-        set({ board }, false);
+        set({ board, deck: newDeck }, false);
       },
       setCurrentPlayerIndex: (index) => set({ currentPlayerIndex: index }),
       getCurrentPlayer: () => {
