@@ -37,6 +37,7 @@ export const Game: FC = (): JSX.Element => {
     isForcedPass,
     isGameOver,
     winner,
+    tiedPlayers,
     reset,
   } = useGameStore(
     useShallow((state) => ({
@@ -57,6 +58,7 @@ export const Game: FC = (): JSX.Element => {
       isForcedPass: state.isForcedPass,
       isGameOver: state.isGameOver,
       winner: state.winner,
+      tiedPlayers: state.tiedPlayers,
       reset: state.reset,
     })),
   );
@@ -250,6 +252,7 @@ export const Game: FC = (): JSX.Element => {
         open={isGameOver}
         players={players}
         winner={winner}
+        tiedPlayers={tiedPlayers}
         onPlayAgain={handlePlayAgain}
       />
     </>

@@ -89,6 +89,7 @@ interface GameState {
   currentPlayerIndex: number;
   isGameOver: boolean;
   winner: PlayerState | null;
+  tiedPlayers: PlayerState[];
   finalRoundTriggered: boolean;
   finalRoundPlayer: number | null;
   needToReturnTokens: boolean;
@@ -182,6 +183,7 @@ export const useGameStore = create<GameState>()(
       currentPlayerIndex: 0,
       isGameOver: false,
       winner: null,
+      tiedPlayers: [],
       finalRoundTriggered: false,
       finalRoundPlayer: null,
       needToReturnTokens: false,
@@ -1064,9 +1066,9 @@ export const useGameStore = create<GameState>()(
         if (Object.values(pickedTokens).some((qty) => qty > 0)) return false;
 
         // Can take tokens if any gem colour has tokens remaining
-        const anyTokensAvailable = (Object.keys(defaultGems) as GemColors[]).some(
-          (color) => board.tokens[color] > 0,
-        );
+        const anyTokensAvailable = (
+          Object.keys(defaultGems) as GemColors[]
+        ).some((color) => board.tokens[color] > 0);
         if (anyTokensAvailable) return false;
 
         // Can reserve from deck if under the 3-card limit
@@ -1083,7 +1085,10 @@ export const useGameStore = create<GameState>()(
 
         // Can buy any card on the board or in reserved hand
         const boardCards = allLevelCards;
-        const allAvailableCards = [...boardCards, ...currentPlayer.reservedCards];
+        const allAvailableCards = [
+          ...boardCards,
+          ...currentPlayer.reservedCards,
+        ];
         const canAffordAny = allAvailableCards.some((card) =>
           get().canAffordCard(card),
         );
@@ -1120,31 +1125,34 @@ export const useGameStore = create<GameState>()(
           // Find the player with the highest prestige
           let maxPrestige = 0;
           let winnerIndex = 0;
-          let tie = false;
+          let tiedIndexes: number[] = [];
 
           get().players.forEach((player, index) => {
             if (player.prestige > maxPrestige) {
               maxPrestige = player.prestige;
               winnerIndex = index;
-              tie = false;
+              tiedIndexes = [];
             } else if (player.prestige === maxPrestige && maxPrestige > 0) {
               // In case of a tie, the player with fewer cards wins
               const currentWinner = get().players[winnerIndex];
               if (player.cards.length < currentWinner.cards.length) {
                 winnerIndex = index;
-                tie = false;
+                tiedIndexes = [];
               } else if (player.cards.length === currentWinner.cards.length) {
-                tie = true;
+                tiedIndexes = [winnerIndex, index];
               }
             }
           });
 
+          const isTie = tiedIndexes.length > 0;
+
           set({
             isGameOver: true,
-            winner: tie ? null : get().players[winnerIndex],
+            winner: isTie ? null : get().players[winnerIndex],
+            tiedPlayers: isTie ? tiedIndexes.map((i) => get().players[i]) : [],
           });
 
-          if (tie) {
+          if (isTie) {
             notify("Game Over! It's a tie!", 'success');
           } else {
             const winner = get().players[winnerIndex];

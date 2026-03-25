@@ -1393,7 +1393,14 @@ describe('Game Store', () => {
       act(() => result.current.deal());
       act(() => result.current.setBoardSnapshot());
 
-      result.current.board.tokens = { red: 0, green: 0, blue: 0, white: 0, black: 0, gold: 0 };
+      result.current.board.tokens = {
+        red: 0,
+        green: 0,
+        blue: 0,
+        white: 0,
+        black: 0,
+        gold: 0,
+      };
 
       expect(result.current.isForcedPass()).toBe(false);
     });
@@ -1406,11 +1413,36 @@ describe('Game Store', () => {
       act(() => result.current.deal());
       act(() => result.current.setBoardSnapshot());
 
-      result.current.board.tokens = { red: 0, green: 0, blue: 0, white: 0, black: 0, gold: 0 };
+      result.current.board.tokens = {
+        red: 0,
+        green: 0,
+        blue: 0,
+        white: 0,
+        black: 0,
+        gold: 0,
+      };
       result.current.players[0].reservedCards = [
-        { id: 'r1', cost: { red: 0, green: 0, blue: 0, white: 0, black: 0 }, prestige: 1, gem: 'red', level: 1 },
-        { id: 'r2', cost: { red: 0, green: 0, blue: 0, white: 0, black: 0 }, prestige: 1, gem: 'green', level: 1 },
-        { id: 'r3', cost: { red: 0, green: 0, blue: 0, white: 0, black: 0 }, prestige: 1, gem: 'blue', level: 1 },
+        {
+          id: 'r1',
+          cost: { red: 0, green: 0, blue: 0, white: 0, black: 0 },
+          prestige: 1,
+          gem: 'red',
+          level: 1,
+        },
+        {
+          id: 'r2',
+          cost: { red: 0, green: 0, blue: 0, white: 0, black: 0 },
+          prestige: 1,
+          gem: 'green',
+          level: 1,
+        },
+        {
+          id: 'r3',
+          cost: { red: 0, green: 0, blue: 0, white: 0, black: 0 },
+          prestige: 1,
+          gem: 'blue',
+          level: 1,
+        },
       ];
 
       expect(result.current.isForcedPass()).toBe(false);
@@ -1425,22 +1457,66 @@ describe('Game Store', () => {
       act(() => result.current.setBoardSnapshot());
 
       // Drain all tokens
-      result.current.board.tokens = { red: 0, green: 0, blue: 0, white: 0, black: 0, gold: 0 };
+      result.current.board.tokens = {
+        red: 0,
+        green: 0,
+        blue: 0,
+        white: 0,
+        black: 0,
+        gold: 0,
+      };
       // Max reserved cards, all expensive
       result.current.players[0].reservedCards = [
-        { id: 'r1', cost: { red: 5, green: 0, blue: 0, white: 0, black: 0 }, prestige: 1, gem: 'red', level: 1 },
-        { id: 'r2', cost: { red: 5, green: 0, blue: 0, white: 0, black: 0 }, prestige: 1, gem: 'green', level: 1 },
-        { id: 'r3', cost: { red: 5, green: 0, blue: 0, white: 0, black: 0 }, prestige: 1, gem: 'blue', level: 1 },
+        {
+          id: 'r1',
+          cost: { red: 5, green: 0, blue: 0, white: 0, black: 0 },
+          prestige: 1,
+          gem: 'red',
+          level: 1,
+        },
+        {
+          id: 'r2',
+          cost: { red: 5, green: 0, blue: 0, white: 0, black: 0 },
+          prestige: 1,
+          gem: 'green',
+          level: 1,
+        },
+        {
+          id: 'r3',
+          cost: { red: 5, green: 0, blue: 0, white: 0, black: 0 },
+          prestige: 1,
+          gem: 'blue',
+          level: 1,
+        },
       ];
       // Make all board cards unaffordable
       result.current.board.cards.level1 = [
-        { id: 'b1', cost: { red: 5, green: 0, blue: 0, white: 0, black: 0 }, prestige: 1, gem: 'red', level: 1 },
+        {
+          id: 'b1',
+          cost: { red: 5, green: 0, blue: 0, white: 0, black: 0 },
+          prestige: 1,
+          gem: 'red',
+          level: 1,
+        },
       ];
       result.current.board.cards.level2 = [];
       result.current.board.cards.level3 = [];
       result.current.deck = [];
-      result.current.players[0].tokens = { red: 0, green: 0, blue: 0, white: 0, black: 0, gold: 0 };
-      result.current.players[0].gems = { red: 0, green: 0, blue: 0, white: 0, black: 0 };
+      result.current.players[0].tokens = {
+        red: 0,
+        green: 0,
+        blue: 0,
+        white: 0,
+        black: 0,
+        gold: 0,
+      };
+      result.current.players[0].gems = {
+        red: 0,
+        green: 0,
+        blue: 0,
+        white: 0,
+        black: 0,
+      };
 
       expect(result.current.isForcedPass()).toBe(true);
       expect(result.current.canEndTurn()).toBe(true);
