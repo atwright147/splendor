@@ -940,6 +940,21 @@ describe('Game Store', () => {
       expect(purchased).toBe(false);
       expect(result.current.players[0].cards).not.toContainEqual(card);
     });
+
+    it('returns false (not undefined) when no card is picked', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      // pickedCard is null by default — no card has been picked
+      let returnValue: boolean | undefined;
+      act(() => {
+        returnValue = result.current.commitCard();
+      });
+
+      expect(returnValue).toBe(false);
+      expect(returnValue).not.toBeUndefined();
+    });
   });
 
   describe('pickCard()', () => {

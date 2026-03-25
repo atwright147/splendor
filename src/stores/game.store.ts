@@ -657,7 +657,7 @@ export const useGameStore = create<GameState>()(
           cardToCommit = pickedCard.card;
         } else {
           console.info('No card selected to commit');
-          return;
+          return false;
         }
 
         // Check if the player wants to reserve or cannot afford the card
