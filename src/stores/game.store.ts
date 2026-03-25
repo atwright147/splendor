@@ -906,6 +906,25 @@ export const useGameStore = create<GameState>()(
         return true;
       },
       reserveFromDeck: (level: 1 | 2 | 3) => {
+        if (get().pickedCard !== null) {
+          notify(
+            'Cannot reserve from deck when a card is already picked',
+            'info',
+          );
+          return;
+        }
+
+        const hasPickedTokens = Object.values(get().pickedTokens).some(
+          (count) => count > 0,
+        );
+        if (hasPickedTokens) {
+          notify(
+            'Cannot reserve from deck when tokens are already picked',
+            'info',
+          );
+          return;
+        }
+
         const currentPlayer = get().getCurrentPlayer();
 
         if (currentPlayer.reservedCards.length >= 3) {

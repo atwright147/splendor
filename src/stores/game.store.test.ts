@@ -2392,6 +2392,36 @@ describe('Game Store', () => {
       expect(result.current.tokensToReturn).toBe(0);
     });
 
+    it('does not reserve when a board card is already picked', () => {
+      const result = setup();
+
+      const card = result.current.board.cards.level1[0];
+      act(() => result.current.pickCard(card));
+
+      const reservedBefore =
+        result.current.getCurrentPlayer().reservedCards.length;
+      act(() => result.current.reserveFromDeck(1));
+
+      expect(result.current.getCurrentPlayer().reservedCards.length).toBe(
+        reservedBefore,
+      );
+    });
+
+    it('does not reserve when tokens have already been picked this turn', () => {
+      const result = setup();
+
+      act(() => result.current.pickToken('red'));
+
+      const reservedBefore =
+        result.current.getCurrentPlayer().reservedCards.length;
+      act(() => result.current.reserveFromDeck(1));
+
+      expect(result.current.getCurrentPlayer().reservedCards.length).toBe(
+        reservedBefore,
+      );
+    });
+  });
+
   describe('reset()', () => {
     it('clears tiedPlayers', () => {
       const { result } = renderHook(() => useGameStore());
@@ -2424,10 +2454,12 @@ describe('Game Store', () => {
 
       act(() => result.current.reset());
 
-      expect(result.current.boardSnapshot).toEqual(expect.objectContaining({
-        cards: { level1: [], level2: [], level3: [] },
-        nobles: [],
-      }));
+      expect(result.current.boardSnapshot).toEqual(
+        expect.objectContaining({
+          cards: { level1: [], level2: [], level3: [] },
+          nobles: [],
+        }),
+      );
     });
   });
 });
