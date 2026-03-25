@@ -260,8 +260,7 @@ export const useGameStore = create<GameState>()(
         });
       },
       init: () => {
-        const deckAllCopy = [...deckAll] as Card[];
-        get().deck = deckAllCopy;
+        set({ deck: [...deckAll] as Card[] });
       },
       deal: () => {
         if (get().players.length <= 1) {
