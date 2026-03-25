@@ -86,10 +86,6 @@ export const Game: FC = (): JSX.Element => {
     reserveFromDeck(level);
     const state = useGameStore.getState();
     if (!state.needToReturnTokens) {
-      if (state.hasAffordableNobles()) {
-        setOpenNobleSelectDialog(true);
-        return;
-      }
       endTurn();
     }
   };
