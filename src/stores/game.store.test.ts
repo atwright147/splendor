@@ -1675,6 +1675,123 @@ describe('Game Store', () => {
 
         expect(result.current.isGameOver).toBe(false);
       });
+
+      it('includes all three players in tiedPlayers on a 3-way tie (same prestige, same card count)', () => {
+        const { result } = renderHook(() => useGameStore());
+
+        act(() => result.current.createPlayers(4));
+        act(() => result.current.init());
+        act(() => result.current.deal());
+        // currentPlayerIndex = 3 → nextPlayerIndex = 0 = finalRoundPlayer
+        act(() => result.current.setCurrentPlayerIndex(3));
+
+        result.current.finalRoundTriggered = true;
+        result.current.finalRoundPlayer = 0;
+
+        const makeCards = (n: number) =>
+          Array(n).fill({
+            id: 'x',
+            cost: { red: 0, green: 0, blue: 0, white: 0, black: 0 },
+            prestige: 0,
+            gem: 'red' as const,
+            level: 1,
+          });
+
+        result.current.players[0].prestige = 15;
+        result.current.players[0].cards = makeCards(3);
+        result.current.players[1].prestige = 15;
+        result.current.players[1].cards = makeCards(3);
+        result.current.players[2].prestige = 15;
+        result.current.players[2].cards = makeCards(3);
+        result.current.players[3].prestige = 10;
+        result.current.players[3].cards = makeCards(2);
+
+        act(() => result.current.checkWinCondition());
+
+        expect(result.current.isGameOver).toBe(true);
+        expect(result.current.winner).toBeNull();
+        expect(result.current.tiedPlayers).toHaveLength(3);
+        const tiedUuids = result.current.tiedPlayers.map((p) => p.uuid);
+        expect(tiedUuids).toContain(result.current.players[0].uuid);
+        expect(tiedUuids).toContain(result.current.players[1].uuid);
+        expect(tiedUuids).toContain(result.current.players[2].uuid);
+      });
+
+      it('includes all four players in tiedPlayers on a 4-way tie', () => {
+        const { result } = renderHook(() => useGameStore());
+
+        act(() => result.current.createPlayers(4));
+        act(() => result.current.init());
+        act(() => result.current.deal());
+        act(() => result.current.setCurrentPlayerIndex(3));
+
+        result.current.finalRoundTriggered = true;
+        result.current.finalRoundPlayer = 0;
+
+        const makeCards = (n: number) =>
+          Array(n).fill({
+            id: 'x',
+            cost: { red: 0, green: 0, blue: 0, white: 0, black: 0 },
+            prestige: 0,
+            gem: 'red' as const,
+            level: 1,
+          });
+
+        result.current.players[0].prestige = 15;
+        result.current.players[0].cards = makeCards(3);
+        result.current.players[1].prestige = 15;
+        result.current.players[1].cards = makeCards(3);
+        result.current.players[2].prestige = 15;
+        result.current.players[2].cards = makeCards(3);
+        result.current.players[3].prestige = 15;
+        result.current.players[3].cards = makeCards(3);
+
+        act(() => result.current.checkWinCondition());
+
+        expect(result.current.isGameOver).toBe(true);
+        expect(result.current.winner).toBeNull();
+        expect(result.current.tiedPlayers).toHaveLength(4);
+      });
+
+      it('middle player is not dropped from tiedPlayers in a 3-way prestige+card tie', () => {
+        // Regression: previously tiedIndexes = [winnerIndex, index] overwrote the list,
+        // causing the middle tied player to be lost.
+        const { result } = renderHook(() => useGameStore());
+
+        act(() => result.current.createPlayers(4));
+        act(() => result.current.init());
+        act(() => result.current.deal());
+        act(() => result.current.setCurrentPlayerIndex(3));
+
+        result.current.finalRoundTriggered = true;
+        result.current.finalRoundPlayer = 0;
+
+        const makeCards = (n: number) =>
+          Array(n).fill({
+            id: 'x',
+            cost: { red: 0, green: 0, blue: 0, white: 0, black: 0 },
+            prestige: 0,
+            gem: 'red' as const,
+            level: 1,
+          });
+
+        // Players 0, 1, 2 all tied; player 3 loses badly
+        result.current.players[0].prestige = 15;
+        result.current.players[0].cards = makeCards(3);
+        result.current.players[1].prestige = 15;
+        result.current.players[1].cards = makeCards(3);
+        result.current.players[2].prestige = 15;
+        result.current.players[2].cards = makeCards(3);
+        result.current.players[3].prestige = 5;
+        result.current.players[3].cards = makeCards(1);
+
+        act(() => result.current.checkWinCondition());
+
+        const tiedUuids = result.current.tiedPlayers.map((p) => p.uuid);
+        // All three tied players must be present — player 1 (the "middle" one) must not be dropped
+        expect(tiedUuids).toContain(result.current.players[1].uuid);
+        expect(result.current.tiedPlayers).toHaveLength(3);
+      });
     });
   });
 

@@ -1139,7 +1139,11 @@ export const useGameStore = create<GameState>()(
                 winnerIndex = index;
                 tiedIndexes = [];
               } else if (player.cards.length === currentWinner.cards.length) {
-                tiedIndexes = [winnerIndex, index];
+                if (tiedIndexes.length === 0) {
+                  tiedIndexes = [winnerIndex, index];
+                } else {
+                  tiedIndexes.push(index);
+                }
               }
             }
           });
