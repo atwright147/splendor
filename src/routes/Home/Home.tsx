@@ -6,6 +6,7 @@ import styles from './Home.module.css';
 
 export const Home = (): JSX.Element => {
   const [playerCount, setPlayerCount] = useState(2);
+  const [playerCountError, setPlayerCountError] = useState('');
   const [botCount, setBotCount] = useState(2);
   const { createPlayers, deal, init, setBoardSnapshot } = useGameStore(
     useShallow((state) => ({
@@ -19,6 +20,12 @@ export const Home = (): JSX.Element => {
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
 
+    if (playerCount < 2 || playerCount > 4) {
+      setPlayerCountError('Number of players must be between 2 and 4.');
+      return;
+    }
+
+    setPlayerCountError('');
     createPlayers(playerCount);
     init();
     deal();
@@ -44,8 +51,12 @@ export const Home = (): JSX.Element => {
               min="2"
               max="4"
               value={playerCount}
-              onChange={(e) => setPlayerCount(Number(e.target.value))}
+              onChange={(e) => {
+                setPlayerCount(Number(e.target.value));
+                setPlayerCountError('');
+              }}
             />
+            {playerCountError && <p role="alert">{playerCountError}</p>}
           </div>
 
           <div className={styles.field}>
