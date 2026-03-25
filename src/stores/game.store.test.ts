@@ -972,7 +972,11 @@ describe('Game Store', () => {
 
       act(() => result.current.pickCard(card));
 
-      expect(result.current.pickedCard).toEqual({ boardIndex: -1, card, intent: 'buy' });
+      expect(result.current.pickedCard).toEqual({
+        boardIndex: -1,
+        card,
+        intent: 'buy',
+      });
     });
 
     it('reserves a card when there are multiple players', () => {
@@ -1002,7 +1006,11 @@ describe('Game Store', () => {
 
       act(() => result.current.pickCard(card));
 
-      expect(result.current.pickedCard).toEqual({ boardIndex: -1, card, intent: 'buy' });
+      expect(result.current.pickedCard).toEqual({
+        boardIndex: -1,
+        card,
+        intent: 'buy',
+      });
     });
 
     it('removes card from the board', () => {

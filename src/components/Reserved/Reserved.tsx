@@ -8,7 +8,13 @@ import { type TokenColors, useGameStore } from '#stores/game.store';
 import styles from './Reserved.module.css';
 
 export const Reserved: FC = (): JSX.Element | null => {
-  const { pickedCard, pickedTokens, returnToken, canAffordCard, setPickedCardIntent } = useGameStore(
+  const {
+    pickedCard,
+    pickedTokens,
+    returnToken,
+    canAffordCard,
+    setPickedCardIntent,
+  } = useGameStore(
     useShallow((state) => ({
       pickedCard: state.pickedCard,
       pickedTokens: state.pickedTokens,

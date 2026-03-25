@@ -27,12 +27,7 @@ export const PlayerInfo: FC<Props> = ({
     return <div className={styles.container}>Player not found</div>;
   }
 
-  const tokenCount =
-    player.tokens.red +
-    player.tokens.green +
-    player.tokens.blue +
-    player.tokens.black +
-    player.tokens.white;
+  const tokenCount = Object.values(player.tokens).reduce((s, n) => s + n, 0);
 
   let isCurrentPlayer = false;
   if (getCurrentPlayer().uuid === id) {
