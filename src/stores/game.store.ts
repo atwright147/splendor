@@ -792,7 +792,9 @@ export const useGameStore = create<GameState>()(
               (card) => card.level === pickedCardLevel,
             );
             const newCard =
-              availableCards.length > 0 ? availableCards[0] : null;
+              availableCards.length > 0
+                ? availableCards[random(0, availableCards.length - 1)]
+                : null;
 
             // Update the cards on the board
             updatedBoard.cards = {
