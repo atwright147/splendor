@@ -8,12 +8,15 @@ import styles from './PlayerInfo.module.css';
 
 interface Props {
   id: Uuid;
+  onReservedCardClick: (index: number) => void;
 }
 
-export const PlayerInfo: FC<Props> = ({ id }): JSX.Element => {
-  const { commitCard, getPlayerById, getCurrentPlayer } = useGameStore(
+export const PlayerInfo: FC<Props> = ({
+  id,
+  onReservedCardClick,
+}): JSX.Element => {
+  const { getPlayerById, getCurrentPlayer } = useGameStore(
     useShallow((state) => ({
-      commitCard: state.commitCard,
       getPlayerById: state.getPlayerById,
       getCurrentPlayer: state.getCurrentPlayer,
     })),
@@ -83,7 +86,7 @@ export const PlayerInfo: FC<Props> = ({ id }): JSX.Element => {
             key={card.id}
             card={card}
             width={100}
-            onClick={() => commitCard(index)}
+            onClick={() => onReservedCardClick(index)}
           />
         ))}
       </div>

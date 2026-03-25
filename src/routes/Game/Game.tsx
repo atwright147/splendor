@@ -22,6 +22,7 @@ export const Game: FC = (): JSX.Element => {
   const {
     board,
     canEndTurn,
+    commitCard,
     endTurn,
     createPlayers,
     deal,
@@ -40,6 +41,7 @@ export const Game: FC = (): JSX.Element => {
     useShallow((state) => ({
       board: state.board,
       createPlayers: state.createPlayers,
+      commitCard: state.commitCard,
       deal: state.deal,
       init: state.init,
       setBoardSnapshot: state.setBoardSnapshot,
@@ -103,6 +105,20 @@ export const Game: FC = (): JSX.Element => {
     }
   };
 
+  const handleReservedCardPurchase = (index: number): void => {
+    const purchased = commitCard(index);
+    if (!purchased) return;
+
+    const state = useGameStore.getState();
+    if (!state.needToReturnTokens) {
+      if (state.hasAffordableNobles()) {
+        setOpenNobleSelectDialog(true);
+        return;
+      }
+      endTurn();
+    }
+  };
+
   const handlePlayAgain = (): void => {
     reset();
     navigate('/');
@@ -117,7 +133,11 @@ export const Game: FC = (): JSX.Element => {
 
         <div className={styles.players}>
           {players.map((player) => (
-            <PlayerInfo key={player.uuid} id={player.uuid} />
+            <PlayerInfo
+              key={player.uuid}
+              id={player.uuid}
+              onReservedCardClick={handleReservedCardPurchase}
+            />
           ))}
         </div>
 

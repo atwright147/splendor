@@ -112,7 +112,7 @@ interface GameState {
   getAffordableNobles: () => Noble[];
   hasAffordableNobles: () => boolean;
   removePlayerTokensByCardCost: (cardCost: Gems) => Tokens;
-  commitCard: (reservedCardIndex?: number) => void;
+  commitCard: (reservedCardIndex?: number) => boolean;
   pickCard: (card: Card) => void;
   reserveFromDeck: (level: 1 | 2 | 3) => void;
   claimNoble: (noble: Noble) => void;
@@ -681,7 +681,7 @@ export const useGameStore = create<GameState>()(
                 },
                 pickedCard: null,
               }));
-              return;
+              return false;
             }
 
             // Reserve the card and give a gold token if available
@@ -728,12 +728,12 @@ export const useGameStore = create<GameState>()(
                   : '.'),
               'success',
             );
-            return;
+            return false;
           }
 
           // If trying to buy a reserved card but can't afford it, notify and do nothing
           notify('Cannot afford this card', 'error');
-          return;
+          return false;
         }
 
         // Calculate the actual tokens spent by the player
@@ -872,6 +872,8 @@ export const useGameStore = create<GameState>()(
           `Card purchased for ${tokenDetails || 'free (using gems)'}`,
           'success',
         );
+
+        return true;
       },
       reserveFromDeck: (level: 1 | 2 | 3) => {
         const currentPlayer = get().getCurrentPlayer();

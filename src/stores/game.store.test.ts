@@ -817,6 +817,129 @@ describe('Game Store', () => {
 
       expect(result.current.players[0].cards).toContain(card);
     });
+
+    it('returns true when a card is successfully purchased from the board', () => {
+      const { result } = renderHook(() => useGameStore());
+      const card: Card = {
+        id: 'mockUuid-1',
+        cost: { red: 1, green: 2, blue: 0, black: 0, white: 0 },
+        prestige: 1,
+        gem: 'red',
+        level: 1,
+      };
+
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      result.current.players[0].tokens = {
+        red: 1,
+        green: 2,
+        blue: 0,
+        black: 0,
+        white: 0,
+        gold: 0,
+      };
+
+      act(() => result.current.pickCard(card));
+
+      let purchased = false;
+      act(() => {
+        purchased = result.current.commitCard();
+      });
+
+      expect(purchased).toBe(true);
+    });
+
+    it('returns false when the player cannot afford the card and it is reserved instead', () => {
+      const { result } = renderHook(() => useGameStore());
+      const card: Card = {
+        id: 'mockUuid-1',
+        cost: { red: 5, green: 5, blue: 0, black: 0, white: 0 },
+        prestige: 1,
+        gem: 'red',
+        level: 1,
+      };
+
+      act(() => result.current.setCurrentPlayerIndex(0));
+      result.current.players[0].tokens = {
+        red: 0,
+        green: 0,
+        blue: 0,
+        black: 0,
+        white: 0,
+        gold: 0,
+      };
+
+      act(() => result.current.pickCard(card));
+
+      let purchased = false;
+      act(() => {
+        purchased = result.current.commitCard();
+      });
+
+      expect(purchased).toBe(false);
+      expect(result.current.players[0].reservedCards).toContainEqual(card);
+    });
+
+    it('returns true when purchasing a card from reservedCards', () => {
+      const { result } = renderHook(() => useGameStore());
+      const card: Card = {
+        id: 'mockUuid-reserved',
+        cost: { red: 1, green: 0, blue: 0, black: 0, white: 0 },
+        prestige: 2,
+        gem: 'green',
+        level: 1,
+      };
+
+      act(() => result.current.setCurrentPlayerIndex(0));
+      result.current.players[0].reservedCards = [card];
+      result.current.players[0].tokens = {
+        red: 1,
+        green: 0,
+        blue: 0,
+        black: 0,
+        white: 0,
+        gold: 0,
+      };
+
+      let purchased = false;
+      act(() => {
+        purchased = result.current.commitCard(0);
+      });
+
+      expect(purchased).toBe(true);
+      expect(result.current.players[0].cards).toContainEqual(card);
+      expect(result.current.players[0].reservedCards).not.toContainEqual(card);
+    });
+
+    it('returns false when trying to purchase a reserved card the player cannot afford', () => {
+      const { result } = renderHook(() => useGameStore());
+      const card: Card = {
+        id: 'mockUuid-reserved',
+        cost: { red: 5, green: 0, blue: 0, black: 0, white: 0 },
+        prestige: 2,
+        gem: 'green',
+        level: 1,
+      };
+
+      act(() => result.current.setCurrentPlayerIndex(0));
+      result.current.players[0].reservedCards = [card];
+      result.current.players[0].tokens = {
+        red: 0,
+        green: 0,
+        blue: 0,
+        black: 0,
+        white: 0,
+        gold: 0,
+      };
+
+      let purchased = false;
+      act(() => {
+        purchased = result.current.commitCard(0);
+      });
+
+      expect(purchased).toBe(false);
+      expect(result.current.players[0].cards).not.toContainEqual(card);
+    });
   });
 
   describe('pickCard()', () => {
