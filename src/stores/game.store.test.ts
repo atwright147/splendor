@@ -1232,9 +1232,11 @@ describe('Game Store', () => {
       act(() => result.current.init());
       act(() => result.current.deal());
       act(() => result.current.setCurrentPlayerIndex(0));
+
+      const playerUuid = result.current.players[0].uuid;
       act(() => result.current.claimNoble(noble));
 
-      const player = result.current.getCurrentPlayer();
+      const player = result.current.getPlayerById(playerUuid)!;
 
       expect(player.prestige).toBe(10);
       expect(player.nobles).toContainEqual(noble);
@@ -1268,6 +1270,7 @@ describe('Game Store', () => {
       act(() => result.current.setCurrentPlayerIndex(0));
 
       const noble = result.current.board.nobles[0];
+      const otherPlayerUuid = result.current.players[1].uuid;
 
       result.current.pickedTokens = {
         ...noble.cost,
@@ -1275,8 +1278,7 @@ describe('Game Store', () => {
 
       act(() => result.current.claimNoble(noble));
 
-      const otherPlayerIndex = result.current.currentPlayerIndex === 0 ? 1 : 0;
-      const otherPlayer = result.current.players[otherPlayerIndex];
+      const otherPlayer = result.current.getPlayerById(otherPlayerUuid)!;
 
       expect(otherPlayer.prestige).toBe(0);
       expect(otherPlayer.nobles).not.toContainEqual(noble);

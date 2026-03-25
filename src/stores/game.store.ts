@@ -94,6 +94,7 @@ interface GameState {
   finalRoundPlayer: number | null;
   needToReturnTokens: boolean;
   tokensToReturn: number;
+  needsNobleCheck: boolean;
 
   setBoardSnapshot: () => void;
   resetBoardSnapshot: () => void;
@@ -188,6 +189,7 @@ export const useGameStore = create<GameState>()(
       finalRoundPlayer: null,
       needToReturnTokens: false,
       tokensToReturn: 0,
+      needsNobleCheck: false,
 
       setBoardSnapshot: () => set({ boardSnapshot: { ...get().board } }),
       resetBoardSnapshot: () =>
@@ -262,6 +264,7 @@ export const useGameStore = create<GameState>()(
           finalRoundPlayer: null,
           needToReturnTokens: false,
           tokensToReturn: 0,
+          needsNobleCheck: false,
         });
       },
       init: () => {
@@ -996,7 +999,15 @@ export const useGameStore = create<GameState>()(
             ...state.board,
             nobles: state.board.nobles.filter((n) => n.id !== noble.id),
           },
+          needsNobleCheck: false,
         }));
+
+        get().setBoardSnapshot();
+        get().checkWinCondition();
+
+        if (!get().isGameOver) {
+          get().nextPlayer();
+        }
       },
       nextPlayer: () => {
         set((state) => ({
@@ -1006,6 +1017,11 @@ export const useGameStore = create<GameState>()(
         }));
       },
       finishTurn: () => {
+        if (get().hasAffordableNobles()) {
+          set({ needsNobleCheck: true });
+          return;
+        }
+
         get().setBoardSnapshot();
         get().checkWinCondition();
 

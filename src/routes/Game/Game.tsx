@@ -33,7 +33,7 @@ export const Game: FC = (): JSX.Element => {
     reserveToken,
     reserveFromDeck,
     deck,
-    hasAffordableNobles,
+    needsNobleCheck,
     isForcedPass,
     isGameOver,
     winner,
@@ -54,7 +54,7 @@ export const Game: FC = (): JSX.Element => {
       deck: state.deck,
       canEndTurn: state.canEndTurn,
       endTurn: state.endTurn,
-      hasAffordableNobles: state.hasAffordableNobles,
+      needsNobleCheck: state.needsNobleCheck,
       isForcedPass: state.isForcedPass,
       isGameOver: state.isGameOver,
       winner: state.winner,
@@ -78,6 +78,10 @@ export const Game: FC = (): JSX.Element => {
 
   const [openNobleSelectDialog, setOpenNobleSelectDialog] = useState(false);
 
+  useEffect(() => {
+    setOpenNobleSelectDialog(needsNobleCheck);
+  }, [needsNobleCheck]);
+
   const handleCardClick = (card: CardType): void => {
     reserveCard(card);
   };
@@ -95,11 +99,6 @@ export const Game: FC = (): JSX.Element => {
   };
 
   const handleEndTurn = (): void => {
-    if (hasAffordableNobles()) {
-      setOpenNobleSelectDialog(true);
-      return;
-    }
-
     if (canEndTurn()) {
       endTurn();
     }
@@ -111,10 +110,6 @@ export const Game: FC = (): JSX.Element => {
 
     const state = useGameStore.getState();
     if (!state.needToReturnTokens) {
-      if (state.hasAffordableNobles()) {
-        setOpenNobleSelectDialog(true);
-        return;
-      }
       endTurn();
     }
   };

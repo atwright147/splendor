@@ -14,11 +14,10 @@ export const NobleSelectDialog = ({
   onOpenChange,
   open = false,
 }: Props): JSX.Element => {
-  const { getAffordableNobles, claimNoble, endTurn } = useGameStore(
+  const { getAffordableNobles, claimNoble } = useGameStore(
     useShallow((state) => ({
       getAffordableNobles: state.getAffordableNobles,
       claimNoble: state.claimNoble,
-      endTurn: state.endTurn,
     })),
   );
 
@@ -83,7 +82,6 @@ export const NobleSelectDialog = ({
                 onClick={() => {
                   if (selectedNoble) {
                     claimNoble(selectedNoble);
-                    endTurn();
                   }
                 }}
               >
