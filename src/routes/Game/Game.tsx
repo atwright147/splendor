@@ -91,7 +91,8 @@ export const Game: FC = (): JSX.Element => {
   };
 
   const handleReserveFromDeck = (level: 1 | 2 | 3): void => {
-    reserveFromDeck(level);
+    const success = reserveFromDeck(level);
+    if (!success) return;
     const state = useGameStore.getState();
     if (!state.needToReturnTokens) {
       endTurn();

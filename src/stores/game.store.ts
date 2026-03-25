@@ -119,7 +119,7 @@ interface GameState {
   commitCard: (reservedCardIndex?: number) => boolean;
   pickCard: (card: Card) => void;
   setPickedCardIntent: (intent: 'buy' | 'reserve') => void;
-  reserveFromDeck: (level: 1 | 2 | 3) => void;
+  reserveFromDeck: (level: 1 | 2 | 3) => boolean;
   claimNoble: (noble: Noble) => void;
   nextPlayer: () => void;
   canEndTurn: () => boolean;
@@ -911,7 +911,7 @@ export const useGameStore = create<GameState>()(
             'Cannot reserve from deck when a card is already picked',
             'info',
           );
-          return;
+          return false;
         }
 
         const hasPickedTokens = Object.values(get().pickedTokens).some(
@@ -922,14 +922,14 @@ export const useGameStore = create<GameState>()(
             'Cannot reserve from deck when tokens are already picked',
             'info',
           );
-          return;
+          return false;
         }
 
         const currentPlayer = get().getCurrentPlayer();
 
         if (currentPlayer.reservedCards.length >= 3) {
           notify('Cannot reserve more than 3 cards', 'error');
-          return;
+          return false;
         }
 
         const availableCards = get().deck.filter(
@@ -938,7 +938,7 @@ export const useGameStore = create<GameState>()(
 
         if (availableCards.length === 0) {
           notify(`No cards remaining in level ${level} deck`, 'info');
-          return;
+          return false;
         }
 
         const card = availableCards[random(0, availableCards.length - 1)];
@@ -986,6 +986,8 @@ export const useGameStore = create<GameState>()(
           }`,
           'success',
         );
+
+        return true;
       },
       pickCard: (card) => {
         if (get().pickedCard) return;

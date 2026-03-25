@@ -2392,6 +2392,15 @@ describe('Game Store', () => {
       expect(result.current.tokensToReturn).toBe(0);
     });
 
+    it('returns true on a successful reserve', () => {
+      const result = setup();
+      let returnValue: boolean | undefined;
+      act(() => {
+        returnValue = result.current.reserveFromDeck(1);
+      });
+      expect(returnValue).toBe(true);
+    });
+
     it('does not reserve when a board card is already picked', () => {
       const result = setup();
 
@@ -2400,8 +2409,12 @@ describe('Game Store', () => {
 
       const reservedBefore =
         result.current.getCurrentPlayer().reservedCards.length;
-      act(() => result.current.reserveFromDeck(1));
+      let returnValue: boolean | undefined;
+      act(() => {
+        returnValue = result.current.reserveFromDeck(1);
+      });
 
+      expect(returnValue).toBe(false);
       expect(result.current.getCurrentPlayer().reservedCards.length).toBe(
         reservedBefore,
       );
@@ -2414,8 +2427,12 @@ describe('Game Store', () => {
 
       const reservedBefore =
         result.current.getCurrentPlayer().reservedCards.length;
-      act(() => result.current.reserveFromDeck(1));
+      let returnValue: boolean | undefined;
+      act(() => {
+        returnValue = result.current.reserveFromDeck(1);
+      });
 
+      expect(returnValue).toBe(false);
       expect(result.current.getCurrentPlayer().reservedCards.length).toBe(
         reservedBefore,
       );
