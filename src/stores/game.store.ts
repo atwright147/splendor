@@ -964,6 +964,16 @@ export const useGameStore = create<GameState>()(
       pickCard: (card) => {
         if (get().pickedCard) return;
 
+        // Cannot pick a card when tokens have already been picked this turn
+        const { pickedTokens } = get();
+        const hasPickedTokens = Object.values(pickedTokens).some(
+          (count) => count > 0,
+        );
+        if (hasPickedTokens) {
+          notify('Cannot pick a card when tokens are already picked', 'info');
+          return;
+        }
+
         set((state) => ({
           board: {
             ...state.board,

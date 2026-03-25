@@ -540,6 +540,13 @@ describe('Game Store', () => {
       result.current.players[0].tokens.black = 0;
       result.current.players[0].tokens.white = 0;
       result.current.players[0].tokens.gold = 0;
+      result.current.players[0].gems = {
+        red: 0,
+        green: 0,
+        blue: 0,
+        black: 0,
+        white: 0,
+      };
 
       expect(result.current.canAffordCard(card)).toBe(false);
     });
@@ -1236,6 +1243,25 @@ describe('Game Store', () => {
         intent: 'buy',
       });
     });
+
+    it('does not pick a card when tokens are already picked this turn', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setBoardSnapshot());
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      act(() => result.current.pickToken('red'));
+
+      expect(result.current.pickedTokens.red).toBe(1);
+
+      const card = result.current.board.cards.level1[0];
+      act(() => result.current.pickCard(card));
+
+      expect(result.current.pickedCard).toBeNull();
+    });
   });
 
   describe('claimNoble()', () => {
@@ -1533,8 +1559,8 @@ describe('Game Store', () => {
         level: 1,
       };
 
-      act(() => result.current.pickCard(card));
-      act(() => result.current.pickToken('red'));
+      result.current.pickedCard = { card, intent: 'buy', boardIndex: -1 };
+      result.current.pickedTokens.red = 1;
 
       expect(result.current.canEndTurn()).toBe(false);
     });
