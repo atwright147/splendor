@@ -957,6 +957,45 @@ describe('Game Store', () => {
       expect(returnValue).not.toBeUndefined();
     });
 
+    it('restores orphaned board card when buying a reserved card while a board card is picked', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      // Grab a board card and pick it
+      const boardCard = result.current.board.cards.level1[0];
+      const boardCardsBefore = result.current.board.cards.level1.length;
+
+      act(() => result.current.pickCard(boardCard));
+
+      // Board now missing the picked card
+      expect(result.current.board.cards.level1).not.toContainEqual(boardCard);
+      expect(result.current.pickedCard?.card).toEqual(boardCard);
+
+      // Now buy a reserved card while boardCard is still orphaned
+      const reservedCard: Card = {
+        id: 'mockUuid-reserved-orphan',
+        cost: { red: 0, green: 0, blue: 0, black: 0, white: 0 },
+        prestige: 1,
+        gem: 'red',
+        level: 1,
+      };
+      result.current.players[0].reservedCards = [reservedCard];
+
+      act(() => result.current.commitCard(0));
+
+      // Reserved card should be purchased
+      expect(result.current.players[0].cards).toContainEqual(reservedCard);
+      // Orphaned board card should be restored to the board
+      expect(result.current.board.cards.level1).toContainEqual(boardCard);
+      expect(result.current.board.cards.level1.length).toBe(boardCardsBefore);
+      // pickedCard should be cleared
+      expect(result.current.pickedCard).toBeNull();
+    });
+
     describe('reservation notification includes gold when last gold is taken', () => {
       beforeEach(() => {
         const { result: notifResult } = renderHook(() =>

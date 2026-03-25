@@ -834,10 +834,26 @@ export const useGameStore = create<GameState>()(
             };
           }
 
-          // If card was from reserved pile, don't need to update board cards or deck
+          // If card was from reserved pile, don't need to update board cards or deck.
+          // If a board card was orphaned (picked but not committed), restore it.
+          const restoredBoard =
+            state.pickedCard !== null
+              ? (() => {
+                  const orphan = state.pickedCard;
+                  const levelKey =
+                    `level${orphan.card.level}` as keyof typeof state.board.cards;
+                  const currentCards = [...updatedBoard.cards[levelKey]];
+                  currentCards.splice(orphan.boardIndex, 0, orphan.card);
+                  return {
+                    ...updatedBoard,
+                    cards: { ...updatedBoard.cards, [levelKey]: currentCards },
+                  };
+                })()
+              : updatedBoard;
+
           return {
             ...state,
-            board: updatedBoard,
+            board: restoredBoard,
             players: state.players.map((player, i) =>
               i === get().currentPlayerIndex
                 ? {
@@ -857,8 +873,7 @@ export const useGameStore = create<GameState>()(
                   }
                 : player,
             ),
-            // Clear picked card if applicable
-            pickedCard: !fromReserved ? null : state.pickedCard,
+            pickedCard: null,
           };
         });
 
