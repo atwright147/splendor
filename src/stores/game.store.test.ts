@@ -1281,7 +1281,8 @@ describe('Game Store', () => {
       const playerUuid = result.current.players[0].uuid;
       act(() => result.current.claimNoble(noble));
 
-      const player = result.current.getPlayerById(playerUuid)!;
+      const player = result.current.getPlayerById(playerUuid);
+      if (!player) throw new Error('Player not found');
 
       expect(player.prestige).toBe(10);
       expect(player.nobles).toContainEqual(noble);
@@ -1323,7 +1324,8 @@ describe('Game Store', () => {
 
       act(() => result.current.claimNoble(noble));
 
-      const otherPlayer = result.current.getPlayerById(otherPlayerUuid)!;
+      const otherPlayer = result.current.getPlayerById(otherPlayerUuid);
+      if (!otherPlayer) throw new Error('Player not found');
 
       expect(otherPlayer.prestige).toBe(0);
       expect(otherPlayer.nobles).not.toContainEqual(noble);
