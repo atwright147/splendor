@@ -34,6 +34,7 @@ export const Game: FC = (): JSX.Element => {
     reserveFromDeck,
     deck,
     hasAffordableNobles,
+    isForcedPass,
     isGameOver,
     winner,
     reset,
@@ -53,6 +54,7 @@ export const Game: FC = (): JSX.Element => {
       canEndTurn: state.canEndTurn,
       endTurn: state.endTurn,
       hasAffordableNobles: state.hasAffordableNobles,
+      isForcedPass: state.isForcedPass,
       isGameOver: state.isGameOver,
       winner: state.winner,
       reset: state.reset,
@@ -231,7 +233,7 @@ export const Game: FC = (): JSX.Element => {
               onClick={handleEndTurn}
               disabled={!canEndTurn()}
             >
-              End Turn?
+              {isForcedPass() ? 'Pass' : 'End Turn?'}
             </button>
           )}
         </div>

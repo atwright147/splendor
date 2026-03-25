@@ -120,6 +120,7 @@ interface GameState {
   claimNoble: (noble: Noble) => void;
   nextPlayer: () => void;
   canEndTurn: () => boolean;
+  isForcedPass: () => boolean;
   checkWinCondition: () => void;
   finishTurn: () => void;
   endTurn: () => void;
@@ -1010,6 +1011,11 @@ export const useGameStore = create<GameState>()(
           return false;
         }
 
+        // Forced pass: no valid action is possible
+        if (get().isForcedPass()) {
+          return true;
+        }
+
         if (
           pickedCard !== null &&
           Object.values(pickedTokens).every((qty) => qty === 0)
@@ -1048,6 +1054,42 @@ export const useGameStore = create<GameState>()(
         }
 
         return false;
+      },
+      isForcedPass: () => {
+        const { board, pickedCard, pickedTokens } = get();
+        const currentPlayer = get().getCurrentPlayer();
+
+        // Not forced if the player has already taken an action this turn
+        if (pickedCard !== null) return false;
+        if (Object.values(pickedTokens).some((qty) => qty > 0)) return false;
+
+        // Can take tokens if any gem colour has tokens remaining
+        const anyTokensAvailable = (Object.keys(defaultGems) as GemColors[]).some(
+          (color) => board.tokens[color] > 0,
+        );
+        if (anyTokensAvailable) return false;
+
+        // Can reserve from deck if under the 3-card limit
+        const allLevelCards = [
+          ...board.cards.level1,
+          ...board.cards.level2,
+          ...board.cards.level3,
+        ];
+        const deckHasCards = get().deck.length > 0;
+        const canReserve =
+          currentPlayer.reservedCards.length < 3 &&
+          (allLevelCards.length > 0 || deckHasCards);
+        if (canReserve) return false;
+
+        // Can buy any card on the board or in reserved hand
+        const boardCards = allLevelCards;
+        const allAvailableCards = [...boardCards, ...currentPlayer.reservedCards];
+        const canAffordAny = allAvailableCards.some((card) =>
+          get().canAffordCard(card),
+        );
+        if (canAffordAny) return false;
+
+        return true;
       },
       checkWinCondition: () => {
         const currentPlayer = get().getCurrentPlayer();

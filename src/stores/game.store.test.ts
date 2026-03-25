@@ -1372,6 +1372,81 @@ describe('Game Store', () => {
     });
   });
 
+  describe('isForcedPass()', () => {
+    it('returns false when tokens are available to take', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setBoardSnapshot());
+
+      // board has tokens after deal
+      expect(result.current.isForcedPass()).toBe(false);
+    });
+
+    it('returns false when player has fewer than 3 reserved cards and a card on the board', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setBoardSnapshot());
+
+      result.current.board.tokens = { red: 0, green: 0, blue: 0, white: 0, black: 0, gold: 0 };
+
+      expect(result.current.isForcedPass()).toBe(false);
+    });
+
+    it('returns false when player can afford a card', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setBoardSnapshot());
+
+      result.current.board.tokens = { red: 0, green: 0, blue: 0, white: 0, black: 0, gold: 0 };
+      result.current.players[0].reservedCards = [
+        { id: 'r1', cost: { red: 0, green: 0, blue: 0, white: 0, black: 0 }, prestige: 1, gem: 'red', level: 1 },
+        { id: 'r2', cost: { red: 0, green: 0, blue: 0, white: 0, black: 0 }, prestige: 1, gem: 'green', level: 1 },
+        { id: 'r3', cost: { red: 0, green: 0, blue: 0, white: 0, black: 0 }, prestige: 1, gem: 'blue', level: 1 },
+      ];
+
+      expect(result.current.isForcedPass()).toBe(false);
+    });
+
+    it('returns true when no tokens available, 3 cards reserved, and cannot afford any card', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setBoardSnapshot());
+
+      // Drain all tokens
+      result.current.board.tokens = { red: 0, green: 0, blue: 0, white: 0, black: 0, gold: 0 };
+      // Max reserved cards, all expensive
+      result.current.players[0].reservedCards = [
+        { id: 'r1', cost: { red: 5, green: 0, blue: 0, white: 0, black: 0 }, prestige: 1, gem: 'red', level: 1 },
+        { id: 'r2', cost: { red: 5, green: 0, blue: 0, white: 0, black: 0 }, prestige: 1, gem: 'green', level: 1 },
+        { id: 'r3', cost: { red: 5, green: 0, blue: 0, white: 0, black: 0 }, prestige: 1, gem: 'blue', level: 1 },
+      ];
+      // Make all board cards unaffordable
+      result.current.board.cards.level1 = [
+        { id: 'b1', cost: { red: 5, green: 0, blue: 0, white: 0, black: 0 }, prestige: 1, gem: 'red', level: 1 },
+      ];
+      result.current.board.cards.level2 = [];
+      result.current.board.cards.level3 = [];
+      result.current.deck = [];
+      result.current.players[0].tokens = { red: 0, green: 0, blue: 0, white: 0, black: 0, gold: 0 };
+      result.current.players[0].gems = { red: 0, green: 0, blue: 0, white: 0, black: 0 };
+
+      expect(result.current.isForcedPass()).toBe(true);
+      expect(result.current.canEndTurn()).toBe(true);
+    });
+  });
+
   describe('checkWinCondition()', () => {
     it('should return true if a player has 15 or more prestige points', () => {
       const { result } = renderHook(() => useGameStore());
