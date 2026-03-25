@@ -1409,6 +1409,95 @@ describe('Game Store', () => {
 
       expect(result.current.boardSnapshot).toEqual(result.current.board);
     });
+
+    it('does not advance the turn when needsNobleCheck is true', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.createPlayers(3));
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      result.current.needsNobleCheck = true;
+
+      act(() => result.current.nextPlayer());
+
+      expect(result.current.currentPlayerIndex).toBe(0);
+    });
+  });
+
+  describe('finishTurn()', () => {
+    it('sets needsNobleCheck when a noble became affordable this turn', () => {
+      const { result } = renderHook(() => useGameStore());
+      const noble: Noble = {
+        id: 'n1',
+        prestige: 3,
+        cost: { red: 3, green: 3, blue: 0, black: 0, white: 0 },
+      };
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      result.current.board.nobles = [noble];
+      result.current.noblesAffordableAtTurnStart = [];
+      result.current.players[0].gems = {
+        red: 3,
+        green: 3,
+        blue: 0,
+        black: 0,
+        white: 0,
+      };
+
+      act(() => result.current.finishTurn());
+
+      expect(result.current.needsNobleCheck).toBe(true);
+    });
+
+    it('does not set needsNobleCheck for a noble already affordable at turn start', () => {
+      const { result } = renderHook(() => useGameStore());
+      const noble: Noble = {
+        id: 'n1',
+        prestige: 3,
+        cost: { red: 3, green: 3, blue: 0, black: 0, white: 0 },
+      };
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      result.current.board.nobles = [noble];
+      // Noble was already affordable at turn start — snapshot its ID
+      result.current.noblesAffordableAtTurnStart = ['n1'];
+      result.current.players[0].gems = {
+        red: 3,
+        green: 3,
+        blue: 0,
+        black: 0,
+        white: 0,
+      };
+
+      act(() => result.current.finishTurn());
+
+      expect(result.current.needsNobleCheck).toBe(false);
+    });
+
+    it('advances the turn when no nobles are newly affordable', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      result.current.noblesAffordableAtTurnStart = [];
+      result.current.board.nobles = [];
+
+      act(() => result.current.finishTurn());
+
+      expect(result.current.needsNobleCheck).toBe(false);
+      expect(result.current.currentPlayerIndex).toBe(1);
+    });
   });
 
   describe('canEndTurn()', () => {

@@ -95,6 +95,7 @@ interface GameState {
   needToReturnTokens: boolean;
   tokensToReturn: number;
   needsNobleCheck: boolean;
+  noblesAffordableAtTurnStart: string[];
 
   setBoardSnapshot: () => void;
   resetBoardSnapshot: () => void;
@@ -190,6 +191,7 @@ export const useGameStore = create<GameState>()(
       needToReturnTokens: false,
       tokensToReturn: 0,
       needsNobleCheck: false,
+      noblesAffordableAtTurnStart: [],
 
       setBoardSnapshot: () => set({ boardSnapshot: { ...get().board } }),
       resetBoardSnapshot: () =>
@@ -265,6 +267,7 @@ export const useGameStore = create<GameState>()(
           needToReturnTokens: false,
           tokensToReturn: 0,
           needsNobleCheck: false,
+          noblesAffordableAtTurnStart: [],
         });
       },
       init: () => {
@@ -1027,14 +1030,27 @@ export const useGameStore = create<GameState>()(
         }
       },
       nextPlayer: () => {
+        if (get().needsNobleCheck) return;
+
         set((state) => ({
           boardSnapshot: state.board,
           currentPlayerIndex:
             (state.currentPlayerIndex + 1) % state.players.length,
         }));
+
+        set({
+          noblesAffordableAtTurnStart: get()
+            .getAffordableNobles()
+            .map((n) => n.id),
+        });
       },
       finishTurn: () => {
-        if (get().hasAffordableNobles()) {
+        const { noblesAffordableAtTurnStart } = get();
+        const newlyAffordable = get()
+          .getAffordableNobles()
+          .filter((n) => !noblesAffordableAtTurnStart.includes(n.id));
+
+        if (newlyAffordable.length > 0) {
           set({ needsNobleCheck: true });
           return;
         }
