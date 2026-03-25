@@ -9,6 +9,7 @@ import {
   type Tokens,
   useGameStore,
 } from './game.store';
+import { useNotificationStore } from './notifications.store';
 
 describe('Game Store', () => {
   beforeEach(() => {
@@ -70,7 +71,7 @@ describe('Game Store', () => {
 
       const player = result.current.getCurrentPlayer();
       const totalTokens = Object.values(player.tokens).reduce(
-        (s, n) => s + n,
+        (sum, count) => sum + count,
         0,
       );
 
@@ -129,7 +130,7 @@ describe('Game Store', () => {
       act(() => result.current.commitTokens());
 
       const allZero = Object.values(result.current.pickedTokens).every(
-        (n) => n === 0,
+        (count) => count === 0,
       );
       expect(allZero).toBe(true);
     });
@@ -955,6 +956,94 @@ describe('Game Store', () => {
       expect(returnValue).toBe(false);
       expect(returnValue).not.toBeUndefined();
     });
+
+    describe('reservation notification includes gold when last gold is taken', () => {
+      beforeEach(() => {
+        const { result: notifResult } = renderHook(() =>
+          useNotificationStore(),
+        );
+        act(() => notifResult.current.clear());
+      });
+
+      it('says "and a Gold token added" when the last gold token is taken on reserve', () => {
+        const { result } = renderHook(() => useGameStore());
+        const card: Card = {
+          id: 'mockUuid-notify-gold',
+          cost: { red: 9, green: 0, blue: 0, black: 0, white: 0 },
+          prestige: 1,
+          gem: 'red',
+          level: 1,
+        };
+
+        act(() => result.current.createPlayers(2));
+        act(() => result.current.init());
+        act(() => result.current.deal());
+        act(() => result.current.setCurrentPlayerIndex(0));
+
+        // Exactly 1 gold left on the board
+        result.current.board.tokens.gold = 1;
+        result.current.players[0].tokens = {
+          red: 0,
+          green: 0,
+          blue: 0,
+          black: 0,
+          white: 0,
+          gold: 0,
+        };
+
+        act(() => result.current.pickCard(card));
+        act(() => result.current.commitCard());
+
+        const { result: notifResult } = renderHook(() =>
+          useNotificationStore(),
+        );
+        const messages = notifResult.current.notifications.map(
+          (notification) => notification.message,
+        );
+        expect(messages.some((message) => message.includes('Gold token added'))).toBe(true);
+      });
+
+      it('says "Card reserved." (no gold mention) when no gold is available', () => {
+        const { result } = renderHook(() => useGameStore());
+        const card: Card = {
+          id: 'mockUuid-notify-nogold',
+          cost: { red: 9, green: 0, blue: 0, black: 0, white: 0 },
+          prestige: 1,
+          gem: 'red',
+          level: 1,
+        };
+
+        act(() => result.current.createPlayers(2));
+        act(() => result.current.init());
+        act(() => result.current.deal());
+        act(() => result.current.setCurrentPlayerIndex(0));
+
+        // No gold on the board
+        result.current.board.tokens.gold = 0;
+        result.current.players[0].tokens = {
+          red: 0,
+          green: 0,
+          blue: 0,
+          black: 0,
+          white: 0,
+          gold: 0,
+        };
+
+        act(() => result.current.pickCard(card));
+        act(() => result.current.commitCard());
+
+        const { result: notifResult } = renderHook(() =>
+          useNotificationStore(),
+        );
+        const messages = notifResult.current.notifications.map(
+          (notification) => notification.message,
+        );
+        expect(messages.some((message) => message.includes('Gold token added'))).toBe(
+          false,
+        );
+        expect(messages.some((message) => message.startsWith('Card reserved'))).toBe(true);
+      });
+    });
   });
 
   describe('pickCard()', () => {
@@ -1703,8 +1792,8 @@ describe('Game Store', () => {
         result.current.finalRoundTriggered = true;
         result.current.finalRoundPlayer = 0;
 
-        const makeCards = (n: number) =>
-          Array(n).fill({
+        const makeCards = (count: number) =>
+          Array(count).fill({
             id: 'x',
             cost: { red: 0, green: 0, blue: 0, white: 0, black: 0 },
             prestige: 0,
@@ -1743,8 +1832,8 @@ describe('Game Store', () => {
         result.current.finalRoundTriggered = true;
         result.current.finalRoundPlayer = 0;
 
-        const makeCards = (n: number) =>
-          Array(n).fill({
+        const makeCards = (count: number) =>
+          Array(count).fill({
             id: 'x',
             cost: { red: 0, green: 0, blue: 0, white: 0, black: 0 },
             prestige: 0,
@@ -1781,8 +1870,8 @@ describe('Game Store', () => {
         result.current.finalRoundTriggered = true;
         result.current.finalRoundPlayer = 0;
 
-        const makeCards = (n: number) =>
-          Array(n).fill({
+        const makeCards = (count: number) =>
+          Array(count).fill({
             id: 'x',
             cost: { red: 0, green: 0, blue: 0, white: 0, black: 0 },
             prestige: 0,

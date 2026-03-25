@@ -692,6 +692,7 @@ export const useGameStore = create<GameState>()(
             }
 
             // Reserve the card and give a gold token if available
+            const willGetGold = get().board.tokens.gold > 0;
             set((state) => ({
               players: state.players.map((player, i) =>
                 i === get().currentPlayerIndex
@@ -730,9 +731,7 @@ export const useGameStore = create<GameState>()(
 
             notify(
               'Card reserved' +
-                (get().board.tokens.gold > 0
-                  ? ' and a Gold token added.'
-                  : '.'),
+                (willGetGold ? ' and a Gold token added.' : '.'),
               'success',
             );
             return false;
