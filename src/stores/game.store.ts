@@ -1161,8 +1161,11 @@ export const useGameStore = create<GameState>()(
         }
       },
       endTurn: () => {
-        get().commitCard();
-        get().commitTokens();
+        if (get().pickedCard !== null) {
+          get().commitCard();
+        } else {
+          get().commitTokens();
+        }
 
         if (get().needToReturnTokens) {
           return;

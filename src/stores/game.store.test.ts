@@ -1000,7 +1000,9 @@ describe('Game Store', () => {
         const messages = notifResult.current.notifications.map(
           (notification) => notification.message,
         );
-        expect(messages.some((message) => message.includes('Gold token added'))).toBe(true);
+        expect(
+          messages.some((message) => message.includes('Gold token added')),
+        ).toBe(true);
       });
 
       it('says "Card reserved." (no gold mention) when no gold is available', () => {
@@ -1038,10 +1040,12 @@ describe('Game Store', () => {
         const messages = notifResult.current.notifications.map(
           (notification) => notification.message,
         );
-        expect(messages.some((message) => message.includes('Gold token added'))).toBe(
-          false,
-        );
-        expect(messages.some((message) => message.startsWith('Card reserved'))).toBe(true);
+        expect(
+          messages.some((message) => message.includes('Gold token added')),
+        ).toBe(false);
+        expect(
+          messages.some((message) => message.startsWith('Card reserved')),
+        ).toBe(true);
       });
     });
   });
