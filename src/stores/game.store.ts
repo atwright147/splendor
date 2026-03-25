@@ -396,6 +396,11 @@ export const useGameStore = create<GameState>()(
       pickToken: (tokenColor: TokenColors) => {
         const { board, boardSnapshot } = get();
 
+        if (get().pickedCard !== null) {
+          notify('Cannot pick tokens when a card is already picked', 'info');
+          return;
+        }
+
         // Don't allow taking gold tokens directly
         if (tokenColor === 'gold') {
           notify('Gold tokens cannot be taken directly', 'info');

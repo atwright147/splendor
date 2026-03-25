@@ -473,6 +473,25 @@ describe('Game Store', () => {
 
       expect(result.current.pickedTokens).not.toContain(token);
     });
+
+    it('does not pick a token when a card is already picked this turn', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setBoardSnapshot());
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      const card = result.current.board.cards.level1[0];
+      act(() => result.current.pickCard(card));
+
+      expect(result.current.pickedCard).not.toBeNull();
+
+      act(() => result.current.pickToken('red'));
+
+      expect(result.current.pickedTokens.red).toBe(0);
+    });
   });
 
   describe('canAffordCard()', () => {
