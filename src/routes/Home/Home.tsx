@@ -76,10 +76,6 @@ export const Home = (): JSX.Element => {
           <button type="submit">Start Game</button>
         </form>
       </div>
-
-      {/* <Link to="/game" onClick={handleStartGame} className="start-button">
-        Start Game
-      </Link> */}
     </div>
   );
 };
