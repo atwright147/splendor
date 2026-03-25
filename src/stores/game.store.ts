@@ -76,6 +76,7 @@ export interface BoardState {
 interface PickedCard {
   card: Card;
   boardIndex: number;
+  intent: 'buy' | 'reserve';
 }
 
 interface GameState {
@@ -114,6 +115,7 @@ interface GameState {
   removePlayerTokensByCardCost: (cardCost: Gems) => Tokens;
   commitCard: (reservedCardIndex?: number) => boolean;
   pickCard: (card: Card) => void;
+  setPickedCardIntent: (intent: 'buy' | 'reserve') => void;
   reserveFromDeck: (level: 1 | 2 | 3) => void;
   claimNoble: (noble: Noble) => void;
   nextPlayer: () => void;
@@ -655,9 +657,12 @@ export const useGameStore = create<GameState>()(
           return;
         }
 
-        // Check if the player can afford the card
-        if (!get().canAffordCard(cardToCommit)) {
-          // If card was picked from board and player can't afford it, reserve it
+        // Check if the player wants to reserve or cannot afford the card
+        if (
+          (!fromReserved && pickedCard && pickedCard.intent === 'reserve') ||
+          !get().canAffordCard(cardToCommit)
+        ) {
+          // If card was picked from board and player can't afford it (or chose to reserve)
           if (!fromReserved && pickedCard) {
             // Check if player can reserve the card (has less than 3 reserved cards)
             if (currentPlayer.reservedCards.length >= 3) {
@@ -953,11 +958,17 @@ export const useGameStore = create<GameState>()(
           },
           pickedCard: {
             card,
+            intent: 'buy',
             boardIndex: state.board.cards[
               `level${card.level}` as keyof typeof state.board.cards
             ].findIndex((c) => c.id === card.id),
           },
         }));
+      },
+      setPickedCardIntent: (intent) => {
+        const { pickedCard } = get();
+        if (!pickedCard) return;
+        set({ pickedCard: { ...pickedCard, intent } });
       },
       claimNoble: (noble) => {
         set((state) => ({
