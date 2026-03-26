@@ -118,6 +118,7 @@ interface GameState {
   removePlayerTokensByCardCost: (cardCost: Gems) => Tokens;
   commitCard: (reservedCardIndex?: number) => boolean;
   pickCard: (card: Card) => void;
+  unpickCard: () => void;
   setPickedCardIntent: (intent: 'buy' | 'reserve') => void;
   reserveFromDeck: (level: 1 | 2 | 3) => boolean;
   claimNoble: (noble: Noble) => void;
@@ -1020,6 +1021,32 @@ export const useGameStore = create<GameState>()(
               `level${card.level}` as keyof typeof state.board.cards
             ].findIndex((c) => c.id === card.id),
           },
+        }));
+      },
+      unpickCard: () => {
+        const { pickedCard } = get();
+        if (!pickedCard) return;
+
+        set((state) => ({
+          board: {
+            ...state.board,
+            cards: {
+              ...state.board.cards,
+              [`level${pickedCard.card.level}` as keyof typeof state.board.cards]:
+                (() => {
+                  const levelKey =
+                    `level${pickedCard.card.level}` as keyof typeof state.board.cards;
+                  const currentCards = [...state.board.cards[levelKey]];
+                  currentCards.splice(
+                    pickedCard.boardIndex,
+                    0,
+                    pickedCard.card,
+                  );
+                  return currentCards;
+                })(),
+            },
+          },
+          pickedCard: null,
         }));
       },
       setPickedCardIntent: (intent) => {

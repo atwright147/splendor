@@ -1264,6 +1264,51 @@ describe('Game Store', () => {
     });
   });
 
+  describe('unpickCard()', () => {
+    const setup = () => {
+      const { result } = renderHook(() => useGameStore());
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setBoardSnapshot());
+      act(() => result.current.setCurrentPlayerIndex(0));
+      return result;
+    };
+
+    it('clears pickedCard', () => {
+      const result = setup();
+      const card = result.current.board.cards.level1[0];
+      act(() => result.current.pickCard(card));
+      expect(result.current.pickedCard).not.toBeNull();
+
+      act(() => result.current.unpickCard());
+
+      expect(result.current.pickedCard).toBeNull();
+    });
+
+    it('returns the card to its original board position', () => {
+      const result = setup();
+      const cardsBefore = [...result.current.board.cards.level1];
+      const card = cardsBefore[1];
+      act(() => result.current.pickCard(card));
+      expect(result.current.board.cards.level1).not.toContainEqual(card);
+
+      act(() => result.current.unpickCard());
+
+      expect(result.current.board.cards.level1[1]).toEqual(card);
+    });
+
+    it('does nothing when no card is picked', () => {
+      const result = setup();
+      const boardBefore = result.current.board.cards.level1;
+
+      act(() => result.current.unpickCard());
+
+      expect(result.current.board.cards.level1).toEqual(boardBefore);
+      expect(result.current.pickedCard).toBeNull();
+    });
+  });
+
   describe('claimNoble()', () => {
     it('should update the current player with the noble prestige and add the noble to the nobles list', () => {
       const { result } = renderHook(() => useGameStore());

@@ -14,6 +14,7 @@ export const Reserved: FC = (): JSX.Element | null => {
     returnToken,
     canAffordCard,
     setPickedCardIntent,
+    unpickCard,
   } = useGameStore(
     useShallow((state) => ({
       pickedCard: state.pickedCard,
@@ -21,6 +22,7 @@ export const Reserved: FC = (): JSX.Element | null => {
       returnToken: state.returnToken,
       canAffordCard: state.canAffordCard,
       setPickedCardIntent: state.setPickedCardIntent,
+      unpickCard: state.unpickCard,
     })),
   );
 
@@ -34,6 +36,11 @@ export const Reserved: FC = (): JSX.Element | null => {
     <div className={styles.container}>
       <div className={styles.card}>
         {pickedCard && <Card card={pickedCard.card} width={100} />}
+        {pickedCard && (
+          <button type="button" className={styles.button} onClick={unpickCard}>
+            Cancel
+          </button>
+        )}
         {showIntentToggle && (
           <button
             type="button"
