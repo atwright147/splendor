@@ -18,7 +18,7 @@ import type { TokenColorValues } from '#types/colors.type';
 
 import styles from './Game.module.css';
 
-export const Game: FC = (): JSX.Element => {
+export const Game: FC = (): JSX.Element | null => {
   const {
     board,
     canEndTurn,
@@ -81,6 +81,19 @@ export const Game: FC = (): JSX.Element => {
   useEffect(() => {
     setOpenNobleSelectDialog(needsNobleCheck);
   }, [needsNobleCheck]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent): void => {
+      e.preventDefault();
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
+
+  if (players.length === 0) {
+    navigate('/');
+    return null;
+  }
 
   const handleCardClick = (card: CardType): void => {
     reserveCard(card);
