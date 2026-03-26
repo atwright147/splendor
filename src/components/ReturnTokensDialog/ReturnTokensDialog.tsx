@@ -4,7 +4,7 @@ import { useShallow } from 'zustand/shallow';
 
 import { Gem } from '#components/Gem/Gem';
 import { type TokenColors, useGameStore } from '#stores/game.store';
-import { mergeGems } from '#utils/mergeGems';
+import { mergeTokens } from '#utils/mergeTokens';
 
 import styles from './ReturnTokensDialog.module.css';
 
@@ -54,7 +54,10 @@ export const ReturnTokensDialog: FC = (): JSX.Element => {
             <div className={styles.tokenGrid}>
               {(
                 Object.entries(
-                  mergeGems(currentPlayer?.tokens, pickedTokens),
+                  mergeTokens(currentPlayer.tokens, {
+                    ...pickedTokens,
+                    gold: 0,
+                  }),
                 ) as [TokenColors, number][]
               )
                 .filter(([color, quantity]) => color !== 'gold' && quantity > 0)
