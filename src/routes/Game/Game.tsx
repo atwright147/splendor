@@ -24,10 +24,6 @@ export const Game: FC = (): JSX.Element | null => {
     canEndTurn,
     commitCard,
     endTurn,
-    createPlayers,
-    deal,
-    init,
-    setBoardSnapshot,
     players,
     reserveCard,
     reserveToken,
@@ -42,11 +38,7 @@ export const Game: FC = (): JSX.Element | null => {
   } = useGameStore(
     useShallow((state) => ({
       board: state.board,
-      createPlayers: state.createPlayers,
       commitCard: state.commitCard,
-      deal: state.deal,
-      init: state.init,
-      setBoardSnapshot: state.setBoardSnapshot,
       players: state.players,
       reserveCard: state.pickCard,
       reserveToken: state.pickToken,
@@ -62,19 +54,6 @@ export const Game: FC = (): JSX.Element | null => {
       reset: state.reset,
     })),
   );
-
-  useEffect(() => {
-    if (players.length > 0) {
-      return;
-    }
-
-    console.info('Game state stubbed to help development.');
-
-    createPlayers(2);
-    init();
-    deal();
-    setBoardSnapshot();
-  }, [createPlayers, deal, init, players, setBoardSnapshot]);
 
   const [openNobleSelectDialog, setOpenNobleSelectDialog] = useState(false);
 
