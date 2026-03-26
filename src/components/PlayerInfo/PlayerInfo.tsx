@@ -81,7 +81,9 @@ export const PlayerInfo: FC<Props> = ({
             key={card.id}
             card={card}
             width={100}
-            onClick={isCurrentPlayer ? () => onReservedCardClick(index) : undefined}
+            onClick={
+              isCurrentPlayer ? () => onReservedCardClick(index) : undefined
+            }
           />
         ))}
       </div>

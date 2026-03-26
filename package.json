@@ -10,6 +10,7 @@
     "gen:cards": "tsx ./scripts/gen-cards.ts",
     "build": "tsc && vite build",
     "lint": "biome lint .",
+    "format": "biome format . --write",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit --project tsconfig.typecheck.json"
   },
