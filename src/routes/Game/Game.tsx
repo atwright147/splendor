@@ -25,6 +25,7 @@ export const Game: FC = (): JSX.Element | null => {
     commitCard,
     endTurn,
     finishTurn,
+    pickedCard,
     players,
     reserveCard,
     reserveToken,
@@ -40,6 +41,7 @@ export const Game: FC = (): JSX.Element | null => {
     useShallow((state) => ({
       board: state.board,
       commitCard: state.commitCard,
+      pickedCard: state.pickedCard,
       players: state.players,
       reserveCard: state.pickCard,
       reserveToken: state.pickToken,
@@ -109,6 +111,13 @@ export const Game: FC = (): JSX.Element | null => {
   const handlePlayAgain = (): void => {
     reset();
     navigate('/');
+  };
+
+  const getEndTurnLabel = (): string => {
+    if (isForcedPass()) return 'Pass';
+    if (pickedCard?.intent === 'reserve') return 'Reserve Card';
+    if (pickedCard?.intent === 'buy') return 'Buy Card';
+    return 'End Turn';
   };
 
   return (
@@ -222,7 +231,7 @@ export const Game: FC = (): JSX.Element | null => {
               onClick={handleEndTurn}
               disabled={!canEndTurn()}
             >
-              {isForcedPass() ? 'Pass' : 'End Turn?'}
+              {getEndTurnLabel()}
             </button>
           )}
         </div>
