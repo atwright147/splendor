@@ -24,6 +24,7 @@ export const Game: FC = (): JSX.Element | null => {
     canEndTurn,
     commitCard,
     endTurn,
+    finishTurn,
     players,
     reserveCard,
     reserveToken,
@@ -46,6 +47,7 @@ export const Game: FC = (): JSX.Element | null => {
       deck: state.deck,
       canEndTurn: state.canEndTurn,
       endTurn: state.endTurn,
+      finishTurn: state.finishTurn,
       needsNobleCheck: state.needsNobleCheck,
       isForcedPass: state.isForcedPass,
       isGameOver: state.isGameOver,
@@ -85,9 +87,8 @@ export const Game: FC = (): JSX.Element | null => {
   const handleReserveFromDeck = (level: 1 | 2 | 3): void => {
     const success = reserveFromDeck(level);
     if (!success) return;
-    const state = useGameStore.getState();
-    if (!state.needToReturnTokens) {
-      endTurn();
+    if (!useGameStore.getState().needToReturnTokens) {
+      finishTurn();
     }
   };
 
@@ -100,10 +101,8 @@ export const Game: FC = (): JSX.Element | null => {
   const handleReservedCardPurchase = (index: number): void => {
     const purchased = commitCard(index);
     if (!purchased) return;
-
-    const state = useGameStore.getState();
-    if (!state.needToReturnTokens) {
-      endTurn();
+    if (!useGameStore.getState().needToReturnTokens) {
+      finishTurn();
     }
   };
 
