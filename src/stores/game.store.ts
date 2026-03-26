@@ -142,11 +142,11 @@ const defaultTokens: Tokens = {
 };
 
 const defaultGems: Gems = {
-  red: 0,
-  green: 0,
-  blue: 0,
-  white: 0,
-  black: 0,
+  red: 2,
+  green: 2,
+  blue: 2,
+  white: 2,
+  black: 2,
 };
 
 const defaultPlayerState: PlayerState = {
@@ -1100,7 +1100,12 @@ export const useGameStore = create<GameState>()(
           .getAffordableNobles()
           .filter((n) => !noblesAffordableAtTurnStart.includes(n.id));
 
-        if (newlyAffordable.length > 0) {
+        if (newlyAffordable.length === 1) {
+          get().claimNoble(newlyAffordable[0]);
+          return;
+        }
+
+        if (newlyAffordable.length > 1) {
           set({ needsNobleCheck: true });
           return;
         }

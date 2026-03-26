@@ -1470,7 +1470,7 @@ describe('Game Store', () => {
   });
 
   describe('finishTurn()', () => {
-    it('sets needsNobleCheck when a noble became affordable this turn', () => {
+    it('should auto-claim the noble when exactly one becomes affordable in this turn', () => {
       const { result } = renderHook(() => useGameStore());
       const noble: Noble = {
         id: 'n1',
@@ -1489,6 +1489,43 @@ describe('Game Store', () => {
         red: 3,
         green: 3,
         blue: 0,
+        black: 0,
+        white: 0,
+      };
+
+      act(() => result.current.finishTurn());
+
+      expect(result.current.needsNobleCheck).toBe(false);
+      const player = result.current.players[0];
+      expect(player.nobles).toContainEqual(noble);
+      expect(player.prestige).toBe(noble.prestige);
+      expect(result.current.board.nobles).not.toContainEqual(noble);
+    });
+
+    it('sets needsNobleCheck when multiple nobles became affordable this turn', () => {
+      const { result } = renderHook(() => useGameStore());
+      const noble1: Noble = {
+        id: 'n1',
+        prestige: 3,
+        cost: { red: 3, green: 3, blue: 0, black: 0, white: 0 },
+      };
+      const noble2: Noble = {
+        id: 'n2',
+        prestige: 3,
+        cost: { red: 0, green: 3, blue: 3, black: 0, white: 0 },
+      };
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      result.current.board.nobles = [noble1, noble2];
+      result.current.noblesAffordableAtTurnStart = [];
+      result.current.players[0].gems = {
+        red: 3,
+        green: 3,
+        blue: 3,
         black: 0,
         white: 0,
       };
