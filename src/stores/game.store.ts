@@ -96,6 +96,7 @@ interface GameState {
   tokensToReturn: number;
   needsNobleCheck: boolean;
   noblesAffordableAtTurnStart: string[];
+  aiPlayerIndices: number[];
 
   setBoardSnapshot: () => void;
   resetBoardSnapshot: () => void;
@@ -108,7 +109,7 @@ interface GameState {
   getNextPlayerIndex: () => number | undefined;
   getPlayerById: (uuid: string) => PlayerState | undefined;
   getPlayerByIndex: (index: number) => PlayerState | undefined;
-  createPlayers: (quantity: number) => void;
+  createPlayers: (quantity: number, aiCount?: number) => void;
   pickToken: (tokenColor: TokenColors) => void;
   returnToken: (tokenColor: TokenColors) => void;
   canAffordCard: (card: Card) => boolean;
@@ -193,6 +194,7 @@ export const useGameStore = create<GameState>()(
       tokensToReturn: 0,
       needsNobleCheck: false,
       noblesAffordableAtTurnStart: [],
+      aiPlayerIndices: [],
 
       setBoardSnapshot: () => set({ boardSnapshot: { ...get().board } }),
       resetBoardSnapshot: () =>
@@ -271,6 +273,7 @@ export const useGameStore = create<GameState>()(
           tokensToReturn: 0,
           needsNobleCheck: false,
           noblesAffordableAtTurnStart: [],
+          aiPlayerIndices: [],
         });
       },
       init: () => {
@@ -384,7 +387,7 @@ export const useGameStore = create<GameState>()(
         const { players } = get();
         return players[index];
       },
-      createPlayers: (quantity) => {
+      createPlayers: (quantity, aiCount = 0) => {
         let qtyPlayersToCreate = quantity;
         if (qtyPlayersToCreate > MAX_PLAYERS) {
           qtyPlayersToCreate = MAX_PLAYERS;
@@ -397,7 +400,12 @@ export const useGameStore = create<GameState>()(
           { length: qtyPlayersToCreate },
           createPlayer,
         );
-        set({ players });
+        const clampedAiCount = Math.min(aiCount, qtyPlayersToCreate - 1);
+        const aiPlayerIndices = Array.from(
+          { length: clampedAiCount },
+          (_, i) => qtyPlayersToCreate - clampedAiCount + i,
+        );
+        set({ players, aiPlayerIndices });
       },
       pickToken: (tokenColor: TokenColors) => {
         const { board, boardSnapshot } = get();

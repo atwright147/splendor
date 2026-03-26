@@ -8,12 +8,14 @@ import styles from './PlayerInfo.module.css';
 
 interface Props {
   id: Uuid;
+  isAi?: boolean;
   onReservedCardClick: (index: number) => void;
   pendingReservedCardIndex?: number | null;
 }
 
 export const PlayerInfo: FC<Props> = ({
   id,
+  isAi = false,
   onReservedCardClick,
   pendingReservedCardIndex = null,
 }): JSX.Element => {
@@ -42,6 +44,7 @@ export const PlayerInfo: FC<Props> = ({
         [styles.current]: isCurrentPlayer,
       })}
     >
+      <div className={styles.label}>{isAi ? 'Johanna 🤖' : 'You'}</div>
       <div className={styles.container}>
         <div className={classNames(styles.item, styles.red)}>
           <div className={styles.card}>{player.gems.red}</div>
@@ -83,7 +86,11 @@ export const PlayerInfo: FC<Props> = ({
             key={card.id}
             card={card}
             width={100}
-            className={pendingReservedCardIndex === index ? styles.pendingCard : undefined}
+            className={
+              pendingReservedCardIndex === index
+                ? styles.pendingCard
+                : undefined
+            }
             onClick={
               isCurrentPlayer ? () => onReservedCardClick(index) : undefined
             }

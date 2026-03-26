@@ -7,7 +7,8 @@ import styles from './Home.module.css';
 export const Home = (): JSX.Element => {
   const [playerCount, setPlayerCount] = useState(2);
   const [playerCountError, setPlayerCountError] = useState('');
-  const [botCount, setBotCount] = useState(2);
+  const [botCount, setBotCount] = useState(1);
+  const [botCountError, setBotCountError] = useState('');
   const { createPlayers, deal, init, setBoardSnapshot } = useGameStore(
     useShallow((state) => ({
       createPlayers: state.createPlayers,
@@ -25,8 +26,16 @@ export const Home = (): JSX.Element => {
       return;
     }
 
+    if (botCount < 0 || botCount >= playerCount) {
+      setBotCountError(
+        'Number of bots must be between 0 and total players minus 1.',
+      );
+      return;
+    }
+
     setPlayerCountError('');
-    createPlayers(playerCount);
+    setBotCountError('');
+    createPlayers(playerCount, botCount);
     init();
     deal();
     setBoardSnapshot();
@@ -60,17 +69,20 @@ export const Home = (): JSX.Element => {
           </div>
 
           <div className={styles.field}>
-            <label htmlFor="bot-count">Number of Bots:</label>
+            <label htmlFor="bot-count">Number of Bots (Johanna):</label>
             <input
               type="number"
               className={styles.input}
               id="bot-count"
-              min="2"
-              max="4"
+              min="0"
+              max={playerCount - 1}
               value={botCount}
-              onChange={(e) => setBotCount(Number(e.target.value))}
-              disabled
+              onChange={(e) => {
+                setBotCount(Number(e.target.value));
+                setBotCountError('');
+              }}
             />
+            {botCountError && <p role="alert">{botCountError}</p>}
           </div>
 
           <button type="submit">Start Game</button>

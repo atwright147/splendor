@@ -13,6 +13,7 @@ import { PlayerInfo } from '#components/PlayerInfo/PlayerInfo';
 import { Reserved } from '#components/Reserved/Reserved';
 import { ReturnTokensDialog } from '#components/ReturnTokensDialog/ReturnTokensDialog';
 import { Token } from '#components/Token/Token';
+import { playJohannaTurn } from '#src/ai/johanna';
 import { type Card as CardType, useGameStore } from '#stores/game.store';
 import type { TokenColorValues } from '#types/colors.type';
 
@@ -37,6 +38,8 @@ export const Game: FC = (): JSX.Element | null => {
     winner,
     tiedPlayers,
     reset,
+    currentPlayerIndex,
+    aiPlayerIndices,
   } = useGameStore(
     useShallow((state) => ({
       board: state.board,
@@ -56,15 +59,38 @@ export const Game: FC = (): JSX.Element | null => {
       winner: state.winner,
       tiedPlayers: state.tiedPlayers,
       reset: state.reset,
+      currentPlayerIndex: state.currentPlayerIndex,
+      aiPlayerIndices: state.aiPlayerIndices,
     })),
   );
 
   const [openNobleSelectDialog, setOpenNobleSelectDialog] = useState(false);
-  const [pendingReservedCardIndex, setPendingReservedCardIndex] = useState<number | null>(null);
+  const [pendingReservedCardIndex, setPendingReservedCardIndex] = useState<
+    number | null
+  >(null);
 
   useEffect(() => {
     setOpenNobleSelectDialog(needsNobleCheck);
   }, [needsNobleCheck]);
+
+  useEffect(() => {
+    if (isGameOver) return;
+    if (!aiPlayerIndices.includes(currentPlayerIndex)) return;
+
+    let commitTimer: ReturnType<typeof setTimeout>;
+
+    // Phase 1 — pick action (visible in the UI)
+    const pickTimer = setTimeout(() => {
+      const commit = playJohannaTurn();
+      // Phase 2 — commit the action after a pause so the player can see it
+      commitTimer = setTimeout(commit, 1200);
+    }, 600);
+
+    return () => {
+      clearTimeout(pickTimer);
+      clearTimeout(commitTimer);
+    };
+  }, [currentPlayerIndex, isGameOver, aiPlayerIndices]);
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent): void => {
@@ -134,7 +160,10 @@ export const Game: FC = (): JSX.Element | null => {
     return 'End Turn';
   };
 
-  const renderLevelCards = (cards: CardType[], level: 1 | 2 | 3): JSX.Element[] => {
+  const renderLevelCards = (
+    cards: CardType[],
+    level: 1 | 2 | 3,
+  ): JSX.Element[] => {
     const elements: JSX.Element[] = cards.map((card) => (
       <Card card={card} onClick={() => handleCardClick(card)} key={card.id} />
     ));
@@ -142,7 +171,11 @@ export const Game: FC = (): JSX.Element | null => {
       elements.splice(
         pickedCard.boardIndex,
         0,
-        <div key="picked-placeholder" className={styles.cardPlaceholder} aria-hidden />,
+        <div
+          key="picked-placeholder"
+          className={styles.cardPlaceholder}
+          aria-hidden
+        />,
       );
     }
     return elements;
@@ -156,10 +189,11 @@ export const Game: FC = (): JSX.Element | null => {
         <Notifications />
 
         <div className={styles.players}>
-          {players.map((player) => (
+          {players.map((player, index) => (
             <PlayerInfo
               key={player.uuid}
               id={player.uuid}
+              isAi={aiPlayerIndices.includes(index)}
               onReservedCardClick={handleReservedCardPurchase}
               pendingReservedCardIndex={pendingReservedCardIndex}
             />
@@ -238,10 +272,18 @@ export const Game: FC = (): JSX.Element | null => {
           {pendingReservedCardIndex !== null && (
             <div className={styles.reservedConfirm}>
               <span>Buy reserved card?</span>
-              <button type="button" className={styles.endTurnButton} onClick={handleConfirmReservedPurchase}>
+              <button
+                type="button"
+                className={styles.endTurnButton}
+                onClick={handleConfirmReservedPurchase}
+              >
                 Confirm
               </button>
-              <button type="button" className={styles.cancelButton} onClick={handleCancelReservedPurchase}>
+              <button
+                type="button"
+                className={styles.cancelButton}
+                onClick={handleCancelReservedPurchase}
+              >
                 Cancel
               </button>
             </div>
