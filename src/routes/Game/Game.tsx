@@ -120,6 +120,20 @@ export const Game: FC = (): JSX.Element | null => {
     return 'End Turn';
   };
 
+  const renderLevelCards = (cards: CardType[], level: 1 | 2 | 3): JSX.Element[] => {
+    const elements: JSX.Element[] = cards.map((card) => (
+      <Card card={card} onClick={() => handleCardClick(card)} key={card.id} />
+    ));
+    if (pickedCard?.card.level === level) {
+      elements.splice(
+        pickedCard.boardIndex,
+        0,
+        <div key="picked-placeholder" className={styles.cardPlaceholder} aria-hidden />,
+      );
+    }
+    return elements;
+  };
+
   return (
     <>
       <FinalRoundBanner />
@@ -159,27 +173,9 @@ export const Game: FC = (): JSX.Element | null => {
         </div>
 
         <div className={styles.cards}>
-          {board.cards.level3.map((card) => (
-            <Card
-              card={card}
-              onClick={() => handleCardClick(card)}
-              key={card.id}
-            />
-          ))}
-          {board.cards.level2.map((card) => (
-            <Card
-              card={card}
-              onClick={() => handleCardClick(card)}
-              key={card.id}
-            />
-          ))}
-          {board.cards.level1.map((card) => (
-            <Card
-              card={card}
-              onClick={() => handleCardClick(card)}
-              key={card.id}
-            />
-          ))}
+          {renderLevelCards(board.cards.level3, 3)}
+          {renderLevelCards(board.cards.level2, 2)}
+          {renderLevelCards(board.cards.level1, 1)}
         </div>
 
         <div className={styles.tokens}>
