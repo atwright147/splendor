@@ -84,3 +84,8 @@
 .current {
   outline: 5px solid powderblue;
 }
+
+.pendingCard {
+  outline: 3px solid gold;
+  border-radius: 4px;
+}

@@ -9,11 +9,13 @@ import styles from './PlayerInfo.module.css';
 interface Props {
   id: Uuid;
   onReservedCardClick: (index: number) => void;
+  pendingReservedCardIndex?: number | null;
 }
 
 export const PlayerInfo: FC<Props> = ({
   id,
   onReservedCardClick,
+  pendingReservedCardIndex = null,
 }): JSX.Element => {
   const { getPlayerById, getCurrentPlayer } = useGameStore(
     useShallow((state) => ({
@@ -81,6 +83,7 @@ export const PlayerInfo: FC<Props> = ({
             key={card.id}
             card={card}
             width={100}
+            className={pendingReservedCardIndex === index ? styles.pendingCard : undefined}
             onClick={
               isCurrentPlayer ? () => onReservedCardClick(index) : undefined
             }

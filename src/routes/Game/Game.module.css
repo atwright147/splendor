@@ -71,3 +71,13 @@ body {
 .endTurnButton {
   white-space: nowrap;
 }
+
+.reservedConfirm {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cancelButton {
+  white-space: nowrap;
+}

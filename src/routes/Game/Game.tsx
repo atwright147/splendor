@@ -60,6 +60,7 @@ export const Game: FC = (): JSX.Element | null => {
   );
 
   const [openNobleSelectDialog, setOpenNobleSelectDialog] = useState(false);
+  const [pendingReservedCardIndex, setPendingReservedCardIndex] = useState<number | null>(null);
 
   useEffect(() => {
     setOpenNobleSelectDialog(needsNobleCheck);
@@ -101,11 +102,24 @@ export const Game: FC = (): JSX.Element | null => {
   };
 
   const handleReservedCardPurchase = (index: number): void => {
-    const purchased = commitCard(index);
+    if (pickedCard !== null) {
+      return;
+    }
+    setPendingReservedCardIndex(index);
+  };
+
+  const handleConfirmReservedPurchase = (): void => {
+    if (pendingReservedCardIndex === null) return;
+    const purchased = commitCard(pendingReservedCardIndex);
+    setPendingReservedCardIndex(null);
     if (!purchased) return;
     if (!useGameStore.getState().needToReturnTokens) {
       finishTurn();
     }
+  };
+
+  const handleCancelReservedPurchase = (): void => {
+    setPendingReservedCardIndex(null);
   };
 
   const handlePlayAgain = (): void => {
@@ -147,6 +161,7 @@ export const Game: FC = (): JSX.Element | null => {
               key={player.uuid}
               id={player.uuid}
               onReservedCardClick={handleReservedCardPurchase}
+              pendingReservedCardIndex={pendingReservedCardIndex}
             />
           ))}
         </div>
@@ -220,7 +235,18 @@ export const Game: FC = (): JSX.Element | null => {
 
         <div className={styles.currentPlayerHud}>
           <Reserved />
-          {canEndTurn() && (
+          {pendingReservedCardIndex !== null && (
+            <div className={styles.reservedConfirm}>
+              <span>Buy reserved card?</span>
+              <button type="button" className={styles.endTurnButton} onClick={handleConfirmReservedPurchase}>
+                Confirm
+              </button>
+              <button type="button" className={styles.cancelButton} onClick={handleCancelReservedPurchase}>
+                Cancel
+              </button>
+            </div>
+          )}
+          {canEndTurn() && pendingReservedCardIndex === null && (
             <button
               className={styles.endTurnButton}
               type="button"
