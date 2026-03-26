@@ -852,6 +852,12 @@ export const useGameStore = create<GameState>()(
 
           // If card was from reserved pile, don't need to update board cards or deck.
           // If a board card was orphaned (picked but not committed), restore it.
+          if (state.pickedCard !== null) {
+            notify(
+              'Board card returned because you purchased a reserved card instead.',
+              'info',
+            );
+          }
           const restoredBoard =
             state.pickedCard !== null
               ? (() => {
