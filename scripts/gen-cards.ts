@@ -20,6 +20,8 @@ for (const cardLine of cardLines) {
     level,
     gemColor,
     gemQuantity, // pv
+    , // price (human readable, skip)
+    , // illustration (skip)
     priceWhite,
     priceBlue,
     priceGreen,
