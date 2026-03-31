@@ -15,7 +15,8 @@ const routes = {
 };
 
 export const App = (): JSX.Element => {
-  const route = useRoutes(routes);
+  const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+  const route = useRoutes(routes, { basePath: base });
 
   return <Root>{route}</Root>;
 };
