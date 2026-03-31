@@ -1,4 +1,4 @@
-import { navigate } from 'raviger';
+import { navigate } from '#utils/navigate';
 import { type JSX, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { useGameStore } from '#stores/game.store';

@@ -1,4 +1,4 @@
-import { navigate } from 'raviger';
+import { navigate } from '#utils/navigate';
 import { type FC, type JSX, useEffect, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
 
