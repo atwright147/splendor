@@ -30,6 +30,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Generate cards
+        run: npm run gen:cards
+
       - name: Build
         run: npm run build
 
