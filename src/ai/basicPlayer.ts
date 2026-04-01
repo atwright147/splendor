@@ -203,6 +203,24 @@ export abstract class BasicPlayer {
       store.pickToken(color);
     }
 
+    // If capped at 10 tokens (or no legal pick), reserve from deck instead of
+    // repeatedly passing with no action.
+    if (colorsToTake.length === 0 && selfState.reservedCards.length < 3) {
+      for (const level of [1, 2, 3] as const) {
+        if (store.reserveFromDeck(level)) {
+          return () => {
+            const currentState = useGameStore.getState();
+            if (currentState.needToReturnTokens) {
+              this.resolveReturnTokens();
+            } else {
+              currentState.finishTurn();
+            }
+            resolveNobles();
+          };
+        }
+      }
+    }
+
     return () => {
       store.endTurn();
       this.resolveReturnTokens();
