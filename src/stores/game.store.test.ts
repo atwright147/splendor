@@ -907,6 +907,50 @@ describe('Game Store', () => {
       expect(result.current.players[0].reservedCards).toContainEqual(card);
     });
 
+    it('sets needToReturnTokens when reserving a visible card pushes the player over 10 tokens', () => {
+      const { result } = renderHook(() => useGameStore());
+      const card: Card = {
+        id: 'mockUuid-over-limit-reserve',
+        cost: { red: 5, green: 5, blue: 0, black: 0, white: 0 },
+        prestige: 1,
+        gem: 'red',
+        level: 1,
+      };
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      result.current.players[0].tokens = {
+        red: 2,
+        green: 2,
+        blue: 2,
+        black: 2,
+        white: 2,
+        gold: 0,
+      };
+
+      result.current.board.tokens.gold = 5;
+
+      act(() => result.current.pickCard(card));
+
+      act(() => {
+        result.current.setPickedCardIntent('reserve');
+      });
+
+      let purchased = true;
+      act(() => {
+        purchased = result.current.commitCard();
+      });
+
+      expect(purchased).toBe(false);
+      expect(result.current.players[0].reservedCards).toContainEqual(card);
+      expect(result.current.players[0].tokens.gold).toBe(1);
+      expect(result.current.needToReturnTokens).toBe(true);
+      expect(result.current.tokensToReturn).toBe(1);
+    });
+
     it('returns true when purchasing a card from reservedCards', () => {
       const { result } = renderHook(() => useGameStore());
       const card: Card = {

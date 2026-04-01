@@ -709,6 +709,12 @@ export const useGameStore = create<GameState>()(
 
             // Reserve the card and give a gold token if available
             const willGetGold = get().board.tokens.gold > 0;
+            const currentTokenCount = Object.values(currentPlayer.tokens).reduce(
+              (sum, count) => sum + count,
+              0,
+            );
+            const newTokenCount = currentTokenCount + (willGetGold ? 1 : 0);
+            const tokensOverLimit = Math.max(0, newTokenCount - 10);
             set((state) => ({
               players: state.players.map((player, i) =>
                 i === get().currentPlayerIndex
@@ -742,6 +748,8 @@ export const useGameStore = create<GameState>()(
                       : 0,
                 },
               },
+              needToReturnTokens: tokensOverLimit > 0,
+              tokensToReturn: tokensOverLimit,
               pickedCard: null, // Clear the picked card
             }));
 
