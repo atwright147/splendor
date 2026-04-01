@@ -18,7 +18,7 @@ export const Home = (): JSX.Element => {
     })),
   );
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>): void => {
+  const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>): void => {
     event.preventDefault();
 
     if (playerCount < 2 || playerCount > 4) {

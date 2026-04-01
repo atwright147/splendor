@@ -32,7 +32,7 @@ export const Card: FC<Props> = (props): JSX.Element | null => {
     })),
   );
 
-  if (!props || !props.card) {
+  if (!props.card) {
     return null;
   }
 

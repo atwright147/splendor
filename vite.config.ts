@@ -1,13 +1,15 @@
 /// <reference types="vitest" />
 
 import react from '@vitejs/plugin-react';
-import { defineConfig } from 'vite';
-import tsconfigPaths from 'vite-tsconfig-paths';
+import { defineConfig } from 'vitest/config';
 
 // https://vitejs.dev/config/
 export default defineConfig({
   base: '/splendor/',
-  plugins: [tsconfigPaths(), react()],
+  plugins: [react()],
+  resolve: {
+    tsconfigPaths: true,
+  },
   test: {
     globals: true,
     environment: 'jsdom',
@@ -31,9 +33,4 @@ export default defineConfig({
       },
     },
   },
-  // resolve: {
-  //   alias: {
-  //     '@': path.resolve(__dirname, './src'),
-  //   },
-  // },
 });

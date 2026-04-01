@@ -199,7 +199,10 @@ export abstract class BasicPlayer {
       .sort((a, b) => interest[b] - interest[a])
       .slice(0, Math.min(3, maxToTake));
 
-    colorsToTake.forEach((color) => store.pickToken(color));
+    for (const color of colorsToTake) {
+      store.pickToken(color);
+    }
+
     return () => {
       store.endTurn();
       this.resolveReturnTokens();

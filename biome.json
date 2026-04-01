@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.1.3/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.4.10/schema.json",
   "assist": { "actions": { "source": { "organizeImports": "on" } } },
   "linter": {
     "includes": ["**", "!**/.vscode", "!**/tsconfig*.json"],
@@ -57,5 +57,17 @@
     "linter": {
       "enabled": true
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["src/styles/sr-only.css"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noImportantStyles": "off"
+          }
+        }
+      }
+    }
+  ]
 }
