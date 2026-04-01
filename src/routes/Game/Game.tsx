@@ -1,7 +1,5 @@
-import { navigate } from '#utils/navigate';
 import { type FC, type JSX, useEffect, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
-
 import { Card } from '#components/Card/Card';
 import { CardBack } from '#components/CardBack/CardBack';
 import { FinalRoundBanner } from '#components/FinalRoundBanner/FinalRoundBanner';
@@ -16,6 +14,7 @@ import { Token } from '#components/Token/Token';
 import { playJohannaTurn } from '#src/ai/johanna';
 import { type Card as CardType, useGameStore } from '#stores/game.store';
 import type { TokenColorValues } from '#types/colors.type';
+import { navigate } from '#utils/navigate';
 
 import styles from './Game.module.css';
 
