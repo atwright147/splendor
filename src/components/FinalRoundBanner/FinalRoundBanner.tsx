@@ -1,6 +1,6 @@
 import type { FC, JSX } from 'react';
 
-import { useGameStore } from '#stores/game.store';
+import { useGameStore } from '~stores/game.store';
 
 import styles from './FinalRoundBanner.module.css';
 

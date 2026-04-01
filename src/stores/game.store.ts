@@ -4,11 +4,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import deckAll from '#ref/cards.json';
-import noblesAll from '#ref/nobles.json';
-import { notify } from '#stores/notifications.store';
-import { addGem } from '#utils/addGem';
-import { mergeTokens } from '#utils/mergeTokens';
+import deckAll from '~ref/cards.json';
+import noblesAll from '~ref/nobles.json';
+import { notify } from '~stores/notifications.store';
+import { addGem } from '~utils/addGem';
+import { mergeTokens } from '~utils/mergeTokens';
 
 export interface Gems {
   red: number;

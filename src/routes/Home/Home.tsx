@@ -1,7 +1,8 @@
 import { type JSX, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
-import { useGameStore } from '#stores/game.store';
-import { navigate } from '#utils/navigate';
+
+import { useGameStore } from '~stores/game.store';
+import { navigate } from '~utils/navigate';
 import styles from './Home.module.css';
 
 export const Home = (): JSX.Element => {

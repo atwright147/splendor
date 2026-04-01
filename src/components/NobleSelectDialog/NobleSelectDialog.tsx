@@ -2,8 +2,8 @@ import classNames from 'classnames';
 import { Dialog } from 'radix-ui';
 import { type JSX, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
-import { Noble } from '#components/Noble/Noble';
-import { type Noble as NobleType, useGameStore } from '#stores/game.store';
+import { Noble } from '~components/Noble/Noble';
+import { type Noble as NobleType, useGameStore } from '~stores/game.store';
 import styles from './NobleSelectDialog.module.css';
 
 interface Props extends Dialog.DialogProps {}

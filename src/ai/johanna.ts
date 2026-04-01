@@ -3,7 +3,7 @@ import type {
   Card,
   GemColors,
   PlayerState,
-} from '#stores/game.store';
+} from '~stores/game.store';
 import { BasicPlayer, GEM_COLORS, randomSmall } from './basicPlayer';
 
 /**

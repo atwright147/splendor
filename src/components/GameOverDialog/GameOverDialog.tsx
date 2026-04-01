@@ -1,7 +1,7 @@
 import { Dialog } from 'radix-ui';
 import type { FC, JSX } from 'react';
 
-import type { PlayerState } from '#stores/game.store';
+import type { PlayerState } from '~stores/game.store';
 
 import styles from './GameOverDialog.module.css';
 

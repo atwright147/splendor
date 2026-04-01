@@ -1,9 +1,10 @@
 import classNames from 'classnames';
 import type { FC, JSX } from 'react';
 import { useShallow } from 'zustand/shallow';
-import { Card } from '#components/Card/Card';
-import { useGameStore } from '#stores/game.store';
-import type { Uuid } from '#types/utils.types';
+
+import { Card } from '~components/Card/Card';
+import { useGameStore } from '~stores/game.store';
+import type { Uuid } from '~types/utils.types';
 import styles from './PlayerInfo.module.css';
 
 interface Props {

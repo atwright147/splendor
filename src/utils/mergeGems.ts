@@ -1,4 +1,4 @@
-import type { Gems } from '#stores/game.store';
+import type { Gems } from '~stores/game.store';
 
 export const mergeGems = (gems1: Gems, gems2: Gems): Gems => ({
   red: gems1.red + gems2.red,

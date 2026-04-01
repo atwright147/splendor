@@ -2,9 +2,9 @@ import { Dialog } from 'radix-ui';
 import type { FC, JSX } from 'react';
 import { useShallow } from 'zustand/shallow';
 
-import { Gem } from '#components/Gem/Gem';
-import { type TokenColors, useGameStore } from '#stores/game.store';
-import { mergeTokens } from '#utils/mergeTokens';
+import { Gem } from '~components/Gem/Gem';
+import { type TokenColors, useGameStore } from '~stores/game.store';
+import { mergeTokens } from '~utils/mergeTokens';
 
 import styles from './ReturnTokensDialog.module.css';
 

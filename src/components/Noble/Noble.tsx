@@ -2,9 +2,9 @@ import classnames from 'classnames';
 import type { FC, JSX } from 'react';
 import { useShallow } from 'zustand/shallow';
 
-import { Gem } from '#components/Gem/Gem';
-import { UnstyledButton } from '#components/UnstyledButton/UnstyledButton';
-import { type Noble as NobleType, useGameStore } from '#stores/game.store';
+import { Gem } from '~components/Gem/Gem';
+import { UnstyledButton } from '~components/UnstyledButton/UnstyledButton';
+import { type Noble as NobleType, useGameStore } from '~stores/game.store';
 
 import styles from './Noble.module.css';
 

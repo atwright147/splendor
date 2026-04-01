@@ -3,8 +3,8 @@ import type {
   Card,
   GemColors,
   PlayerState,
-} from '#stores/game.store';
-import { useGameStore } from '#stores/game.store';
+} from '~stores/game.store';
+import { useGameStore } from '~stores/game.store';
 
 /**
  * Gem colours as a constant array — used throughout all AI players.
