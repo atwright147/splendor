@@ -1,27 +1,52 @@
 import type { JSX } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useEffect } from 'react';
+import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { useShallow } from 'zustand/shallow';
 
 import { useGameStore } from '~stores/game.store';
 import { navigate } from '~utils/navigate';
 import styles from './Home.module.css';
 
+type PlayerType = 'human' | string;
+
 type HomeFormValues = {
   playerCount: number;
-  botCount: number;
+  players: Array<{
+    type: PlayerType;
+  }>;
 };
+
+const aiAgentOptions = Object.keys(import.meta.glob('/src/ai/*.ts'))
+  .map((path) => path.split('/').pop()?.replace('.ts', '') ?? '')
+  .filter((name) => name.length > 0 && name !== 'basicPlayer')
+  .sort((a, b) => a.localeCompare(b));
+
+const playerTypeOptions: Array<{ value: PlayerType; label: string }> = [
+  { value: 'human', label: 'Human (local)' },
+  ...aiAgentOptions.map((agentName) => ({
+    value: agentName,
+    label: agentName.charAt(0).toUpperCase() + agentName.slice(1),
+  })),
+];
 
 export const Home = (): JSX.Element => {
   const {
     control,
+    clearErrors,
+    getValues,
     handleSubmit,
     formState: { errors },
+    setError,
     watch,
   } = useForm<HomeFormValues>({
     defaultValues: {
       playerCount: 2,
-      botCount: 1,
+      players: [{ type: 'human' }, { type: 'human' }],
     },
+  });
+  const { fields, replace } = useFieldArray({
+    control,
+    name: 'players',
   });
   const { createPlayers, deal, init, setBoardSnapshot } = useGameStore(
     useShallow((state) => ({
@@ -32,8 +57,32 @@ export const Home = (): JSX.Element => {
     })),
   );
   const playerCount = watch('playerCount');
+  useEffect(() => {
+    const currentPlayers = getValues('players');
 
-  const onSubmit = ({ playerCount, botCount }: HomeFormValues): void => {
+    if (currentPlayers.length === playerCount) {
+      return;
+    }
+
+    const nextPlayers = Array.from({ length: playerCount }, (_, index) => ({
+      type: currentPlayers[index]?.type ?? 'human',
+    }));
+
+    replace(nextPlayers);
+  }, [getValues, playerCount, replace]);
+
+  const onSubmit = ({ playerCount, players }: HomeFormValues): void => {
+    const botCount = players.filter((player) => player.type !== 'human').length;
+
+    if (botCount >= playerCount) {
+      setError('players.0.type', {
+        type: 'validate',
+        message: 'At least one player must be Human (local).',
+      });
+      return;
+    }
+
+    clearErrors('players');
     createPlayers(playerCount, botCount);
     init();
     deal();
@@ -91,40 +140,47 @@ export const Home = (): JSX.Element => {
             )}
           </div>
 
-          <div className={styles.field}>
-            <label htmlFor="bot-count">Number of Bots (Johanna):</label>
-            <Controller
-              name="botCount"
-              control={control}
-              rules={{
-                min: {
-                  value: 0,
-                  message:
-                    'Number of bots must be between 0 and total players minus 1.',
-                },
-                validate: (value, { playerCount }) =>
-                  value < playerCount ||
-                  'Number of bots must be between 0 and total players minus 1.',
-              }}
-              render={({ field }) => (
-                <input
-                  type="number"
-                  className={styles.input}
-                  id="bot-count"
-                  min="0"
-                  max={Math.max(0, playerCount - 1)}
-                  name={field.name}
-                  ref={field.ref}
-                  value={field.value}
-                  onBlur={field.onBlur}
-                  onChange={(event) => {
-                    field.onChange(Number(event.target.value));
-                  }}
-                />
-              )}
-            />
-            {errors.botCount && <p role="alert">{errors.botCount.message}</p>}
-          </div>
+          <fieldset className={styles.fieldset}>
+            <legend>Players</legend>
+            <div className={styles.playersContainer}>
+              {fields.map((field, index) => (
+                <div className={styles.field} key={field.id}>
+                  <label htmlFor={`player-type-${index + 1}`}>
+                    Player {index + 1}
+                  </label>
+                  <Controller
+                    name={`players.${index}.type`}
+                    control={control}
+                    rules={{
+                      required: 'Choose a player type.',
+                    }}
+                    render={({ field }) => (
+                      <select
+                        className={styles.input}
+                        id={`player-type-${index + 1}`}
+                        name={field.name}
+                        ref={field.ref}
+                        value={field.value}
+                        onBlur={field.onBlur}
+                        onChange={(event) => {
+                          field.onChange(event.target.value);
+                        }}
+                      >
+                        {playerTypeOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  />
+                  {errors.players?.[index]?.type && (
+                    <p role="alert">{errors.players[index]?.type?.message}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </fieldset>
 
           <button type="submit">Start Game</button>
         </form>
