@@ -13,17 +13,16 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
-    // Add this block for alias
-    "baseUrl": ".",
+    // Aliases are resolved relative to this tsconfig file.
     "paths": {
-      "~src/*": ["src/*"],
-      "~ref/*": ["ref/*"],
-      "~stores/*": ["src/stores/*"],
-      "~types/*": ["src/types/*"],
-      "~routes/*": ["src/routes/*"],
-      "~components/*": ["src/components/*"],
-      "~hooks/*": ["src/hooks/*"],
-      "~utils/*": ["src/utils/*"],
+      "~src/*": ["./src/*"],
+      "~ref/*": ["./ref/*"],
+      "~stores/*": ["./src/stores/*"],
+      "~types/*": ["./src/types/*"],
+      "~routes/*": ["./src/routes/*"],
+      "~components/*": ["./src/components/*"],
+      "~hooks/*": ["./src/hooks/*"],
+      "~utils/*": ["./src/utils/*"],
     },
 
     /* Linting */
