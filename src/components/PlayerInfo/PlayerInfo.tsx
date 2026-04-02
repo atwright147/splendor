@@ -10,6 +10,7 @@ import styles from './PlayerInfo.module.css';
 interface Props {
   id: Uuid;
   isAi?: boolean;
+  aiName?: string;
   onReservedCardClick: (index: number) => void;
   pendingReservedCardIndex?: number | null;
 }
@@ -17,6 +18,7 @@ interface Props {
 export const PlayerInfo: FC<Props> = ({
   id,
   isAi = false,
+  aiName,
   onReservedCardClick,
   pendingReservedCardIndex = null,
 }): JSX.Element => {
@@ -39,13 +41,19 @@ export const PlayerInfo: FC<Props> = ({
     isCurrentPlayer = true;
   }
 
+  const displayAiName = aiName
+    ? aiName.charAt(0).toUpperCase() + aiName.slice(1)
+    : 'AI';
+
   return (
     <div
       className={classNames({
         [styles.current]: isCurrentPlayer,
       })}
     >
-      <div className={styles.label}>{isAi ? 'Johanna 🤖' : 'You'}</div>
+      <div className={styles.label}>
+        {isAi ? `${displayAiName} [Bot]` : 'You'}
+      </div>
       <div className={styles.container}>
         <div className={classNames(styles.item, styles.red)}>
           <div className={styles.card}>{player.gems.red}</div>

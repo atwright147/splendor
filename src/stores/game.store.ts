@@ -97,6 +97,7 @@ interface GameState {
   needsNobleCheck: boolean;
   noblesAffordableAtTurnStart: string[];
   aiPlayerIndices: number[];
+  aiPlayerTypes: Record<number, string>;
 
   setBoardSnapshot: () => void;
   resetBoardSnapshot: () => void;
@@ -109,7 +110,10 @@ interface GameState {
   getNextPlayerIndex: () => number | undefined;
   getPlayerById: (uuid: string) => PlayerState | undefined;
   getPlayerByIndex: (index: number) => PlayerState | undefined;
-  createPlayers: (quantity: number, aiCount?: number) => void;
+  createPlayers: (
+    quantity: number,
+    aiConfig?: number | Array<'human' | string>,
+  ) => void;
   pickToken: (tokenColor: TokenColors) => void;
   returnToken: (tokenColor: TokenColors) => void;
   canAffordCard: (card: Card) => boolean;
@@ -195,6 +199,7 @@ export const useGameStore = create<GameState>()(
       needsNobleCheck: false,
       noblesAffordableAtTurnStart: [],
       aiPlayerIndices: [],
+      aiPlayerTypes: {},
 
       setBoardSnapshot: () => set({ boardSnapshot: { ...get().board } }),
       resetBoardSnapshot: () =>
@@ -274,6 +279,7 @@ export const useGameStore = create<GameState>()(
           needsNobleCheck: false,
           noblesAffordableAtTurnStart: [],
           aiPlayerIndices: [],
+          aiPlayerTypes: {},
         });
       },
       init: () => {
@@ -387,7 +393,7 @@ export const useGameStore = create<GameState>()(
         const { players } = get();
         return players[index];
       },
-      createPlayers: (quantity, aiCount = 0) => {
+      createPlayers: (quantity, aiConfig = 0) => {
         let qtyPlayersToCreate = quantity;
         if (qtyPlayersToCreate > MAX_PLAYERS) {
           qtyPlayersToCreate = MAX_PLAYERS;
@@ -400,12 +406,33 @@ export const useGameStore = create<GameState>()(
           { length: qtyPlayersToCreate },
           createPlayer,
         );
-        const clampedAiCount = Math.min(aiCount, qtyPlayersToCreate - 1);
-        const aiPlayerIndices = Array.from(
-          { length: clampedAiCount },
-          (_, i) => qtyPlayersToCreate - clampedAiCount + i,
-        );
-        set({ players, aiPlayerIndices });
+
+        // Legacy mode: when only AI count is provided, keep previous behavior
+        // of assigning AI players to the last N slots as Johanna.
+        if (typeof aiConfig === 'number') {
+          const clampedAiCount = Math.min(aiConfig, qtyPlayersToCreate - 1);
+          const aiPlayerIndices = Array.from(
+            { length: clampedAiCount },
+            (_, i) => qtyPlayersToCreate - clampedAiCount + i,
+          );
+          const aiPlayerTypes: Record<number, string> = Object.fromEntries(
+            aiPlayerIndices.map((index) => [index, 'johanna']),
+          );
+          set({ players, aiPlayerIndices, aiPlayerTypes });
+          return;
+        }
+
+        const normalizedConfig = aiConfig.slice(0, qtyPlayersToCreate);
+        const aiPlayerTypes: Record<number, string> = {};
+
+        normalizedConfig.forEach((type, index) => {
+          if (type !== 'human' && type.length > 0) {
+            aiPlayerTypes[index] = type;
+          }
+        });
+
+        const aiPlayerIndices = Object.keys(aiPlayerTypes).map(Number);
+        set({ players, aiPlayerIndices, aiPlayerTypes });
       },
       pickToken: (tokenColor: TokenColors) => {
         const { board, boardSnapshot } = get();
@@ -709,10 +736,9 @@ export const useGameStore = create<GameState>()(
 
             // Reserve the card and give a gold token if available
             const willGetGold = get().board.tokens.gold > 0;
-            const currentTokenCount = Object.values(currentPlayer.tokens).reduce(
-              (sum, count) => sum + count,
-              0,
-            );
+            const currentTokenCount = Object.values(
+              currentPlayer.tokens,
+            ).reduce((sum, count) => sum + count, 0);
             const newTokenCount = currentTokenCount + (willGetGold ? 1 : 0);
             const tokensOverLimit = Math.max(0, newTokenCount - 10);
             set((state) => ({

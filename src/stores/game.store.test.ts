@@ -298,6 +298,35 @@ describe('Game Store', () => {
 
       expect(result.current.players.length).toBe(4);
     });
+
+    it('maps mixed selected player types to correct AI indices and types', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() =>
+        result.current.createPlayers(4, ['human', 'joe', 'human', 'johanna']),
+      );
+
+      expect(result.current.players.length).toBe(4);
+      expect(result.current.aiPlayerIndices).toEqual([1, 3]);
+      expect(result.current.aiPlayerTypes).toEqual({
+        1: 'joe',
+        3: 'johanna',
+      });
+    });
+
+    it('ignores extra player types beyond the created player count', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() =>
+        result.current.createPlayers(2, ['human', 'joe', 'johanna', 'joe']),
+      );
+
+      expect(result.current.players.length).toBe(2);
+      expect(result.current.aiPlayerIndices).toEqual([1]);
+      expect(result.current.aiPlayerTypes).toEqual({
+        1: 'joe',
+      });
+    });
   });
 
   describe('getCurrentPlayer()', () => {

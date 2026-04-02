@@ -12,6 +12,7 @@ import { PlayerInfo } from '~components/PlayerInfo/PlayerInfo';
 import { Reserved } from '~components/Reserved/Reserved';
 import { ReturnTokensDialog } from '~components/ReturnTokensDialog/ReturnTokensDialog';
 import { Token } from '~components/Token/Token';
+import { playJoeTurn } from '~src/ai/joe';
 import { playJohannaTurn } from '~src/ai/johanna';
 import { type Card as CardType, useGameStore } from '~stores/game.store';
 import type { TokenColorValues } from '~types/colors.type';
@@ -40,6 +41,7 @@ export const Game: FC = (): JSX.Element | null => {
     reset,
     currentPlayerIndex,
     aiPlayerIndices,
+    aiPlayerTypes,
   } = useGameStore(
     useShallow((state) => ({
       board: state.board,
@@ -61,6 +63,7 @@ export const Game: FC = (): JSX.Element | null => {
       reset: state.reset,
       currentPlayerIndex: state.currentPlayerIndex,
       aiPlayerIndices: state.aiPlayerIndices,
+      aiPlayerTypes: state.aiPlayerTypes,
     })),
   );
 
@@ -79,9 +82,17 @@ export const Game: FC = (): JSX.Element | null => {
 
     let commitTimer: ReturnType<typeof setTimeout>;
 
+    const currentAi = aiPlayerTypes[currentPlayerIndex] ?? 'johanna';
+    const playAiTurn =
+      currentAi === 'joe'
+        ? playJoeTurn
+        : currentAi === 'johanna'
+          ? playJohannaTurn
+          : playJohannaTurn;
+
     // Phase 1 — pick action (visible in the UI)
     const pickTimer = setTimeout(() => {
-      const commit = playJohannaTurn();
+      const commit = playAiTurn();
       // Phase 2 — commit the action after a pause so the player can see it
       commitTimer = setTimeout(commit, 1200);
     }, 600);
@@ -90,7 +101,7 @@ export const Game: FC = (): JSX.Element | null => {
       clearTimeout(pickTimer);
       clearTimeout(commitTimer);
     };
-  }, [currentPlayerIndex, isGameOver, aiPlayerIndices]);
+  }, [currentPlayerIndex, isGameOver, aiPlayerIndices, aiPlayerTypes]);
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent): void => {
@@ -194,6 +205,7 @@ export const Game: FC = (): JSX.Element | null => {
               key={player.uuid}
               id={player.uuid}
               isAi={aiPlayerIndices.includes(index)}
+              aiName={aiPlayerTypes[index]}
               onReservedCardClick={handleReservedCardPurchase}
               pendingReservedCardIndex={pendingReservedCardIndex}
             />

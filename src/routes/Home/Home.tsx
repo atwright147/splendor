@@ -83,7 +83,10 @@ export const Home = (): JSX.Element => {
     }
 
     clearErrors('players');
-    createPlayers(playerCount, botCount);
+    createPlayers(
+      playerCount,
+      players.map((player) => player.type),
+    );
     init();
     deal();
     setBoardSnapshot();
