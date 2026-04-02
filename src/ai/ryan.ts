@@ -22,6 +22,11 @@ class Ryan extends BasicPlayer {
   }
 }
 
+export const ryanTurnTiming = {
+  pickDelayMs: 350,
+  commitDelayMs: 700,
+};
+
 /**
  * Execute Ryan's turn. Returns a commit callback to call after a pause so
  * the human player can see his selection before the turn advances.

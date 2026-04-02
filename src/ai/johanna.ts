@@ -85,6 +85,11 @@ class Johanna extends BasicPlayer {
   }
 }
 
+export const johannaTurnTiming = {
+  pickDelayMs: 900,
+  commitDelayMs: 1500,
+};
+
 /**
  * Execute Johanna's turn. Returns a commit callback to call after a pause so
  * the human player can see her selection before the turn advances.

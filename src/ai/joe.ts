@@ -8,6 +8,11 @@ import { BasicPlayer } from './basicPlayer';
  */
 class Joe extends BasicPlayer {}
 
+export const joeTurnTiming = {
+  pickDelayMs: 600,
+  commitDelayMs: 1200,
+};
+
 /**
  * Execute Joe's turn. Returns a commit callback to call after a pause so
  * the human player can see his selection before the turn advances.

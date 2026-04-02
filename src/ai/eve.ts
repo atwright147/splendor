@@ -63,6 +63,11 @@ class Eve extends BasicPlayer {
   }
 }
 
+export const eveTurnTiming = {
+  pickDelayMs: 700,
+  commitDelayMs: 1300,
+};
+
 /**
  * Execute Eve's turn. Returns a commit callback to call after a pause so
  * the human player can see her selection before the turn advances.

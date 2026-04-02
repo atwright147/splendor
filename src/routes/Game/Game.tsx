@@ -13,10 +13,7 @@ import { PlayerInfo } from '~components/PlayerInfo/PlayerInfo';
 import { Reserved } from '~components/Reserved/Reserved';
 import { ReturnTokensDialog } from '~components/ReturnTokensDialog/ReturnTokensDialog';
 import { Token } from '~components/Token/Token';
-import { playEveTurn } from '~src/ai/eve';
-import { playJoeTurn } from '~src/ai/joe';
-import { playJohannaTurn } from '~src/ai/johanna';
-import { playRyanTurn } from '~src/ai/ryan';
+import { scheduleAiTurn } from '~src/ai/scheduleAiTurn';
 import { type Card as CardType, useGameStore } from '~stores/game.store';
 import type { TokenColorValues } from '~types/colors.type';
 import { navigate } from '~utils/navigate';
@@ -83,29 +80,8 @@ export const Game: FC = (): JSX.Element | null => {
     if (isGameOver) return;
     if (!aiPlayerIndices.includes(currentPlayerIndex)) return;
 
-    let commitTimer: ReturnType<typeof setTimeout>;
-
     const currentAi = aiPlayerTypes[currentPlayerIndex] ?? 'johanna';
-    const aiTurnMap = {
-      eve: playEveTurn,
-      joe: playJoeTurn,
-      ryan: playRyanTurn,
-      johanna: playJohannaTurn,
-    };
-    const playAiTurn =
-      aiTurnMap[currentAi as keyof typeof aiTurnMap] ?? playJohannaTurn;
-
-    // Phase 1 — pick action (visible in the UI)
-    const pickTimer = setTimeout(() => {
-      const commit = playAiTurn();
-      // Phase 2 — commit the action after a pause so the player can see it
-      commitTimer = setTimeout(commit, 1200);
-    }, 600);
-
-    return () => {
-      clearTimeout(pickTimer);
-      clearTimeout(commitTimer);
-    };
+    return scheduleAiTurn(currentAi);
   }, [currentPlayerIndex, isGameOver, aiPlayerIndices, aiPlayerTypes]);
 
   useEffect(() => {

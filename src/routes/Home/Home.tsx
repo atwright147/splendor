@@ -18,7 +18,10 @@ type HomeFormValues = {
 
 const aiAgentOptions = Object.keys(import.meta.glob('/src/ai/*.ts'))
   .map((path) => path.split('/').pop()?.replace('.ts', '') ?? '')
-  .filter((name) => name.length > 0 && name !== 'basicPlayer')
+  .filter(
+    (name) =>
+      name.length > 0 && name !== 'basicPlayer' && name !== 'scheduleAiTurn',
+  )
   .sort((a, b) => a.localeCompare(b));
 
 const playerDescriptions: Record<string, string> = {
