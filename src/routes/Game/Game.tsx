@@ -13,6 +13,7 @@ import { PlayerInfo } from '~components/PlayerInfo/PlayerInfo';
 import { Reserved } from '~components/Reserved/Reserved';
 import { ReturnTokensDialog } from '~components/ReturnTokensDialog/ReturnTokensDialog';
 import { Token } from '~components/Token/Token';
+import { playEveTurn } from '~src/ai/eve';
 import { playJoeTurn } from '~src/ai/joe';
 import { playJohannaTurn } from '~src/ai/johanna';
 import { playRyanTurn } from '~src/ai/ryan';
@@ -86,13 +87,15 @@ export const Game: FC = (): JSX.Element | null => {
 
     const currentAi = aiPlayerTypes[currentPlayerIndex] ?? 'johanna';
     const playAiTurn =
-      currentAi === 'joe'
-        ? playJoeTurn
-        : currentAi === 'ryan'
-          ? playRyanTurn
-          : currentAi === 'johanna'
-            ? playJohannaTurn
-            : playJohannaTurn;
+      currentAi === 'eve'
+        ? playEveTurn
+        : currentAi === 'joe'
+          ? playJoeTurn
+          : currentAi === 'ryan'
+            ? playRyanTurn
+            : currentAi === 'johanna'
+              ? playJohannaTurn
+              : playJohannaTurn;
 
     // Phase 1 — pick action (visible in the UI)
     const pickTimer = setTimeout(() => {

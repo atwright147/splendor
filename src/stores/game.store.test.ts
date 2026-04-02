@@ -342,6 +342,23 @@ describe('Game Store', () => {
         1: 'joe',
       });
     });
+
+    it('includes all AI types together in mapping', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() =>
+        result.current.createPlayers(4, ['eve', 'johanna', 'ryan', 'joe']),
+      );
+
+      expect(result.current.players.length).toBe(4);
+      expect(result.current.aiPlayerIndices).toEqual([0, 1, 2, 3]);
+      expect(result.current.aiPlayerTypes).toEqual({
+        0: 'eve',
+        1: 'johanna',
+        2: 'ryan',
+        3: 'joe',
+      });
+    });
   });
 
   describe('getCurrentPlayer()', () => {
