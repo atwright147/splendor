@@ -49,6 +49,42 @@ export function resolveNobles(): void {
  */
 export abstract class BasicPlayer {
   /**
+   * Recover from an unexpected failed commit by taking a legal fallback action
+   * so the AI turn can still complete.
+   */
+  private recoverFromFailedCommit(): void {
+    const store = useGameStore.getState();
+
+    if (store.needToReturnTokens) {
+      this.resolveReturnTokens();
+      resolveNobles();
+      return;
+    }
+
+    const selfState = store.getCurrentPlayer();
+    if (selfState.reservedCards.length < 3) {
+      for (const level of [1, 2, 3] as const) {
+        if (store.reserveFromDeck(level)) {
+          const currentState = useGameStore.getState();
+          if (currentState.needToReturnTokens) {
+            this.resolveReturnTokens();
+          } else {
+            currentState.finishTurn();
+          }
+          resolveNobles();
+          return;
+        }
+      }
+    }
+
+    if (store.isForcedPass() || store.canEndTurn()) {
+      store.endTurn();
+      this.resolveReturnTokens();
+      resolveNobles();
+    }
+  }
+
+  /**
    * Estimate how interested this player is in tokens of each gem colour,
    * based on the cost gap across all visible board cards.
    *
@@ -184,7 +220,11 @@ export abstract class BasicPlayer {
     );
     if (reserved) {
       return () => {
-        store.commitCard(reserved.index);
+        const purchased = store.commitCard(reserved.index);
+        if (!purchased) {
+          this.recoverFromFailedCommit();
+          return;
+        }
         store.finishTurn();
         resolveNobles();
       };
