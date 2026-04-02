@@ -86,16 +86,14 @@ export const Game: FC = (): JSX.Element | null => {
     let commitTimer: ReturnType<typeof setTimeout>;
 
     const currentAi = aiPlayerTypes[currentPlayerIndex] ?? 'johanna';
+    const aiTurnMap = {
+      eve: playEveTurn,
+      joe: playJoeTurn,
+      ryan: playRyanTurn,
+      johanna: playJohannaTurn,
+    };
     const playAiTurn =
-      currentAi === 'eve'
-        ? playEveTurn
-        : currentAi === 'joe'
-          ? playJoeTurn
-          : currentAi === 'ryan'
-            ? playRyanTurn
-            : currentAi === 'johanna'
-              ? playJohannaTurn
-              : playJohannaTurn;
+      aiTurnMap[currentAi as keyof typeof aiTurnMap] ?? playJohannaTurn;
 
     // Phase 1 — pick action (visible in the UI)
     const pickTimer = setTimeout(() => {
