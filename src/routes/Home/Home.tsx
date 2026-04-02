@@ -36,7 +36,6 @@ export const Home = (): JSX.Element => {
     getValues,
     handleSubmit,
     formState: { errors },
-    setError,
     watch,
   } = useForm<HomeFormValues>({
     defaultValues: {
@@ -72,16 +71,6 @@ export const Home = (): JSX.Element => {
   }, [getValues, playerCount, replace]);
 
   const onSubmit = ({ playerCount, players }: HomeFormValues): void => {
-    const botCount = players.filter((player) => player.type !== 'human').length;
-
-    if (botCount >= playerCount) {
-      setError('players.0.type', {
-        type: 'validate',
-        message: 'At least one player must be Human (local).',
-      });
-      return;
-    }
-
     clearErrors('players');
     createPlayers(
       playerCount,
