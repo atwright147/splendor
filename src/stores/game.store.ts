@@ -6,6 +6,7 @@ import { devtools } from 'zustand/middleware';
 
 import deckAll from '~ref/cards.json';
 import noblesAll from '~ref/nobles.json';
+import { clearActionLog, logAction } from '~stores/actionLog.store';
 import { notify } from '~stores/notifications.store';
 import { addGem } from '~utils/addGem';
 import { mergeTokens } from '~utils/mergeTokens';
@@ -179,6 +180,32 @@ const createPlayer = (): PlayerState => ({
   uuid: uuidv4(),
 });
 
+const getPlayerLabel = (
+  index: number,
+  aiPlayerTypes: Record<number, string>,
+): string => {
+  const aiType = aiPlayerTypes[index];
+  if (!aiType) {
+    return `Player ${index + 1}`;
+  }
+
+  return `Player ${index + 1} (${aiType.charAt(0).toUpperCase()}${aiType.slice(1)} Bot)`;
+};
+
+const formatGemTokenSummary = (gems: Partial<Gems>): string => {
+  return (Object.entries(gems) as Array<[keyof Gems, number]>)
+    .filter(([_, amount]) => amount > 0)
+    .map(([color, amount]) => `${amount} ${color}`)
+    .join(', ');
+};
+
+const formatTokenSummary = (tokens: Partial<Tokens>): string => {
+  return (Object.entries(tokens) as Array<[keyof Tokens, number]>)
+    .filter(([_, amount]) => amount > 0)
+    .map(([color, amount]) => `${amount} ${color}`)
+    .join(', ');
+};
+
 export const useGameStore = create<GameState>()(
   devtools(
     (set, get): GameState => ({
@@ -216,6 +243,11 @@ export const useGameStore = create<GameState>()(
       commitTokens: () => {
         const currentPlayer = get().getCurrentPlayer();
         if (!currentPlayer) return;
+        const playerLabel = getPlayerLabel(
+          get().currentPlayerIndex,
+          get().aiPlayerTypes,
+        );
+        const pickedTokenSummary = formatGemTokenSummary(get().pickedTokens);
         const currentTokenCount = Object.values(currentPlayer.tokens).reduce(
           (sum, count) => sum + count,
           0,
@@ -255,6 +287,11 @@ export const useGameStore = create<GameState>()(
             `You have ${totalTokens} tokens, which exceeds the limit of 10. You must return ${tokensOverLimit} tokens.`,
             'warn',
           );
+          if (pickedTokenSummary.length > 0) {
+            logAction(
+              `${playerLabel} took ${pickedTokenSummary} and must return ${tokensOverLimit} token${tokensOverLimit === 1 ? '' : 's'} (limit 10).`,
+            );
+          }
         } else {
           // Normal commit without exceeding token limit
           set(
@@ -275,9 +312,14 @@ export const useGameStore = create<GameState>()(
             false,
             'game.commitTokens',
           );
+
+          if (pickedTokenSummary.length > 0) {
+            logAction(`${playerLabel} took ${pickedTokenSummary}.`);
+          }
         }
       },
       reset: () => {
+        clearActionLog();
         set(
           {
             board: { ...initialBoardState },
@@ -419,10 +461,7 @@ export const useGameStore = create<GameState>()(
         let qtyPlayersToCreate = quantity;
         if (qtyPlayersToCreate > MAX_PLAYERS) {
           qtyPlayersToCreate = MAX_PLAYERS;
-          notify(
-            `Only ${MAX_PLAYERS} players can be created, ${quantity} requested.`,
-            'info',
-          );
+          logAction(`Requested ${quantity} players, capped at ${MAX_PLAYERS}.`);
         }
         const players = Array.from(
           { length: qtyPlayersToCreate },
@@ -466,15 +505,23 @@ export const useGameStore = create<GameState>()(
       },
       pickToken: (tokenColor: TokenColors) => {
         const { board, boardSnapshot } = get();
+        const playerLabel = getPlayerLabel(
+          get().currentPlayerIndex,
+          get().aiPlayerTypes,
+        );
 
         if (get().pickedCard !== null) {
-          notify('Cannot pick tokens when a card is already picked', 'info');
+          logAction(
+            `${playerLabel} could not take tokens because a card is already picked.`,
+          );
           return;
         }
 
         // Don't allow taking gold tokens directly
         if (tokenColor === 'gold') {
-          notify('Gold tokens cannot be taken directly', 'info');
+          logAction(
+            `${playerLabel} tried to take gold directly (not allowed).`,
+          );
           return;
         }
 
@@ -492,9 +539,8 @@ export const useGameStore = create<GameState>()(
           ([color, count]) => color !== colorKey && count > 0,
         );
         if (differentColorTokens.length > 0 && currentColorCount >= 1) {
-          notify(
-            'Cannot reserve two of the same color when a different color is already reserved',
-            'info',
+          logAction(
+            `${playerLabel} could not take a second ${tokenColor} token after taking a different color.`,
           );
           return;
         }
@@ -503,15 +549,16 @@ export const useGameStore = create<GameState>()(
         if (currentColorCount >= 1) {
           // Can only take 2 if there were at least 4 available at start of turn
           if (availableTokens < 4) {
-            notify(
-              'Cannot take 2 tokens of the same color unless 4 or more were available at start of turn',
-              'info',
+            logAction(
+              `${playerLabel} could not take two ${tokenColor} tokens because fewer than 4 were available at turn start.`,
             );
             return;
           }
           // Can't take more than 2 of the same color
           if (currentColorCount >= 2) {
-            notify('Cannot take more than 2 tokens of the same color', 'info');
+            logAction(
+              `${playerLabel} could not take more than 2 ${tokenColor} tokens.`,
+            );
             return;
           }
         }
@@ -520,14 +567,15 @@ export const useGameStore = create<GameState>()(
         else if (currentColorCount === 0) {
           // Check if player is trying to take a different colored token
           if (differentColorTokens.length >= 3) {
-            notify('Cannot take more than 3 different colored tokens', 'info');
+            logAction(
+              `${playerLabel} could not take more than 3 different token colors.`,
+            );
             return;
           }
           // Ensure not taking 2 of any color when taking different colors
           if (differentColorTokens.some(([_, count]) => Number(count) >= 2)) {
-            notify(
-              'Cannot mix taking 2 of one color with other colors',
-              'info',
+            logAction(
+              `${playerLabel} could not mix taking two of one color with different colors.`,
             );
             return;
           }
@@ -535,7 +583,9 @@ export const useGameStore = create<GameState>()(
 
         // Rule 4: Check if there are any tokens of this color left to take
         if (board.tokens[tokenColor] <= 0) {
-          notify('No tokens of this color remaining', 'info');
+          logAction(
+            `${playerLabel} could not take ${tokenColor} because none were left.`,
+          );
           return;
         }
 
@@ -563,6 +613,10 @@ export const useGameStore = create<GameState>()(
       returnToken: (tokenColor: TokenColors) => {
         const colorKey = tokenColor as keyof Gems;
         const { needToReturnTokens } = get();
+        const playerLabel = getPlayerLabel(
+          get().currentPlayerIndex,
+          get().aiPlayerTypes,
+        );
 
         // If player is returning tokens because they exceed the limit
         if (needToReturnTokens) {
@@ -570,7 +624,7 @@ export const useGameStore = create<GameState>()(
 
           // Check if player has tokens of this color to return
           if (currentPlayer.tokens[tokenColor] <= 0) {
-            notify('No tokens of this color to return', 'info');
+            logAction(`${playerLabel} has no ${tokenColor} token to return.`);
             return;
           }
 
@@ -619,7 +673,9 @@ export const useGameStore = create<GameState>()(
 
         // Normal token return during the token selection phase
         if (get().pickedTokens[colorKey] <= 0) {
-          notify('No tokens of this color to return', 'info');
+          logAction(
+            `${playerLabel} has no picked ${tokenColor} token to return.`,
+          );
           return;
         }
 
@@ -832,10 +888,12 @@ export const useGameStore = create<GameState>()(
               'game.commitCard',
             );
 
-            notify(
-              'Card reserved' +
-                (willGetGold ? ' and a Gold token added.' : '.'),
-              'success',
+            const playerLabel = getPlayerLabel(
+              get().currentPlayerIndex,
+              get().aiPlayerTypes,
+            );
+            logAction(
+              `${playerLabel} reserved a level ${pickedCard.card.level} card from the board${willGetGold ? ' and took 1 gold token' : ''}.`,
             );
             return false;
           }
@@ -948,12 +1006,6 @@ export const useGameStore = create<GameState>()(
 
             // If card was from reserved pile, don't need to update board cards or deck.
             // If a board card was orphaned (picked but not committed), restore it.
-            if (state.pickedCard !== null) {
-              notify(
-                'Board card returned because you purchased a reserved card instead.',
-                'info',
-              );
-            }
             const restoredBoard =
               state.pickedCard !== null
                 ? (() => {
@@ -1001,24 +1053,25 @@ export const useGameStore = create<GameState>()(
           'game.commitCard',
         );
 
-        // Create a detailed purchase message showing what tokens were actually spent
-        const tokenDetails = Object.entries(tokensSpent)
-          .filter(([_, amount]) => amount && amount > 0)
-          .map(([color, amount]) => `${amount} ${color}`)
-          .join(', ');
-
-        notify(
-          `Card purchased for ${tokenDetails || 'free (using gems)'}`,
-          'success',
+        const playerLabel = getPlayerLabel(
+          get().currentPlayerIndex,
+          get().aiPlayerTypes,
+        );
+        const tokenDetails = formatTokenSummary(tokensSpent);
+        logAction(
+          `${playerLabel} bought a level ${cardToCommit.level} card for ${tokenDetails || 'free (using gems only)'}.`,
         );
 
         return true;
       },
       reserveFromDeck: (level: 1 | 2 | 3) => {
+        const playerLabel = getPlayerLabel(
+          get().currentPlayerIndex,
+          get().aiPlayerTypes,
+        );
         if (get().pickedCard !== null) {
-          notify(
-            'Cannot reserve from deck when a card is already picked',
-            'info',
+          logAction(
+            `${playerLabel} could not reserve from deck while a card is already picked.`,
           );
           return false;
         }
@@ -1027,9 +1080,8 @@ export const useGameStore = create<GameState>()(
           (count) => count > 0,
         );
         if (hasPickedTokens) {
-          notify(
-            'Cannot reserve from deck when tokens are already picked',
-            'info',
+          logAction(
+            `${playerLabel} could not reserve from deck after taking tokens this turn.`,
           );
           return false;
         }
@@ -1046,7 +1098,9 @@ export const useGameStore = create<GameState>()(
         );
 
         if (availableCards.length === 0) {
-          notify(`No cards remaining in level ${level} deck`, 'info');
+          logAction(
+            `${playerLabel} could not reserve from level ${level} deck because it is empty.`,
+          );
           return false;
         }
 
@@ -1093,11 +1147,8 @@ export const useGameStore = create<GameState>()(
           'game.reserveFromDeck',
         );
 
-        notify(
-          `Card reserved from level ${level} deck${
-            willGetGold ? ' and a Gold token added.' : '.'
-          }`,
-          'success',
+        logAction(
+          `${playerLabel} reserved a hidden level ${level} card${willGetGold ? ' and took 1 gold token' : ''}.`,
         );
 
         return true;
@@ -1107,11 +1158,17 @@ export const useGameStore = create<GameState>()(
 
         // Cannot pick a card when tokens have already been picked this turn
         const { pickedTokens } = get();
+        const playerLabel = getPlayerLabel(
+          get().currentPlayerIndex,
+          get().aiPlayerTypes,
+        );
         const hasPickedTokens = Object.values(pickedTokens).some(
           (count) => count > 0,
         );
         if (hasPickedTokens) {
-          notify('Cannot pick a card when tokens are already picked', 'info');
+          logAction(
+            `${playerLabel} could not pick a card after taking tokens this turn.`,
+          );
           return;
         }
 
@@ -1179,6 +1236,10 @@ export const useGameStore = create<GameState>()(
         );
       },
       claimNoble: (noble) => {
+        const playerLabel = getPlayerLabel(
+          get().currentPlayerIndex,
+          get().aiPlayerTypes,
+        );
         set(
           (state) => ({
             players: state.players.map((player, i) =>
@@ -1198,6 +1259,10 @@ export const useGameStore = create<GameState>()(
           }),
           false,
           'game.claimNoble',
+        );
+
+        logAction(
+          `${playerLabel} claimed a noble for ${noble.prestige} prestige.`,
         );
 
         get().setBoardSnapshot();
@@ -1360,9 +1425,8 @@ export const useGameStore = create<GameState>()(
             'game.checkWinCondition',
           );
 
-          notify(
-            `${`Player ${currentPlayerIndex + 1}`} has reached 15 points! Final round started.`,
-            'info',
+          logAction(
+            `Player ${currentPlayerIndex + 1} reached 15 prestige. Final round started.`,
           );
 
           return;
@@ -1415,17 +1479,29 @@ export const useGameStore = create<GameState>()(
           );
 
           if (isTie) {
-            notify("Game Over! It's a tie!", 'success');
+            logAction('Game over: tie game.');
           } else {
             const winner = get().players[winnerIndex];
-            notify(
-              `Game Over! ${`Player ${winnerIndex + 1}`} wins with ${winner.prestige} prestige points!`,
-              'success',
+            logAction(
+              `Game over: Player ${winnerIndex + 1} won with ${winner.prestige} prestige.`,
             );
           }
         }
       },
       endTurn: () => {
+        const isForcedPass =
+          get().pickedCard === null &&
+          Object.values(get().pickedTokens).every((qty) => qty === 0) &&
+          get().isForcedPass();
+
+        if (isForcedPass) {
+          const playerLabel = getPlayerLabel(
+            get().currentPlayerIndex,
+            get().aiPlayerTypes,
+          );
+          logAction(`${playerLabel} passed (no valid action available).`);
+        }
+
         if (get().pickedCard !== null) {
           get().commitCard();
         } else {

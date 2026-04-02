@@ -1,6 +1,7 @@
 import { type FC, type JSX, useEffect, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
 
+import { ActionLog } from '~components/ActionLog/ActionLog';
 import { Card } from '~components/Card/Card';
 import { CardBack } from '~components/CardBack/CardBack';
 import { FinalRoundBanner } from '~components/FinalRoundBanner/FinalRoundBanner';
@@ -201,6 +202,7 @@ export const Game: FC = (): JSX.Element | null => {
 
       <div className={styles.table}>
         <Notifications />
+        <ActionLog />
 
         <div className={styles.players}>
           {players.map((player, index) => (

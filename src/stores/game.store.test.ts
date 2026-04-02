@@ -2,6 +2,7 @@ import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import deckAll from '../../ref/cards.json';
+import { useActionLogStore } from './actionLog.store';
 import {
   type Card,
   initialBoardState,
@@ -9,7 +10,6 @@ import {
   type Tokens,
   useGameStore,
 } from './game.store';
-import { useNotificationStore } from './notifications.store';
 
 describe('Game Store', () => {
   beforeEach(() => {
@@ -1110,12 +1110,10 @@ describe('Game Store', () => {
       expect(result.current.pickedCard).toBeNull();
     });
 
-    describe('reservation notification includes gold when last gold is taken', () => {
+    describe('reservation action log includes gold detail when last gold is taken', () => {
       beforeEach(() => {
-        const { result: notifResult } = renderHook(() =>
-          useNotificationStore(),
-        );
-        act(() => notifResult.current.clear());
+        const { result: logResult } = renderHook(() => useActionLogStore());
+        act(() => logResult.current.clear());
       });
 
       it('says "and a Gold token added" when the last gold token is taken on reserve', () => {
@@ -1147,14 +1145,12 @@ describe('Game Store', () => {
         act(() => result.current.pickCard(card));
         act(() => result.current.commitCard());
 
-        const { result: notifResult } = renderHook(() =>
-          useNotificationStore(),
-        );
-        const messages = notifResult.current.notifications.map(
-          (notification) => notification.message,
+        const { result: logResult } = renderHook(() => useActionLogStore());
+        const messages = logResult.current.entries.map(
+          (entry) => entry.message,
         );
         expect(
-          messages.some((message) => message.includes('Gold token added')),
+          messages.some((message) => message.includes('took 1 gold token')),
         ).toBe(true);
       });
 
@@ -1187,17 +1183,15 @@ describe('Game Store', () => {
         act(() => result.current.pickCard(card));
         act(() => result.current.commitCard());
 
-        const { result: notifResult } = renderHook(() =>
-          useNotificationStore(),
-        );
-        const messages = notifResult.current.notifications.map(
-          (notification) => notification.message,
+        const { result: logResult } = renderHook(() => useActionLogStore());
+        const messages = logResult.current.entries.map(
+          (entry) => entry.message,
         );
         expect(
-          messages.some((message) => message.includes('Gold token added')),
+          messages.some((message) => message.includes('took 1 gold token')),
         ).toBe(false);
         expect(
-          messages.some((message) => message.startsWith('Card reserved')),
+          messages.some((message) => message.includes('reserved a level')),
         ).toBe(true);
       });
     });
