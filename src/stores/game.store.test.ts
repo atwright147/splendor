@@ -314,6 +314,21 @@ describe('Game Store', () => {
       });
     });
 
+    it('includes ryan in AI mapping when selected', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() =>
+        result.current.createPlayers(4, ['human', 'ryan', 'joe', 'human']),
+      );
+
+      expect(result.current.players.length).toBe(4);
+      expect(result.current.aiPlayerIndices).toEqual([1, 2]);
+      expect(result.current.aiPlayerTypes).toEqual({
+        1: 'ryan',
+        2: 'joe',
+      });
+    });
+
     it('ignores extra player types beyond the created player count', () => {
       const { result } = renderHook(() => useGameStore());
 

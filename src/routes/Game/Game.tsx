@@ -14,6 +14,7 @@ import { ReturnTokensDialog } from '~components/ReturnTokensDialog/ReturnTokensD
 import { Token } from '~components/Token/Token';
 import { playJoeTurn } from '~src/ai/joe';
 import { playJohannaTurn } from '~src/ai/johanna';
+import { playRyanTurn } from '~src/ai/ryan';
 import { type Card as CardType, useGameStore } from '~stores/game.store';
 import type { TokenColorValues } from '~types/colors.type';
 import { navigate } from '~utils/navigate';
@@ -86,9 +87,11 @@ export const Game: FC = (): JSX.Element | null => {
     const playAiTurn =
       currentAi === 'joe'
         ? playJoeTurn
-        : currentAi === 'johanna'
-          ? playJohannaTurn
-          : playJohannaTurn;
+        : currentAi === 'ryan'
+          ? playRyanTurn
+          : currentAi === 'johanna'
+            ? playJohannaTurn
+            : playJohannaTurn;
 
     // Phase 1 — pick action (visible in the UI)
     const pickTimer = setTimeout(() => {
