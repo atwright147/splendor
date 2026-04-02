@@ -128,18 +128,23 @@ export abstract class BasicPlayer {
     const store = useGameStore.getState();
     if (!store.needToReturnTokens) return;
 
-    const selfState = store.getCurrentPlayer();
-    const interest = this.estimateInterestInColors(selfState, store.board);
+    // Return one token at a time until the store clears the over-limit state.
+    // This supports scenarios where multiple tokens of the same colour must be
+    // returned.
+    let safety = 20;
+    while (safety > 0) {
+      const current = useGameStore.getState();
+      if (!current.needToReturnTokens) break;
 
-    const colorsToReturn = GEM_COLORS.filter(
-      (color) => selfState.tokens[color] > 0,
-    ).sort((a, b) => interest[a] - interest[b]);
+      const selfState = current.getCurrentPlayer();
+      const interest = this.estimateInterestInColors(selfState, current.board);
+      const colorToReturn = GEM_COLORS.filter(
+        (color) => selfState.tokens[color] > 0,
+      ).sort((a, b) => interest[a] - interest[b])[0];
 
-    let remaining = store.tokensToReturn;
-    for (const color of colorsToReturn) {
-      if (remaining <= 0) break;
-      useGameStore.getState().returnToken(color);
-      remaining--;
+      if (!colorToReturn) break;
+      current.returnToken(colorToReturn);
+      safety--;
     }
   }
 
