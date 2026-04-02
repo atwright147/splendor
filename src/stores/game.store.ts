@@ -201,9 +201,18 @@ export const useGameStore = create<GameState>()(
       aiPlayerIndices: [],
       aiPlayerTypes: {},
 
-      setBoardSnapshot: () => set({ boardSnapshot: { ...get().board } }),
+      setBoardSnapshot: () =>
+        set(
+          { boardSnapshot: { ...get().board } },
+          false,
+          'game.setBoardSnapshot',
+        ),
       resetBoardSnapshot: () =>
-        set({ boardSnapshot: { ...initialBoardState } }),
+        set(
+          { boardSnapshot: { ...initialBoardState } },
+          false,
+          'game.resetBoardSnapshot',
+        ),
       commitTokens: () => {
         const currentPlayer = get().getCurrentPlayer();
         if (!currentPlayer) return;
@@ -221,22 +230,26 @@ export const useGameStore = create<GameState>()(
         if (totalTokens > 10) {
           const tokensOverLimit = totalTokens - 10;
 
-          set((state) => ({
-            players: state.players.map((player, index) =>
-              index === get().currentPlayerIndex
-                ? {
-                    ...player,
-                    tokens: mergeTokens(player.tokens, {
-                      ...state.pickedTokens,
-                      gold: 0,
-                    }),
-                  }
-                : player,
-            ),
-            pickedTokens: { red: 0, green: 0, blue: 0, white: 0, black: 0 },
-            needToReturnTokens: true,
-            tokensToReturn: tokensOverLimit,
-          }));
+          set(
+            (state) => ({
+              players: state.players.map((player, index) =>
+                index === get().currentPlayerIndex
+                  ? {
+                      ...player,
+                      tokens: mergeTokens(player.tokens, {
+                        ...state.pickedTokens,
+                        gold: 0,
+                      }),
+                    }
+                  : player,
+              ),
+              pickedTokens: { red: 0, green: 0, blue: 0, white: 0, black: 0 },
+              needToReturnTokens: true,
+              tokensToReturn: tokensOverLimit,
+            }),
+            false,
+            'game.commitTokens',
+          );
 
           notify(
             `You have ${totalTokens} tokens, which exceeds the limit of 10. You must return ${tokensOverLimit} tokens.`,
@@ -244,46 +257,54 @@ export const useGameStore = create<GameState>()(
           );
         } else {
           // Normal commit without exceeding token limit
-          set((state) => ({
-            players: state.players.map((player, index) =>
-              index === get().currentPlayerIndex
-                ? {
-                    ...player,
-                    tokens: mergeTokens(player.tokens, {
-                      ...state.pickedTokens,
-                      gold: 0,
-                    }),
-                  }
-                : player,
-            ),
-            pickedTokens: { red: 0, green: 0, blue: 0, white: 0, black: 0 },
-          }));
+          set(
+            (state) => ({
+              players: state.players.map((player, index) =>
+                index === get().currentPlayerIndex
+                  ? {
+                      ...player,
+                      tokens: mergeTokens(player.tokens, {
+                        ...state.pickedTokens,
+                        gold: 0,
+                      }),
+                    }
+                  : player,
+              ),
+              pickedTokens: { red: 0, green: 0, blue: 0, white: 0, black: 0 },
+            }),
+            false,
+            'game.commitTokens',
+          );
         }
       },
       reset: () => {
-        set({
-          board: { ...initialBoardState },
-          boardSnapshot: { ...initialBoardState },
-          pickedCard: null,
-          pickedTokens: { red: 0, green: 0, blue: 0, white: 0, black: 0 },
-          deck: [],
-          players: [],
-          currentPlayerIndex: 0,
-          isGameOver: false,
-          winner: null,
-          tiedPlayers: [],
-          finalRoundTriggered: false,
-          finalRoundPlayer: null,
-          needToReturnTokens: false,
-          tokensToReturn: 0,
-          needsNobleCheck: false,
-          noblesAffordableAtTurnStart: [],
-          aiPlayerIndices: [],
-          aiPlayerTypes: {},
-        });
+        set(
+          {
+            board: { ...initialBoardState },
+            boardSnapshot: { ...initialBoardState },
+            pickedCard: null,
+            pickedTokens: { red: 0, green: 0, blue: 0, white: 0, black: 0 },
+            deck: [],
+            players: [],
+            currentPlayerIndex: 0,
+            isGameOver: false,
+            winner: null,
+            tiedPlayers: [],
+            finalRoundTriggered: false,
+            finalRoundPlayer: null,
+            needToReturnTokens: false,
+            tokensToReturn: 0,
+            needsNobleCheck: false,
+            noblesAffordableAtTurnStart: [],
+            aiPlayerIndices: [],
+            aiPlayerTypes: {},
+          },
+          false,
+          'game.reset',
+        );
       },
       init: () => {
-        set({ deck: [...deckAll] as Card[] });
+        set({ deck: [...deckAll] as Card[] }, false, 'game.init');
       },
       deal: () => {
         if (get().players.length <= 1) {
@@ -371,9 +392,10 @@ export const useGameStore = create<GameState>()(
           },
           nobles,
         };
-        set({ board, deck: newDeck }, false);
+        set({ board, deck: newDeck }, false, 'game.deal');
       },
-      setCurrentPlayerIndex: (index) => set({ currentPlayerIndex: index }),
+      setCurrentPlayerIndex: (index) =>
+        set({ currentPlayerIndex: index }, false, 'game.setCurrentPlayerIndex'),
       getCurrentPlayer: () => {
         const { players, currentPlayerIndex } = get();
         return players[currentPlayerIndex];
@@ -418,7 +440,11 @@ export const useGameStore = create<GameState>()(
           const aiPlayerTypes: Record<number, string> = Object.fromEntries(
             aiPlayerIndices.map((index) => [index, 'johanna']),
           );
-          set({ players, aiPlayerIndices, aiPlayerTypes });
+          set(
+            { players, aiPlayerIndices, aiPlayerTypes },
+            false,
+            'game.createPlayers',
+          );
           return;
         }
 
@@ -432,7 +458,11 @@ export const useGameStore = create<GameState>()(
         });
 
         const aiPlayerIndices = Object.keys(aiPlayerTypes).map(Number);
-        set({ players, aiPlayerIndices, aiPlayerTypes });
+        set(
+          { players, aiPlayerIndices, aiPlayerTypes },
+          false,
+          'game.createPlayers',
+        );
       },
       pickToken: (tokenColor: TokenColors) => {
         const { board, boardSnapshot } = get();
@@ -510,21 +540,25 @@ export const useGameStore = create<GameState>()(
         }
 
         // If all checks pass, reserve the token
-        set((state) => {
-          return {
-            board: {
-              ...state.board,
-              tokens: {
-                ...state.board.tokens,
-                [tokenColor]: state.board.tokens[tokenColor] - 1,
+        set(
+          (state) => {
+            return {
+              board: {
+                ...state.board,
+                tokens: {
+                  ...state.board.tokens,
+                  [tokenColor]: state.board.tokens[tokenColor] - 1,
+                },
               },
-            },
-            pickedTokens: {
-              ...state.pickedTokens,
-              [colorKey]: state.pickedTokens[colorKey] + 1,
-            },
-          };
-        });
+              pickedTokens: {
+                ...state.pickedTokens,
+                [colorKey]: state.pickedTokens[colorKey] + 1,
+              },
+            };
+          },
+          false,
+          'game.pickToken',
+        );
       },
       returnToken: (tokenColor: TokenColors) => {
         const colorKey = tokenColor as keyof Gems;
@@ -540,37 +574,41 @@ export const useGameStore = create<GameState>()(
             return;
           }
 
-          set((state) => {
-            const updatedPlayers = [...state.players];
-            const playerIndex = state.currentPlayerIndex;
+          set(
+            (state) => {
+              const updatedPlayers = [...state.players];
+              const playerIndex = state.currentPlayerIndex;
 
-            // Remove token from player
-            updatedPlayers[playerIndex] = {
-              ...updatedPlayers[playerIndex],
-              tokens: {
-                ...updatedPlayers[playerIndex].tokens,
-                [tokenColor]:
-                  updatedPlayers[playerIndex].tokens[tokenColor] - 1,
-              },
-            };
-
-            // Reduce the count of tokens to return
-            const newTokensToReturn = state.tokensToReturn - 1;
-
-            return {
-              players: updatedPlayers,
-              board: {
-                ...state.board,
+              // Remove token from player
+              updatedPlayers[playerIndex] = {
+                ...updatedPlayers[playerIndex],
                 tokens: {
-                  ...state.board.tokens,
-                  [tokenColor]: state.board.tokens[tokenColor] + 1,
+                  ...updatedPlayers[playerIndex].tokens,
+                  [tokenColor]:
+                    updatedPlayers[playerIndex].tokens[tokenColor] - 1,
                 },
-              },
-              tokensToReturn: newTokensToReturn,
-              // If no more tokens need to be returned, set needToReturnTokens to false
-              needToReturnTokens: newTokensToReturn > 0,
-            };
-          });
+              };
+
+              // Reduce the count of tokens to return
+              const newTokensToReturn = state.tokensToReturn - 1;
+
+              return {
+                players: updatedPlayers,
+                board: {
+                  ...state.board,
+                  tokens: {
+                    ...state.board.tokens,
+                    [tokenColor]: state.board.tokens[tokenColor] + 1,
+                  },
+                },
+                tokensToReturn: newTokensToReturn,
+                // If no more tokens need to be returned, set needToReturnTokens to false
+                needToReturnTokens: newTokensToReturn > 0,
+              };
+            },
+            false,
+            'game.returnToken',
+          );
 
           if (!get().needToReturnTokens) {
             get().finishTurn();
@@ -585,19 +623,23 @@ export const useGameStore = create<GameState>()(
           return;
         }
 
-        set((state) => ({
-          board: {
-            ...state.board,
-            tokens: {
-              ...state.board.tokens,
-              [tokenColor]: state.board.tokens[tokenColor] + 1,
+        set(
+          (state) => ({
+            board: {
+              ...state.board,
+              tokens: {
+                ...state.board.tokens,
+                [tokenColor]: state.board.tokens[tokenColor] + 1,
+              },
             },
-          },
-          pickedTokens: {
-            ...state.pickedTokens,
-            [colorKey]: state.pickedTokens[colorKey] - 1,
-          },
-        }));
+            pickedTokens: {
+              ...state.pickedTokens,
+              [colorKey]: state.pickedTokens[colorKey] - 1,
+            },
+          }),
+          false,
+          'game.returnToken',
+        );
       },
       canAffordCard: (card) => {
         const player = get().getCurrentPlayer();
@@ -715,22 +757,26 @@ export const useGameStore = create<GameState>()(
               notify('Cannot reserve more than 3 cards', 'error');
 
               // Return the card to the board
-              set((state) => ({
-                board: {
-                  ...state.board,
-                  cards: {
-                    ...state.board.cards,
-                    [`level${pickedCard.card.level}` as keyof typeof state.board.cards]:
-                      [
-                        ...state.board.cards[
-                          `level${pickedCard.card.level}` as keyof typeof state.board.cards
+              set(
+                (state) => ({
+                  board: {
+                    ...state.board,
+                    cards: {
+                      ...state.board.cards,
+                      [`level${pickedCard.card.level}` as keyof typeof state.board.cards]:
+                        [
+                          ...state.board.cards[
+                            `level${pickedCard.card.level}` as keyof typeof state.board.cards
+                          ],
+                          pickedCard.card,
                         ],
-                        pickedCard.card,
-                      ],
+                    },
                   },
-                },
-                pickedCard: null,
-              }));
+                  pickedCard: null,
+                }),
+                false,
+                'game.commitCard',
+              );
               return false;
             }
 
@@ -741,43 +787,50 @@ export const useGameStore = create<GameState>()(
             ).reduce((sum, count) => sum + count, 0);
             const newTokenCount = currentTokenCount + (willGetGold ? 1 : 0);
             const tokensOverLimit = Math.max(0, newTokenCount - 10);
-            set((state) => ({
-              players: state.players.map((player, i) =>
-                i === get().currentPlayerIndex
-                  ? {
-                      ...player,
-                      reservedCards: [...player.reservedCards, pickedCard.card],
-                      tokens: {
-                        ...player.tokens,
-                        gold:
-                          state.board.tokens.gold > 0
-                            ? player.tokens.gold + 1
-                            : player.tokens.gold,
-                      },
-                    }
-                  : player,
-              ),
-              board: {
-                ...state.board,
-                cards: {
-                  ...state.board.cards,
-                  [`level${pickedCard.card.level}` as keyof typeof state.board.cards]:
-                    state.board.cards[
-                      `level${pickedCard.card.level}` as keyof typeof state.board.cards
-                    ].filter((c) => c.id !== pickedCard.card.id), // Remove the card from the board
+            set(
+              (state) => ({
+                players: state.players.map((player, i) =>
+                  i === get().currentPlayerIndex
+                    ? {
+                        ...player,
+                        reservedCards: [
+                          ...player.reservedCards,
+                          pickedCard.card,
+                        ],
+                        tokens: {
+                          ...player.tokens,
+                          gold:
+                            state.board.tokens.gold > 0
+                              ? player.tokens.gold + 1
+                              : player.tokens.gold,
+                        },
+                      }
+                    : player,
+                ),
+                board: {
+                  ...state.board,
+                  cards: {
+                    ...state.board.cards,
+                    [`level${pickedCard.card.level}` as keyof typeof state.board.cards]:
+                      state.board.cards[
+                        `level${pickedCard.card.level}` as keyof typeof state.board.cards
+                      ].filter((c) => c.id !== pickedCard.card.id), // Remove the card from the board
+                  },
+                  tokens: {
+                    ...state.board.tokens,
+                    gold:
+                      state.board.tokens.gold > 0
+                        ? state.board.tokens.gold - 1
+                        : 0,
+                  },
                 },
-                tokens: {
-                  ...state.board.tokens,
-                  gold:
-                    state.board.tokens.gold > 0
-                      ? state.board.tokens.gold - 1
-                      : 0,
-                },
-              },
-              needToReturnTokens: tokensOverLimit > 0,
-              tokensToReturn: tokensOverLimit,
-              pickedCard: null, // Clear the picked card
-            }));
+                needToReturnTokens: tokensOverLimit > 0,
+                tokensToReturn: tokensOverLimit,
+                pickedCard: null, // Clear the picked card
+              }),
+              false,
+              'game.commitCard',
+            );
 
             notify(
               'Card reserved' +
@@ -818,56 +871,110 @@ export const useGameStore = create<GameState>()(
         }
 
         // Handle different card sources (board vs reserved)
-        set((state) => {
-          // Return tokens spent back to the board
-          const updatedBoard = {
-            ...state.board,
-            tokens: {
-              ...state.board.tokens,
-              red: state.board.tokens.red + (tokensSpent.red || 0),
-              green: state.board.tokens.green + (tokensSpent.green || 0),
-              blue: state.board.tokens.blue + (tokensSpent.blue || 0),
-              white: state.board.tokens.white + (tokensSpent.white || 0),
-              black: state.board.tokens.black + (tokensSpent.black || 0),
-              gold: state.board.tokens.gold + (tokensSpent.gold || 0),
-            },
-          };
-
-          // If card was picked from the board, get a new card from the deck
-          if (!fromReserved && pickedCard) {
-            const pickedCardLevel = pickedCard.card.level;
-            const availableCards = state.deck.filter(
-              (card) => card.level === pickedCardLevel,
-            );
-            const newCard =
-              availableCards.length > 0
-                ? availableCards[random(0, availableCards.length - 1)]
-                : null;
-
-            // Update the cards on the board
-            updatedBoard.cards = {
-              ...updatedBoard.cards,
-              [`level${pickedCardLevel}` as keyof typeof state.board.cards]:
-                (() => {
-                  const levelKey =
-                    `level${pickedCardLevel}` as keyof typeof state.board.cards;
-                  const currentCards = [...state.board.cards[levelKey]];
-                  if (newCard) {
-                    currentCards.splice(pickedCard.boardIndex, 0, newCard);
-                  }
-                  return currentCards;
-                })(),
+        set(
+          (state) => {
+            // Return tokens spent back to the board
+            const updatedBoard = {
+              ...state.board,
+              tokens: {
+                ...state.board.tokens,
+                red: state.board.tokens.red + (tokensSpent.red || 0),
+                green: state.board.tokens.green + (tokensSpent.green || 0),
+                blue: state.board.tokens.blue + (tokensSpent.blue || 0),
+                white: state.board.tokens.white + (tokensSpent.white || 0),
+                black: state.board.tokens.black + (tokensSpent.black || 0),
+                gold: state.board.tokens.gold + (tokensSpent.gold || 0),
+              },
             };
 
-            // Return the updated state with new deck and board
+            // If card was picked from the board, get a new card from the deck
+            if (!fromReserved && pickedCard) {
+              const pickedCardLevel = pickedCard.card.level;
+              const availableCards = state.deck.filter(
+                (card) => card.level === pickedCardLevel,
+              );
+              const newCard =
+                availableCards.length > 0
+                  ? availableCards[random(0, availableCards.length - 1)]
+                  : null;
+
+              // Update the cards on the board
+              updatedBoard.cards = {
+                ...updatedBoard.cards,
+                [`level${pickedCardLevel}` as keyof typeof state.board.cards]:
+                  (() => {
+                    const levelKey =
+                      `level${pickedCardLevel}` as keyof typeof state.board.cards;
+                    const currentCards = [...state.board.cards[levelKey]];
+                    if (newCard) {
+                      currentCards.splice(pickedCard.boardIndex, 0, newCard);
+                    }
+                    return currentCards;
+                  })(),
+              };
+
+              // Return the updated state with new deck and board
+              return {
+                ...state,
+                board: updatedBoard,
+                // Remove the new card from the deck if one was drawn
+                deck: newCard
+                  ? state.deck.filter((card) => card.id !== newCard.id)
+                  : state.deck,
+                // Update player state
+                players: state.players.map((player, i) =>
+                  i === get().currentPlayerIndex
+                    ? {
+                        ...player,
+                        cards: [...player.cards, cardToCommit],
+                        prestige: player.prestige + cardToCommit.prestige,
+                        gems: addGem(player.gems, cardToCommit.gem),
+                        tokens: get().removePlayerTokensByCardCost(
+                          cardToCommit.cost,
+                        ),
+                        // If the card was reserved, remove it from reserved cards
+                        reservedCards: fromReserved
+                          ? player.reservedCards.filter(
+                              (_, index) => index !== reservedCardIndex,
+                            )
+                          : player.reservedCards,
+                      }
+                    : player,
+                ),
+                // Clear picked card
+                pickedCard: null,
+              };
+            }
+
+            // If card was from reserved pile, don't need to update board cards or deck.
+            // If a board card was orphaned (picked but not committed), restore it.
+            if (state.pickedCard !== null) {
+              notify(
+                'Board card returned because you purchased a reserved card instead.',
+                'info',
+              );
+            }
+            const restoredBoard =
+              state.pickedCard !== null
+                ? (() => {
+                    const orphan = state.pickedCard;
+                    const levelKey =
+                      `level${orphan.card.level}` as keyof typeof state.board.cards;
+                    const currentCards = [...updatedBoard.cards[levelKey]];
+                    currentCards.splice(orphan.boardIndex, 0, orphan.card);
+                    return {
+                      ...updatedBoard,
+                      cards: {
+                        ...updatedBoard.cards,
+                        [levelKey]: currentCards,
+                      },
+                    };
+                  })()
+                : updatedBoard;
+
             return {
               ...state,
-              board: updatedBoard,
-              // Remove the new card from the deck if one was drawn
-              deck: newCard
-                ? state.deck.filter((card) => card.id !== newCard.id)
-                : state.deck,
-              // Update player state
+              board: restoredBoard,
               players: state.players.map((player, i) =>
                 i === get().currentPlayerIndex
                   ? {
@@ -878,7 +985,7 @@ export const useGameStore = create<GameState>()(
                       tokens: get().removePlayerTokensByCardCost(
                         cardToCommit.cost,
                       ),
-                      // If the card was reserved, remove it from reserved cards
+                      // Remove the card from reserved cards
                       reservedCards: fromReserved
                         ? player.reservedCards.filter(
                             (_, index) => index !== reservedCardIndex,
@@ -887,59 +994,12 @@ export const useGameStore = create<GameState>()(
                     }
                   : player,
               ),
-              // Clear picked card
               pickedCard: null,
             };
-          }
-
-          // If card was from reserved pile, don't need to update board cards or deck.
-          // If a board card was orphaned (picked but not committed), restore it.
-          if (state.pickedCard !== null) {
-            notify(
-              'Board card returned because you purchased a reserved card instead.',
-              'info',
-            );
-          }
-          const restoredBoard =
-            state.pickedCard !== null
-              ? (() => {
-                  const orphan = state.pickedCard;
-                  const levelKey =
-                    `level${orphan.card.level}` as keyof typeof state.board.cards;
-                  const currentCards = [...updatedBoard.cards[levelKey]];
-                  currentCards.splice(orphan.boardIndex, 0, orphan.card);
-                  return {
-                    ...updatedBoard,
-                    cards: { ...updatedBoard.cards, [levelKey]: currentCards },
-                  };
-                })()
-              : updatedBoard;
-
-          return {
-            ...state,
-            board: restoredBoard,
-            players: state.players.map((player, i) =>
-              i === get().currentPlayerIndex
-                ? {
-                    ...player,
-                    cards: [...player.cards, cardToCommit],
-                    prestige: player.prestige + cardToCommit.prestige,
-                    gems: addGem(player.gems, cardToCommit.gem),
-                    tokens: get().removePlayerTokensByCardCost(
-                      cardToCommit.cost,
-                    ),
-                    // Remove the card from reserved cards
-                    reservedCards: fromReserved
-                      ? player.reservedCards.filter(
-                          (_, index) => index !== reservedCardIndex,
-                        )
-                      : player.reservedCards,
-                  }
-                : player,
-            ),
-            pickedCard: null,
-          };
-        });
+          },
+          false,
+          'game.commitCard',
+        );
 
         // Create a detailed purchase message showing what tokens were actually spent
         const tokenDetails = Object.entries(tokensSpent)
@@ -1000,34 +1060,38 @@ export const useGameStore = create<GameState>()(
         const newTokenCount = currentTokenCount + (willGetGold ? 1 : 0);
         const tokensOverLimit = Math.max(0, newTokenCount - 10);
 
-        set((state) => ({
-          players: state.players.map((player, i) =>
-            i === state.currentPlayerIndex
-              ? {
-                  ...player,
-                  reservedCards: [...player.reservedCards, card],
-                  tokens: {
-                    ...player.tokens,
-                    gold: willGetGold
-                      ? player.tokens.gold + 1
-                      : player.tokens.gold,
-                  },
-                }
-              : player,
-          ),
-          board: {
-            ...state.board,
-            tokens: {
-              ...state.board.tokens,
-              gold: willGetGold
-                ? state.board.tokens.gold - 1
-                : state.board.tokens.gold,
+        set(
+          (state) => ({
+            players: state.players.map((player, i) =>
+              i === state.currentPlayerIndex
+                ? {
+                    ...player,
+                    reservedCards: [...player.reservedCards, card],
+                    tokens: {
+                      ...player.tokens,
+                      gold: willGetGold
+                        ? player.tokens.gold + 1
+                        : player.tokens.gold,
+                    },
+                  }
+                : player,
+            ),
+            board: {
+              ...state.board,
+              tokens: {
+                ...state.board.tokens,
+                gold: willGetGold
+                  ? state.board.tokens.gold - 1
+                  : state.board.tokens.gold,
+              },
             },
-          },
-          deck: state.deck.filter((c) => c.id !== card.id),
-          needToReturnTokens: tokensOverLimit > 0,
-          tokensToReturn: tokensOverLimit,
-        }));
+            deck: state.deck.filter((c) => c.id !== card.id),
+            needToReturnTokens: tokensOverLimit > 0,
+            tokensToReturn: tokensOverLimit,
+          }),
+          false,
+          'game.reserveFromDeck',
+        );
 
         notify(
           `Card reserved from level ${level} deck${
@@ -1051,74 +1115,90 @@ export const useGameStore = create<GameState>()(
           return;
         }
 
-        set((state) => ({
-          board: {
-            ...state.board,
-            cards: {
-              ...state.board.cards,
-              [`level${card.level}` as keyof typeof state.board.cards]:
-                state.board.cards[
-                  `level${card.level}` as keyof typeof state.board.cards
-                ].filter((c) => c.id !== card.id),
+        set(
+          (state) => ({
+            board: {
+              ...state.board,
+              cards: {
+                ...state.board.cards,
+                [`level${card.level}` as keyof typeof state.board.cards]:
+                  state.board.cards[
+                    `level${card.level}` as keyof typeof state.board.cards
+                  ].filter((c) => c.id !== card.id),
+              },
             },
-          },
-          pickedCard: {
-            card,
-            intent: 'buy',
-            boardIndex: state.board.cards[
-              `level${card.level}` as keyof typeof state.board.cards
-            ].findIndex((c) => c.id === card.id),
-          },
-        }));
+            pickedCard: {
+              card,
+              intent: 'buy',
+              boardIndex: state.board.cards[
+                `level${card.level}` as keyof typeof state.board.cards
+              ].findIndex((c) => c.id === card.id),
+            },
+          }),
+          false,
+          'game.pickCard',
+        );
       },
       unpickCard: () => {
         const { pickedCard } = get();
         if (!pickedCard) return;
 
-        set((state) => ({
-          board: {
-            ...state.board,
-            cards: {
-              ...state.board.cards,
-              [`level${pickedCard.card.level}` as keyof typeof state.board.cards]:
-                (() => {
-                  const levelKey =
-                    `level${pickedCard.card.level}` as keyof typeof state.board.cards;
-                  const currentCards = [...state.board.cards[levelKey]];
-                  currentCards.splice(
-                    pickedCard.boardIndex,
-                    0,
-                    pickedCard.card,
-                  );
-                  return currentCards;
-                })(),
+        set(
+          (state) => ({
+            board: {
+              ...state.board,
+              cards: {
+                ...state.board.cards,
+                [`level${pickedCard.card.level}` as keyof typeof state.board.cards]:
+                  (() => {
+                    const levelKey =
+                      `level${pickedCard.card.level}` as keyof typeof state.board.cards;
+                    const currentCards = [...state.board.cards[levelKey]];
+                    currentCards.splice(
+                      pickedCard.boardIndex,
+                      0,
+                      pickedCard.card,
+                    );
+                    return currentCards;
+                  })(),
+              },
             },
-          },
-          pickedCard: null,
-        }));
+            pickedCard: null,
+          }),
+          false,
+          'game.unpickCard',
+        );
       },
       setPickedCardIntent: (intent) => {
         const { pickedCard } = get();
         if (!pickedCard) return;
-        set({ pickedCard: { ...pickedCard, intent } });
+        set(
+          { pickedCard: { ...pickedCard, intent } },
+          false,
+          'game.setPickedCardIntent',
+        );
       },
       claimNoble: (noble) => {
-        set((state) => ({
-          players: state.players.map((player, i) =>
-            i === get().currentPlayerIndex
-              ? {
-                  ...player,
-                  prestige: player.prestige + noble.prestige,
-                  nobles: [...player.nobles, noble],
-                }
-              : player,
-          ),
-          board: {
-            ...state.board,
-            nobles: state.board.nobles.filter((n) => n.id !== noble.id),
-          },
-          needsNobleCheck: false,
-        }));
+        set(
+          (state) => ({
+            players: state.players.map((player, i) =>
+              i === get().currentPlayerIndex
+                ? {
+                    ...player,
+                    prestige: player.prestige + noble.prestige,
+                    nobles: [...player.nobles, noble],
+                  }
+                : player,
+            ),
+            board: {
+              ...state.board,
+              nobles: state.board.nobles.filter((n) => n.id !== noble.id),
+            },
+            needsNobleCheck: false,
+          }),
+          false,
+          'game.claimNoble',
+        );
 
         get().setBoardSnapshot();
         get().checkWinCondition();
@@ -1130,17 +1210,25 @@ export const useGameStore = create<GameState>()(
       nextPlayer: () => {
         if (get().needsNobleCheck) return;
 
-        set((state) => ({
-          boardSnapshot: state.board,
-          currentPlayerIndex:
-            (state.currentPlayerIndex + 1) % state.players.length,
-        }));
+        set(
+          (state) => ({
+            boardSnapshot: state.board,
+            currentPlayerIndex:
+              (state.currentPlayerIndex + 1) % state.players.length,
+          }),
+          false,
+          'game.nextPlayer',
+        );
 
-        set({
-          noblesAffordableAtTurnStart: get()
-            .getAffordableNobles()
-            .map((n) => n.id),
-        });
+        set(
+          {
+            noblesAffordableAtTurnStart: get()
+              .getAffordableNobles()
+              .map((n) => n.id),
+          },
+          false,
+          'game.nextPlayer',
+        );
       },
       finishTurn: () => {
         const { noblesAffordableAtTurnStart } = get();
@@ -1154,7 +1242,7 @@ export const useGameStore = create<GameState>()(
         }
 
         if (newlyAffordable.length > 1) {
-          set({ needsNobleCheck: true });
+          set({ needsNobleCheck: true }, false, 'game.finishTurn');
           return;
         }
 
@@ -1263,10 +1351,14 @@ export const useGameStore = create<GameState>()(
 
         // Check if this player has reached 15 points
         if (currentPlayer.prestige >= 15 && !get().finalRoundTriggered) {
-          set({
-            finalRoundTriggered: true,
-            finalRoundPlayer: currentPlayerIndex,
-          });
+          set(
+            {
+              finalRoundTriggered: true,
+              finalRoundPlayer: currentPlayerIndex,
+            },
+            false,
+            'game.checkWinCondition',
+          );
 
           notify(
             `${`Player ${currentPlayerIndex + 1}`} has reached 15 points! Final round started.`,
@@ -1310,11 +1402,17 @@ export const useGameStore = create<GameState>()(
 
           const isTie = tiedIndexes.length > 0;
 
-          set({
-            isGameOver: true,
-            winner: isTie ? null : get().players[winnerIndex],
-            tiedPlayers: isTie ? tiedIndexes.map((i) => get().players[i]) : [],
-          });
+          set(
+            {
+              isGameOver: true,
+              winner: isTie ? null : get().players[winnerIndex],
+              tiedPlayers: isTie
+                ? tiedIndexes.map((i) => get().players[i])
+                : [],
+            },
+            false,
+            'game.checkWinCondition',
+          );
 
           if (isTie) {
             notify("Game Over! It's a tie!", 'success');

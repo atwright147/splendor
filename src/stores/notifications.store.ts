@@ -39,15 +39,23 @@ export const useNotificationStore = create<State>()(
           id: uuidv4(),
         };
 
-        set((state) => ({
-          notifications: [...state.notifications, notification],
-        }));
+        set(
+          (state) => ({
+            notifications: [...state.notifications, notification],
+          }),
+          false,
+          'notifications.add',
+        );
       },
       remove: (id) =>
-        set((state) => ({
-          notifications: state.notifications.filter((n) => n.id !== id),
-        })),
-      clear: () => set({ notifications: [] }),
+        set(
+          (state) => ({
+            notifications: state.notifications.filter((n) => n.id !== id),
+          }),
+          false,
+          'notifications.remove',
+        ),
+      clear: () => set({ notifications: [] }, false, 'notifications.clear'),
     }),
     { enabled: true, name: 'notifications' },
   ),
