@@ -21,11 +21,20 @@ const aiAgentOptions = Object.keys(import.meta.glob('/src/ai/*.ts'))
   .filter((name) => name.length > 0 && name !== 'basicPlayer')
   .sort((a, b) => a.localeCompare(b));
 
-const playerTypeOptions: Array<{ value: PlayerType; label: string }> = [
-  { value: 'human', label: 'Human (local)' },
+const playerDescriptions: Record<string, string> = {
+  human: 'You control this player',
+  eve: 'Tries to block opponents by securing colours that appear in nobles',
+  joe: 'A solid standard opponent',
+  johanna: 'Strongest opponent, strategically targets noble-required cards (~64% win rate)',
+  ryan: 'Less intelligent, makes random decisions',
+};
+
+const playerTypeOptions: Array<{ value: PlayerType; label: string; description: string }> = [
+  { value: 'human', label: 'Human (local)', description: playerDescriptions.human },
   ...aiAgentOptions.map((agentName) => ({
     value: agentName,
     label: agentName.charAt(0).toUpperCase() + agentName.slice(1),
+    description: playerDescriptions[agentName] || 'An AI opponent',
   })),
 ];
 
@@ -146,25 +155,37 @@ export const Home = (): JSX.Element => {
                     rules={{
                       required: 'Choose a player type.',
                     }}
-                    render={({ field }) => (
-                      <select
-                        className={styles.input}
-                        id={`player-type-${index + 1}`}
-                        name={field.name}
-                        ref={field.ref}
-                        value={field.value}
-                        onBlur={field.onBlur}
-                        onChange={(event) => {
-                          field.onChange(event.target.value);
-                        }}
-                      >
-                        {playerTypeOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    )}
+                     render={({ field }) => {
+                       const selectedPlayer = playerTypeOptions.find(
+                         (opt) => opt.value === field.value,
+                       );
+                       return (
+                         <>
+                           <select
+                             className={styles.input}
+                             id={`player-type-${index + 1}`}
+                             name={field.name}
+                             ref={field.ref}
+                             value={field.value}
+                             onBlur={field.onBlur}
+                             onChange={(event) => {
+                               field.onChange(event.target.value);
+                             }}
+                           >
+                             {playerTypeOptions.map((option) => (
+                               <option key={option.value} value={option.value}>
+                                 {option.label}
+                               </option>
+                             ))}
+                           </select>
+                           {selectedPlayer && (
+                             <p className={styles.description}>
+                               {selectedPlayer.description}
+                             </p>
+                           )}
+                         </>
+                       );
+                     }}
                   />
                   {errors.players?.[index]?.type && (
                     <p role="alert">{errors.players[index]?.type?.message}</p>
