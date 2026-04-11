@@ -1012,6 +1012,35 @@ describe('Game Store', () => {
       expect(result.current.tokensToReturn).toBe(1);
     });
 
+    it('replaces a reserved board card with a new card from deck', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      const boardBefore = [...result.current.board.cards.level1];
+      const card = boardBefore[1];
+      const deckBefore = result.current.deck.length;
+
+      act(() => result.current.pickCard(card));
+      act(() => result.current.setPickedCardIntent('reserve'));
+
+      let purchased = true;
+      act(() => {
+        purchased = result.current.commitCard();
+      });
+
+      expect(purchased).toBe(false);
+      expect(result.current.players[0].reservedCards).toContainEqual(card);
+      expect(result.current.board.cards.level1).toHaveLength(
+        boardBefore.length,
+      );
+      expect(result.current.board.cards.level1).not.toContainEqual(card);
+      expect(result.current.deck.length).toBe(deckBefore - 1);
+    });
+
     it('returns true when purchasing a card from reservedCards', () => {
       const { result } = renderHook(() => useGameStore());
       const card: Card = {
@@ -1071,6 +1100,30 @@ describe('Game Store', () => {
 
       expect(purchased).toBe(false);
       expect(result.current.players[0].cards).not.toContainEqual(card);
+    });
+
+    it('returns false when trying to purchase a reserved card while returning excess tokens', () => {
+      const { result } = renderHook(() => useGameStore());
+      const card: Card = {
+        id: 'mockUuid-reserved-return-pending',
+        cost: { red: 0, green: 0, blue: 0, black: 0, white: 0 },
+        prestige: 2,
+        gem: 'green',
+        level: 1,
+      };
+
+      act(() => result.current.setCurrentPlayerIndex(0));
+      result.current.players[0].reservedCards = [card];
+      useGameStore.setState({ needToReturnTokens: true, tokensToReturn: 1 });
+
+      let purchased = true;
+      act(() => {
+        purchased = result.current.commitCard(0);
+      });
+
+      expect(purchased).toBe(false);
+      expect(result.current.players[0].cards).not.toContainEqual(card);
+      expect(result.current.players[0].reservedCards).toContainEqual(card);
     });
 
     it('returns false (not undefined) when no card is picked', () => {
@@ -1360,6 +1413,23 @@ describe('Game Store', () => {
       act(() => result.current.pickCard(card));
 
       expect(result.current.pickedCard).toBeNull();
+    });
+
+    it('does not pick a card while returning excess tokens', () => {
+      const { result } = renderHook(() => useGameStore());
+
+      act(() => result.current.createPlayers(2));
+      act(() => result.current.init());
+      act(() => result.current.deal());
+      act(() => result.current.setCurrentPlayerIndex(0));
+
+      useGameStore.setState({ needToReturnTokens: true, tokensToReturn: 1 });
+
+      const card = result.current.board.cards.level1[0];
+      act(() => result.current.pickCard(card));
+
+      expect(result.current.pickedCard).toBeNull();
+      expect(result.current.board.cards.level1).toContainEqual(card);
     });
   });
 
@@ -2552,6 +2622,41 @@ describe('Game Store', () => {
 
       expect(result.current.needToReturnTokens).toBe(true);
       expect(result.current.tokensToReturn).toBe(1);
+    });
+
+    it('does not allow reserving a second card while waiting to return tokens', () => {
+      const result = setup();
+
+      result.current.players[0].tokens = {
+        red: 2,
+        green: 2,
+        blue: 2,
+        white: 2,
+        black: 2,
+        gold: 0,
+      };
+
+      let firstReserveResult = false;
+      let secondReserveResult = true;
+
+      act(() => {
+        firstReserveResult = result.current.reserveFromDeck(1);
+      });
+
+      const reservedAfterFirst =
+        result.current.getCurrentPlayer().reservedCards.length;
+
+      act(() => {
+        secondReserveResult = result.current.reserveFromDeck(2);
+      });
+
+      expect(firstReserveResult).toBe(true);
+      expect(result.current.needToReturnTokens).toBe(true);
+      expect(result.current.tokensToReturn).toBe(1);
+      expect(secondReserveResult).toBe(false);
+      expect(result.current.getCurrentPlayer().reservedCards.length).toBe(
+        reservedAfterFirst,
+      );
     });
 
     it('does not set needToReturnTokens when player stays at or below 10 tokens', () => {

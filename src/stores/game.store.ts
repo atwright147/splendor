@@ -510,6 +510,13 @@ export const useGameStore = create<GameState>()(
           get().aiPlayerTypes,
         );
 
+        if (get().needToReturnTokens) {
+          logAction(
+            `${playerLabel} could not take tokens before returning excess tokens.`,
+          );
+          return;
+        }
+
         if (get().pickedCard !== null) {
           logAction(
             `${playerLabel} could not take tokens because a card is already picked.`,
@@ -782,6 +789,18 @@ export const useGameStore = create<GameState>()(
       commitCard: (reservedCardIndex?: number) => {
         const { pickedCard } = get();
         const currentPlayer = get().getCurrentPlayer();
+        const playerLabel = getPlayerLabel(
+          get().currentPlayerIndex,
+          get().aiPlayerTypes,
+        );
+
+        if (get().needToReturnTokens) {
+          logAction(
+            `${playerLabel} could not buy or reserve a card before returning excess tokens.`,
+          );
+          return false;
+        }
+
         let cardToCommit: Card | null = null;
         let fromReserved = false;
 
@@ -843,55 +862,71 @@ export const useGameStore = create<GameState>()(
             ).reduce((sum, count) => sum + count, 0);
             const newTokenCount = currentTokenCount + (willGetGold ? 1 : 0);
             const tokensOverLimit = Math.max(0, newTokenCount - 10);
+
+            const pickedCardLevel = pickedCard.card.level;
+            const availableCards = get().deck.filter(
+              (card) => card.level === pickedCardLevel,
+            );
+            const newCard =
+              availableCards.length > 0
+                ? availableCards[random(0, availableCards.length - 1)]
+                : null;
+
             set(
-              (state) => ({
-                players: state.players.map((player, i) =>
-                  i === get().currentPlayerIndex
-                    ? {
-                        ...player,
-                        reservedCards: [
-                          ...player.reservedCards,
-                          pickedCard.card,
-                        ],
-                        tokens: {
-                          ...player.tokens,
-                          gold:
-                            state.board.tokens.gold > 0
-                              ? player.tokens.gold + 1
-                              : player.tokens.gold,
-                        },
-                      }
-                    : player,
-                ),
-                board: {
-                  ...state.board,
-                  cards: {
-                    ...state.board.cards,
-                    [`level${pickedCard.card.level}` as keyof typeof state.board.cards]:
-                      state.board.cards[
-                        `level${pickedCard.card.level}` as keyof typeof state.board.cards
-                      ].filter((c) => c.id !== pickedCard.card.id), // Remove the card from the board
+              (state) => {
+                const levelKey =
+                  `level${pickedCardLevel}` as keyof typeof state.board.cards;
+                const updatedLevelCards = [...state.board.cards[levelKey]];
+
+                if (newCard) {
+                  updatedLevelCards.splice(pickedCard.boardIndex, 0, newCard);
+                }
+
+                return {
+                  players: state.players.map((player, i) =>
+                    i === get().currentPlayerIndex
+                      ? {
+                          ...player,
+                          reservedCards: [
+                            ...player.reservedCards,
+                            pickedCard.card,
+                          ],
+                          tokens: {
+                            ...player.tokens,
+                            gold:
+                              state.board.tokens.gold > 0
+                                ? player.tokens.gold + 1
+                                : player.tokens.gold,
+                          },
+                        }
+                      : player,
+                  ),
+                  board: {
+                    ...state.board,
+                    cards: {
+                      ...state.board.cards,
+                      [levelKey]: updatedLevelCards,
+                    },
+                    tokens: {
+                      ...state.board.tokens,
+                      gold:
+                        state.board.tokens.gold > 0
+                          ? state.board.tokens.gold - 1
+                          : 0,
+                    },
                   },
-                  tokens: {
-                    ...state.board.tokens,
-                    gold:
-                      state.board.tokens.gold > 0
-                        ? state.board.tokens.gold - 1
-                        : 0,
-                  },
-                },
-                needToReturnTokens: tokensOverLimit > 0,
-                tokensToReturn: tokensOverLimit,
-                pickedCard: null, // Clear the picked card
-              }),
+                  deck: newCard
+                    ? state.deck.filter((card) => card.id !== newCard.id)
+                    : state.deck,
+                  needToReturnTokens: tokensOverLimit > 0,
+                  tokensToReturn: tokensOverLimit,
+                  pickedCard: null, // Clear the picked card
+                };
+              },
               false,
               'game.commitCard',
             );
 
-            const playerLabel = getPlayerLabel(
-              get().currentPlayerIndex,
-              get().aiPlayerTypes,
-            );
             logAction(
               `${playerLabel} reserved a level ${pickedCard.card.level} card from the board${willGetGold ? ' and took 1 gold token' : ''}.`,
             );
@@ -1053,10 +1088,6 @@ export const useGameStore = create<GameState>()(
           'game.commitCard',
         );
 
-        const playerLabel = getPlayerLabel(
-          get().currentPlayerIndex,
-          get().aiPlayerTypes,
-        );
         const tokenDetails = formatTokenSummary(tokensSpent);
         logAction(
           `${playerLabel} bought a level ${cardToCommit.level} card for ${tokenDetails || 'free (using gems only)'}.`,
@@ -1069,6 +1100,13 @@ export const useGameStore = create<GameState>()(
           get().currentPlayerIndex,
           get().aiPlayerTypes,
         );
+        if (get().needToReturnTokens) {
+          logAction(
+            `${playerLabel} could not reserve from deck before returning excess tokens.`,
+          );
+          return false;
+        }
+
         if (get().pickedCard !== null) {
           logAction(
             `${playerLabel} could not reserve from deck while a card is already picked.`,
@@ -1156,12 +1194,20 @@ export const useGameStore = create<GameState>()(
       pickCard: (card) => {
         if (get().pickedCard) return;
 
-        // Cannot pick a card when tokens have already been picked this turn
-        const { pickedTokens } = get();
         const playerLabel = getPlayerLabel(
           get().currentPlayerIndex,
           get().aiPlayerTypes,
         );
+
+        if (get().needToReturnTokens) {
+          logAction(
+            `${playerLabel} could not pick a card before returning excess tokens.`,
+          );
+          return;
+        }
+
+        // Cannot pick a card when tokens have already been picked this turn
+        const { pickedTokens } = get();
         const hasPickedTokens = Object.values(pickedTokens).some(
           (count) => count > 0,
         );

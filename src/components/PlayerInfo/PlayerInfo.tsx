@@ -13,6 +13,7 @@ interface Props {
   aiName?: string;
   onReservedCardClick: (index: number) => void;
   pendingReservedCardIndex?: number | null;
+  disableReservedCardClicks?: boolean;
 }
 
 export const PlayerInfo: FC<Props> = ({
@@ -21,6 +22,7 @@ export const PlayerInfo: FC<Props> = ({
   aiName,
   onReservedCardClick,
   pendingReservedCardIndex = null,
+  disableReservedCardClicks = false,
 }): JSX.Element => {
   const { getPlayerById, getCurrentPlayer } = useGameStore(
     useShallow((state) => ({
@@ -101,8 +103,11 @@ export const PlayerInfo: FC<Props> = ({
                 : undefined
             }
             onClick={
-              isCurrentPlayer ? () => onReservedCardClick(index) : undefined
+              isCurrentPlayer && !disableReservedCardClicks
+                ? () => onReservedCardClick(index)
+                : undefined
             }
+            disabled={!isCurrentPlayer || disableReservedCardClicks}
           />
         ))}
       </div>

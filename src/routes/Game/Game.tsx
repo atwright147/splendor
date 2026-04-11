@@ -25,6 +25,7 @@ export const Game: FC = (): JSX.Element | null => {
     board,
     canEndTurn,
     commitCard,
+    canAffordCard,
     endTurn,
     finishTurn,
     pickedCard,
@@ -33,6 +34,7 @@ export const Game: FC = (): JSX.Element | null => {
     reserveToken,
     reserveFromDeck,
     deck,
+    needToReturnTokens,
     needsNobleCheck,
     isForcedPass,
     isGameOver,
@@ -46,12 +48,14 @@ export const Game: FC = (): JSX.Element | null => {
     useShallow((state) => ({
       board: state.board,
       commitCard: state.commitCard,
+      canAffordCard: state.canAffordCard,
       pickedCard: state.pickedCard,
       players: state.players,
       reserveCard: state.pickCard,
       reserveToken: state.pickToken,
       reserveFromDeck: state.reserveFromDeck,
       deck: state.deck,
+      needToReturnTokens: state.needToReturnTokens,
       canEndTurn: state.canEndTurn,
       endTurn: state.endTurn,
       finishTurn: state.finishTurn,
@@ -77,6 +81,12 @@ export const Game: FC = (): JSX.Element | null => {
   }, [needsNobleCheck]);
 
   useEffect(() => {
+    if (needToReturnTokens) {
+      setPendingReservedCardIndex(null);
+    }
+  }, [needToReturnTokens]);
+
+  useEffect(() => {
     if (isGameOver) return;
     if (!aiPlayerIndices.includes(currentPlayerIndex)) return;
 
@@ -98,6 +108,9 @@ export const Game: FC = (): JSX.Element | null => {
   }
 
   const handleCardClick = (card: CardType): void => {
+    if (needToReturnTokens) {
+      return;
+    }
     reserveCard(card);
   };
 
@@ -106,6 +119,9 @@ export const Game: FC = (): JSX.Element | null => {
   };
 
   const handleReserveFromDeck = (level: 1 | 2 | 3): void => {
+    if (needToReturnTokens) {
+      return;
+    }
     const success = reserveFromDeck(level);
     if (!success) return;
     if (!useGameStore.getState().needToReturnTokens) {
@@ -120,13 +136,14 @@ export const Game: FC = (): JSX.Element | null => {
   };
 
   const handleReservedCardPurchase = (index: number): void => {
-    if (pickedCard !== null) {
+    if (pickedCard !== null || needToReturnTokens) {
       return;
     }
     setPendingReservedCardIndex(index);
   };
 
   const handleConfirmReservedPurchase = (): void => {
+    if (needToReturnTokens) return;
     if (pendingReservedCardIndex === null) return;
     const purchased = commitCard(pendingReservedCardIndex);
     setPendingReservedCardIndex(null);
@@ -148,7 +165,9 @@ export const Game: FC = (): JSX.Element | null => {
   const getEndTurnLabel = (): string => {
     if (isForcedPass()) return 'Pass';
     if (pickedCard?.intent === 'reserve') return 'Reserve Card';
-    if (pickedCard?.intent === 'buy') return 'Buy Card';
+    if (pickedCard?.intent === 'buy') {
+      return canAffordCard(pickedCard.card) ? 'Buy Card' : 'Reserve Card';
+    }
     return 'End Turn';
   };
 
@@ -157,7 +176,12 @@ export const Game: FC = (): JSX.Element | null => {
     level: 1 | 2 | 3,
   ): JSX.Element[] => {
     const elements: JSX.Element[] = cards.map((card) => (
-      <Card card={card} onClick={() => handleCardClick(card)} key={card.id} />
+      <Card
+        card={card}
+        onClick={needToReturnTokens ? undefined : () => handleCardClick(card)}
+        disabled={needToReturnTokens}
+        key={card.id}
+      />
     ));
     if (pickedCard?.card.level === level) {
       elements.splice(
@@ -190,6 +214,7 @@ export const Game: FC = (): JSX.Element | null => {
               aiName={aiPlayerTypes[index]}
               onReservedCardClick={handleReservedCardPurchase}
               pendingReservedCardIndex={pendingReservedCardIndex}
+              disableReservedCardClicks={needToReturnTokens}
             />
           ))}
         </div>
@@ -198,20 +223,35 @@ export const Game: FC = (): JSX.Element | null => {
           <CardBack
             color="green"
             level={3}
-            onClick={() => handleReserveFromDeck(3)}
-            disabled={deck.filter((c) => c.level === 3).length === 0}
+            onClick={
+              needToReturnTokens ? undefined : () => handleReserveFromDeck(3)
+            }
+            disabled={
+              needToReturnTokens ||
+              deck.filter((c) => c.level === 3).length === 0
+            }
           />
           <CardBack
             color="yellow"
             level={2}
-            onClick={() => handleReserveFromDeck(2)}
-            disabled={deck.filter((c) => c.level === 2).length === 0}
+            onClick={
+              needToReturnTokens ? undefined : () => handleReserveFromDeck(2)
+            }
+            disabled={
+              needToReturnTokens ||
+              deck.filter((c) => c.level === 2).length === 0
+            }
           />
           <CardBack
             color="blue"
             level={1}
-            onClick={() => handleReserveFromDeck(1)}
-            disabled={deck.filter((c) => c.level === 1).length === 0}
+            onClick={
+              needToReturnTokens ? undefined : () => handleReserveFromDeck(1)
+            }
+            disabled={
+              needToReturnTokens ||
+              deck.filter((c) => c.level === 1).length === 0
+            }
           />
         </div>
 
@@ -270,6 +310,7 @@ export const Game: FC = (): JSX.Element | null => {
                 type="button"
                 className={styles.endTurnButton}
                 onClick={handleConfirmReservedPurchase}
+                disabled={needToReturnTokens}
               >
                 Confirm
               </button>
