@@ -26,7 +26,7 @@ body {
 }
 
 .cards {
-  --size: 200px;
+  --size: 8.5rem;
   display: grid;
   grid-template-columns: repeat(4, minmax(var(--size), 1fr));
   grid-area: cards;

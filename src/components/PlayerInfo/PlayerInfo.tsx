@@ -79,11 +79,11 @@ export const PlayerInfo: FC<Props> = ({
           <div className={styles.gem}>{player.tokens.gold}</div>
         </div>
         <div className={styles.info}>
-          <div className={classNames(styles.item, styles.totalTokens)}>
-            <div>Total Tokens: {tokenCount}</div>
+          <div className={classNames(styles.meta, styles.totalTokens)}>
+            <div>Tokens: {tokenCount}</div>
           </div>
 
-          <div className={classNames(styles.item, styles.prestige)}>
+          <div className={classNames(styles.meta, styles.prestige)}>
             <div>Prestige: {player.prestige}</div>
           </div>
         </div>

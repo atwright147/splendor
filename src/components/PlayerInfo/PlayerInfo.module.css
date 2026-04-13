@@ -19,7 +19,13 @@
   align-items: center;
   gap: 0.5rem;
   justify-content: center;
-  width: 75px;
+  padding: 0.5rem;
+}
+
+.meta {
+  font-size: 0.75rem;
+  font-weight: bold;
+  padding: 0.5rem;
 }
 
 .card {
@@ -32,6 +38,7 @@
   border-radius: 5px;
 }
 
+/* #region Colors */
 .black {
   background-color: black;
 }
@@ -72,6 +79,7 @@
 .blue {
   color: white;
 }
+/*#endregion*/
 
 .info {
   box-sizing: border-box;
@@ -84,7 +92,7 @@
 
 .totalTokens,
 .prestige {
-  padding: 0 1rem;
+  /* padding: 0.5rem; */
   white-space: nowrap;
 }
 

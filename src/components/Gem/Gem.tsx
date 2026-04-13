@@ -27,7 +27,7 @@ export const Gem: FC<Props> = ({
       <div
         // biome-ignore lint/suspicious/noExplicitAny: fix later :/
         className={classNames(styles.gem, styles[color as any])}
-        style={{ width: `${width}px` }}
+        // style={{ width: `${width}px` }}
       >
         <div className={styles.quantity}>{showQuantity && quantity}</div>
       </div>

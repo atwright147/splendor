@@ -42,7 +42,7 @@ export const Card: FC<Props> = (props): JSX.Element | null => {
 
   return (
     <UnstyledButton
-      style={{ width: `${width}px` }}
+      // style={{ width: `${width}px` }}
       className={classnames(className, styles.card, {
         [styles.affordable]: canAffordCard(card),
       })}
@@ -53,7 +53,7 @@ export const Card: FC<Props> = (props): JSX.Element | null => {
     >
       <div className={styles.content}>
         <div className={styles.top}>
-          <Gem color={card.gem} showQuantity={false} width={width / 4} />
+          <Gem color={card.gem} showQuantity={false} />
           <span className={styles.prestige}>{card.prestige}</span>
         </div>
 
@@ -63,7 +63,7 @@ export const Card: FC<Props> = (props): JSX.Element | null => {
               key={color}
               color={color as GemColors}
               quantity={quantity}
-              width={width / 5}
+              // width={width / 5}
             />
           ))}
         </div>
